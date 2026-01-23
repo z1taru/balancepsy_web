@@ -21,17 +21,16 @@ class _ContactsPatientPageState extends State<ContactsPatientPage> {
 
   @override
   Widget build(BuildContext ctx) {
-    return PageWrapper(
-      currentRoute: AppRouter.contactsPatient,
-      showHeader: false,
-      showFooter: false,
-      child: Row(
+    return Scaffold(
+      body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Боковое меню - используем виджет
-          PatientBar(currentRoute: AppRouter.contactsPatient),
-          
-          // Основной контент
+          // Фиксированный сайдбар, который не скролится
+          Container(
+            width: 280,
+            child: PatientBar(currentRoute: AppRouter.contactsPatient),
+          ),
+          // Основной контент с возможностью скролла
           Expanded(
             child: SingleChildScrollView(
               child: Container(

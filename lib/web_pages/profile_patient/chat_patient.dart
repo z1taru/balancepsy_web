@@ -113,14 +113,16 @@ class _ChatPatientPageState extends State<ChatPatientPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PageWrapper(
-      currentRoute: AppRouter.chatPatient,
-      showHeader: false,
-      showFooter: false,
-      child: Row(
+    return Scaffold(
+      body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PatientBar(currentRoute: AppRouter.chatPatient),
+          // Фиксированный сайдбар, который не скролится
+          Container(
+            width: 280,
+            child: PatientBar(currentRoute: AppRouter.chatPatient),
+          ),
+          // Основной контент с возможностью скролла
           Expanded(
             child: Container(
               margin: const EdgeInsets.all(20),

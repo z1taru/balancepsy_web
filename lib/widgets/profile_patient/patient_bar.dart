@@ -42,7 +42,7 @@ class PatientBar extends StatelessWidget {
 
   Widget _buildLogo(BuildContext context) {
     return InkWell(
-      onTap: () => _navigateTo(context, AppRouter.home),
+      onTap: () => _navigateTo(context, AppRouter.dashboard),
       child: Container(
         padding: const EdgeInsets.all(24),
         child: Row(
@@ -125,7 +125,7 @@ class PatientBar extends StatelessWidget {
         icon: Icons.article_outlined,
         activeIcon: Icons.article,
         label: 'Статьи',
-        route: AppRouter.blog,
+        route: AppRouter.patientArticles,
       ),
       _MenuItem(
         icon: Icons.chat_outlined,
@@ -236,7 +236,6 @@ class PatientBar extends StatelessWidget {
     _navigateTo(context, route);
   }
 
-  // Добавлен недостающий метод
   void _navigateTo(BuildContext context, String route) {
     Navigator.pushNamed(context, route);
   }

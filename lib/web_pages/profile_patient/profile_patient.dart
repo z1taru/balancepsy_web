@@ -76,15 +76,16 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
 
   @override
   Widget build(BuildContext ctx) {
-    return PageWrapper(
-      currentRoute: AppRouter.profile,
-      showHeader: false,
-      showFooter: false,
-      child: Row(
+    return Scaffold(
+      body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PatientBar(currentRoute: AppRouter.profile),
-          
+          // Фиксированный сайдбар, который не скролится
+          Container(
+            width: 280,
+            child: PatientBar(currentRoute: AppRouter.profile),
+          ),
+          // Основной контент с возможностью скролла
           Expanded(
             child: SingleChildScrollView(
               child: Container(

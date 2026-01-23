@@ -1,11 +1,10 @@
-// lib/web_pages/blog/blog_patient.dart
+// lib/web_pages/profile_patient/blog_patient.dart
 
 import 'package:flutter/material.dart';
-import '../../../widgets/page_wrapper.dart';
-import '../../../theme/app_text_styles.dart';
-import '../../../theme/app_colors.dart';
-import '../../../сore/router/app_router.dart';
-import '../../../widgets/profile_patient/patient_bar.dart';
+import '../../widgets/profile_patient/patient_bar.dart';
+import '../../theme/app_text_styles.dart';
+import '../../theme/app_colors.dart';
+import '../../сore/router/app_router.dart';
 
 class BlogPatientPage extends StatefulWidget {
   const BlogPatientPage({super.key});
@@ -19,14 +18,14 @@ class _BlogPatientPageState extends State<BlogPatientPage> {
 
   @override
   Widget build(BuildContext ctx) {
-    return PageWrapper(
-      currentRoute: AppRouter.blog,
-      showHeader: false,
-      showFooter: false,
-      child: Row(
+    return Scaffold(
+      body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PatientBar(currentRoute: AppRouter.blog),
+          Container(
+            width: 280,
+            child: PatientBar(currentRoute: AppRouter.patientArticles),
+          ),
           Expanded(
             child: SingleChildScrollView(
               child: Container(
@@ -255,15 +254,31 @@ class _BlogPatientPageState extends State<BlogPatientPage> {
     );
   }
 
-  // БЕЗ АНИМАЦИИ — ПРЯМОЙ ПЕРЕХОД
   void _openArticleReader(BuildContext ctx, Map<String, dynamic> article) {
     Navigator.push(
       ctx,
-      MaterialPageRoute(builder: (_) => ArticleReaderPage(article: article)),
+      PageRouteBuilder(
+        pageBuilder: (context, animation1, animation2) {
+          return Scaffold(
+            body: Row(
+              children: [
+                Container(
+                  width: 280,
+                  child: PatientBar(currentRoute: AppRouter.patientArticles),
+                ),
+                Expanded(
+                  child: ArticleReaderPage(article: article),
+                ),
+              ],
+            ),
+          );
+        },
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+      ),
     );
   }
 
-  // ВСЕ 18 СТАТЕЙ — ПОЛНЫЙ ТЕКСТ + ПРАВИЛЬНЫЕ ПУТИ
   List<Map<String, dynamic>> _getAllArticles() {
     return [
       {
@@ -840,7 +855,6 @@ Google изучил 180 команд: психологическая безоп�
   }
 }
 
-// СТРАНИЦА ЧТЕНИЯ — ПОЛНЫЙ ТЕКСТ, БЕЗ АНИМАЦИИ
 class ArticleReaderPage extends StatefulWidget {
   final Map<String, dynamic> article;
   const ArticleReaderPage({super.key, required this.article});
@@ -875,83 +889,74 @@ class _ArticleReaderPageState extends State<ArticleReaderPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Row(
-        children: [
-          PatientBar(currentRoute: AppRouter.blog),
-          Expanded(
-            child: Column(
-              children: [
-                SizedBox(height: 6, child: LinearProgressIndicator(value: _readingProgress, backgroundColor: AppColors.inputBackground, valueColor: AlwaysStoppedAnimation(widget.article['color'] as Color))),
-                Expanded(
-                  child: SingleChildScrollView(
-                    controller: _scrollController,
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 1000),
-                      margin: const EdgeInsets.symmetric(horizontal: 60, vertical: 32),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(40),
-                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: AppColors.shadow.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 4))]),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), decoration: BoxDecoration(color: (widget.article['color'] as Color).withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Text(widget.article['category'] as String, style: AppTextStyles.body1.copyWith(color: widget.article['color'] as Color, fontWeight: FontWeight.w700, fontSize: 14))),
-                                const SizedBox(height: 20),
-                                Text(widget.article['title'] as String, style: AppTextStyles.h1.copyWith(fontWeight: FontWeight.w700, height: 1.2, fontSize: 38)),
-                                const SizedBox(height: 20),
-                                Row(
-                                  children: [
-                                    Icon(Icons.access_time_outlined, size: 18, color: AppColors.textSecondary),
-                                    const SizedBox(width: 8),
-                                    Text(widget.article['readTime'] as String, style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary)),
-                                    const SizedBox(width: 24),
-                                    Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textSecondary),
-                                    const SizedBox(width: 8),
-                                    Text(widget.article['date'] as String, style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary)),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          Container(
-                            padding: const EdgeInsets.all(40),
-                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: AppColors.shadow.withOpacity(0.06), blurRadius: 15, offset: const Offset(0, 4))]),
-                            child: _buildArticleContent(widget.article['content'] as String),
-                          ),
-                          const SizedBox(height: 32),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              ElevatedButton.icon(
-                                onPressed: () => Navigator.pop(context),
-                                style: ElevatedButton.styleFrom(backgroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: AppColors.inputBorder))),
-                                icon: const Icon(Icons.arrow_back, size: 18),
-                                label: Text('Назад', style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
-                              ),
-                              ElevatedButton.icon(
-                                onPressed: () => _shareArticle(context),
-                                style: ElevatedButton.styleFrom(backgroundColor: widget.article['color'] as Color, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                                icon: const Icon(Icons.share, color: Colors.white, size: 18),
-                                label: Text('Поделиться', style: AppTextStyles.body1.copyWith(color: Colors.white, fontWeight: FontWeight.w600)),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 40),
-                        ],
-                      ),
+    return Column(
+      children: [
+        SizedBox(height: 6, child: LinearProgressIndicator(value: _readingProgress, backgroundColor: AppColors.inputBackground, valueColor: AlwaysStoppedAnimation(widget.article['color'] as Color))),
+        Expanded(
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 1000),
+              margin: const EdgeInsets.symmetric(horizontal: 60, vertical: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(40),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: AppColors.shadow.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 4))]),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), decoration: BoxDecoration(color: (widget.article['color'] as Color).withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Text(widget.article['category'] as String, style: AppTextStyles.body1.copyWith(color: widget.article['color'] as Color, fontWeight: FontWeight.w700, fontSize: 14))),
+                        const SizedBox(height: 20),
+                        Text(widget.article['title'] as String, style: AppTextStyles.h1.copyWith(fontWeight: FontWeight.w700, height: 1.2, fontSize: 38)),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Icon(Icons.access_time_outlined, size: 18, color: AppColors.textSecondary),
+                            const SizedBox(width: 8),
+                            Text(widget.article['readTime'] as String, style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary)),
+                            const SizedBox(width: 24),
+                            Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textSecondary),
+                            const SizedBox(width: 8),
+                            Text(widget.article['date'] as String, style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary)),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 32),
+                  Container(
+                    padding: const EdgeInsets.all(40),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: AppColors.shadow.withOpacity(0.06), blurRadius: 15, offset: const Offset(0, 4))]),
+                    child: _buildArticleContent(widget.article['content'] as String),
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: AppColors.inputBorder))),
+                        icon: const Icon(Icons.arrow_back, size: 18),
+                        label: Text('Назад', style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () => _shareArticle(context),
+                        style: ElevatedButton.styleFrom(backgroundColor: widget.article['color'] as Color, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                        icon: const Icon(Icons.share, color: Colors.white, size: 18),
+                        label: Text('Поделиться', style: AppTextStyles.body1.copyWith(color: Colors.white, fontWeight: FontWeight.w600)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

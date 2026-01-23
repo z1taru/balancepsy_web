@@ -37,10 +37,10 @@ class Header extends StatelessWidget {
           // Логотип слева
           _buildLogo(context),
           
-          // Навигация по центру (только для десктопа)
+          // Навигация по центру (только для десктопа) - ТОЛЬКО ЛЕНДИНГ
           if (!isMobile) _buildCenterNavigation(context),
           
-          // Кнопки справа
+          // Кнопки справа - ТОЛЬКО ВХОД/РЕГИСТРАЦИЯ
           _buildActions(context, isMobile),
         ],
       ),
@@ -117,7 +117,10 @@ class Header extends StatelessWidget {
               const SizedBox(width: 8),
               _buildNavItem(context, 'Психологи', AppRouter.psychologists),
               const SizedBox(width: 8),
-              _buildNavItem(context, 'О сервисе', AppRouter.about),
+              _buildNavItem(context, 'Блог', AppRouter.blog),
+              const SizedBox(width: 8),
+
+              _buildNavItem(context, 'О нас', AppRouter.about),
               const SizedBox(width: 8),
               _buildNavItem(context, 'Контакты', AppRouter.contacts),
             ],
@@ -259,7 +262,9 @@ class Header extends StatelessWidget {
             const SizedBox(height: 24),
             _buildMobileNavItem(context, 'Главная', AppRouter.home, Icons.home),
             _buildMobileNavItem(context, 'Психологи', AppRouter.psychologists, Icons.psychology),
-            _buildMobileNavItem(context, 'О сервисе', AppRouter.about, Icons.info),
+            _buildMobileNavItem(context, 'Блог', AppRouter.blog, Icons.article),
+
+            _buildMobileNavItem(context, 'О нас', AppRouter.about, Icons.info),
             _buildMobileNavItem(context, 'Контакты', AppRouter.contacts, Icons.contact_page),
             const SizedBox(height: 24),
             const Divider(),

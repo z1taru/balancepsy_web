@@ -1,14 +1,13 @@
 // lib/web_pages/profile_patient/home_patient.dart
 
 import 'package:flutter/material.dart';
-import '../../widgets/page_wrapper.dart';
 import '../../widgets/profile_patient/patient_bar.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_colors.dart';
 import '../../сore/router/app_router.dart';
-import 'mood_assessment.dart';
-import 'blog_patient.dart';
-import 'sessions_calendar.dart';
+
+// УДАЛЯЕМ импорт SessionsCalendarPage отсюда - он уже в app_router.dart
+// import 'sessions_calendar.dart';
 
 class HomePatientPage extends StatelessWidget {
   const HomePatientPage({super.key});
@@ -187,14 +186,16 @@ Mindfulness — это осознанное пребывание в настоя
 
   @override
   Widget build(BuildContext context) {
-    return PageWrapper(
-      currentRoute: AppRouter.dashboard,
-      showHeader: false,
-      showFooter: false,
-      child: Row(
+    return Scaffold(
+      body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PatientBar(currentRoute: AppRouter.dashboard),
+          // Фиксированный сайдбар, который не скролится
+          Container(
+            width: 280,
+            child: PatientBar(currentRoute: AppRouter.dashboard),
+          ),
+          // Основной контент с возможностью скролла
           Expanded(
             child: SingleChildScrollView(
               child: Container(
@@ -500,32 +501,18 @@ Mindfulness — это осознанное пребывание в настоя
 
   // === КАЛЕНДАРЬ ===
   void _showSessionsCalendar(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const SessionsCalendarPage(),
-    ).then((selectedDate) {
-      if (selectedDate != null && selectedDate is DateTime) {
-        final months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Вы выбрали: ${selectedDate.day} ${months[selectedDate.month - 1]} ${selectedDate.year}'),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    });
+    // Используем навигацию через AppRouter вместо прямого импорта
+    AppRouter.navigateTo(context, AppRouter.sessionsCalendar);
   }
 
-  void _showComingSoon(BuildContext? context, String feature) {
-    if (context != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$feature - скоро будет доступно'),
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
+  void _showComingSoon(BuildContext context, String feature) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$feature - скоро будет доступно'),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   // === БЛИЖАЙШИЕ СЕССИИ ===
@@ -1034,9 +1021,9 @@ Mindfulness — это осознанное пребывание в настоя
               children: [
                 Text('Выберите удобный способ связи:', style: AppTextStyles.body1),
                 const SizedBox(height: 16),
-                _buildContactMethod('Email', 'support@balancepsy.ru', Icons.email),
-                _buildContactMethod('Телефон', '+7 (999) 123-45-67', Icons.phone),
-                _buildContactMethod('Telegram', '@balancepsy_support', Icons.send),
+                _buildContactMethod('Email', 'support@balancepsy.ru', Icons.email, context),
+                _buildContactMethod('Телефон', '+7 (999) 123-45-67', Icons.phone, context),
+                _buildContactMethod('Telegram', '@balancepsy_support', Icons.send, context),
               ],
             ),
           ),
@@ -1046,14 +1033,14 @@ Mindfulness — это осознанное пребывание в настоя
     );
   }
 
-  Widget _buildContactMethod(String method, String contact, IconData icon) {
+  Widget _buildContactMethod(String method, String contact, IconData icon, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
         color: AppColors.primary.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
-          onTap: () => _showComingSoon(null, 'Контакт: $method'),
+          onTap: () => _showComingSoon(context, 'Контакт: $method'),
           borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.all(16),
@@ -1081,7 +1068,9 @@ Mindfulness — это осознанное пребывание в настоя
           children: [
             Text('Рекомендуемые статьи', style: AppTextStyles.h3),
             TextButton(
-              onPressed: () => Navigator.pushNamed(context, AppRouter.blog),
+              onPressed: () {
+                AppRouter.navigateTo(context, AppRouter.patientArticles);
+              },
               child: Text('Смотреть все', style: AppTextStyles.body2.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
             ),
           ],
@@ -1092,17 +1081,40 @@ Mindfulness — это осознанное пребывание в настоя
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, childAspectRatio: 0.8, mainAxisSpacing: 24, crossAxisSpacing: 24),
           itemCount: articles.length,
-          itemBuilder: (context, index) => _buildArticleCard(articles[index]),
+          itemBuilder: (context, index) => _buildArticleCard(articles[index], context),
         ),
       ],
     );
   }
 
-  Widget _buildArticleCard(Map<String, dynamic> article) {
+  Widget _buildArticleCard(Map<String, dynamic> article, BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {},
+        onTap: () {
+          Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation1, animation2) {
+                return Scaffold(
+                  body: Row(
+                    children: [
+                      Container(
+                        width: 280,
+                        child: PatientBar(currentRoute: AppRouter.patientArticles),
+                      ),
+                      Expanded(
+                        child: ArticleReaderPage(article: article),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
+        },
         borderRadius: BorderRadius.circular(20),
         child: Container(
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: AppColors.shadow.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 4))]),
@@ -1135,6 +1147,202 @@ Mindfulness — это осознанное пребывание в настоя
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// Класс для модели настроения
+class MoodModel {
+  final String id;
+  final String name;
+  final String emoji;
+  final String imagePath;
+  final String description;
+  final Color color;
+
+  MoodModel({
+    required this.id,
+    required this.name,
+    required this.emoji,
+    required this.imagePath,
+    required this.description,
+    required this.color,
+  });
+}
+
+// Класс для страницы чтения статьи (добавляем в конец файла)
+class ArticleReaderPage extends StatefulWidget {
+  final Map<String, dynamic> article;
+  const ArticleReaderPage({super.key, required this.article});
+
+  @override
+  State<ArticleReaderPage> createState() => _ArticleReaderPageState();
+}
+
+class _ArticleReaderPageState extends State<ArticleReaderPage> {
+  final ScrollController _scrollController = ScrollController();
+  double _readingProgress = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_updateProgress);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _updateProgress() {
+    if (_scrollController.hasClients) {
+      final max = _scrollController.position.maxScrollExtent;
+      final current = _scrollController.position.pixels;
+      setState(() => _readingProgress = (current / max).clamp(0.0, 1.0));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(height: 6, child: LinearProgressIndicator(value: _readingProgress, backgroundColor: AppColors.inputBackground, valueColor: AlwaysStoppedAnimation(widget.article['color'] as Color))),
+        Expanded(
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 1000),
+              margin: const EdgeInsets.symmetric(horizontal: 60, vertical: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(40),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: AppColors.shadow.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 4))]),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), decoration: BoxDecoration(color: (widget.article['color'] as Color).withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Text(widget.article['category'] as String, style: AppTextStyles.body1.copyWith(color: widget.article['color'] as Color, fontWeight: FontWeight.w700, fontSize: 14))),
+                        const SizedBox(height: 20),
+                        Text(widget.article['title'] as String, style: AppTextStyles.h1.copyWith(fontWeight: FontWeight.w700, height: 1.2, fontSize: 38)),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Icon(Icons.access_time_outlined, size: 18, color: AppColors.textSecondary),
+                            const SizedBox(width: 8),
+                            Text(widget.article['readTime'] as String, style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary)),
+                            const SizedBox(width: 24),
+                            Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textSecondary),
+                            const SizedBox(width: 8),
+                            Text(widget.article['date'] as String, style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Container(
+                    padding: const EdgeInsets.all(40),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: AppColors.shadow.withOpacity(0.06), blurRadius: 15, offset: const Offset(0, 4))]),
+                    child: _buildArticleContent(widget.article['content'] as String),
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: AppColors.inputBorder))),
+                        icon: const Icon(Icons.arrow_back, size: 18),
+                        label: Text('Назад', style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () => _shareArticle(context),
+                        style: ElevatedButton.styleFrom(backgroundColor: widget.article['color'] as Color, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                        icon: const Icon(Icons.share, color: Colors.white, size: 18),
+                        label: Text('Поделиться', style: AppTextStyles.body1.copyWith(color: Colors.white, fontWeight: FontWeight.w600)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildArticleContent(String content) {
+    final lines = content.split('\n');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: lines.map((line) {
+        if (line.startsWith('# ')) {
+          return Padding(padding: const EdgeInsets.only(top: 28, bottom: 14), child: Text(line.substring(2), style: AppTextStyles.h1.copyWith(fontSize: 30, fontWeight: FontWeight.w700, color: AppColors.textPrimary)));
+        } else if (line.startsWith('## ')) {
+          return Padding(padding: const EdgeInsets.only(top: 22, bottom: 10), child: Text(line.substring(3), style: AppTextStyles.h2.copyWith(fontSize: 22, fontWeight: FontWeight.w600, color: AppColors.textPrimary)));
+        } else if (line.startsWith('### ')) {
+          return Padding(padding: const EdgeInsets.only(top: 18, bottom: 8), child: Text(line.substring(4), style: AppTextStyles.h3.copyWith(fontSize: 19, fontWeight: FontWeight.w600, color: AppColors.textPrimary)));
+        } else if (line.startsWith('- ')) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(padding: const EdgeInsets.only(top: 7, right: 10), child: Container(width: 5, height: 5, decoration: BoxDecoration(color: widget.article['color'] as Color, shape: BoxShape.circle))),
+                Expanded(child: Text(line.substring(2), style: AppTextStyles.body1.copyWith(fontSize: 15.5, height: 1.55, color: AppColors.textPrimary))),
+              ],
+            ),
+          );
+        } else if (line.trim().isEmpty) {
+          return const SizedBox(height: 14);
+        } else if (line.startsWith('> ')) {
+          return Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(line.substring(2), style: AppTextStyles.body1.copyWith(fontSize: 16, height: 1.6, fontStyle: FontStyle.italic, color: AppColors.textSecondary)));
+        } else {
+          return Padding(padding: const EdgeInsets.symmetric(vertical: 7), child: Text(line, style: AppTextStyles.body1.copyWith(fontSize: 15.5, height: 1.55, color: AppColors.textPrimary)));
+        }
+      }).toList(),
+    );
+  }
+
+  void _shareArticle(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Поделиться статьей', style: AppTextStyles.h2),
+        content: Text('Ссылка скопирована в буфер обмена!', style: AppTextStyles.body1),
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('Закрыть', style: AppTextStyles.body1.copyWith(color: AppColors.primary)))],
+      ),
+    );
+  }
+}
+
+// Импорт для MoodAssessmentPage - нужно создать отдельный файл или оставить заглушку
+class MoodAssessmentPage extends StatelessWidget {
+  const MoodAssessmentPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.8,
+      padding: const EdgeInsets.all(24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      child: Center(
+        child: Text(
+          'Оценка настроения',
+          style: AppTextStyles.h2,
         ),
       ),
     );
