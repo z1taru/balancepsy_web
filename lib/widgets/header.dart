@@ -7,10 +7,7 @@ import '../../../theme/app_text_styles.dart';
 class Header extends StatelessWidget {
   final String currentRoute;
 
-  const Header({
-    super.key,
-    required this.currentRoute,
-  });
+  const Header({super.key, required this.currentRoute});
 
   @override
   Widget build(BuildContext context) {
@@ -18,84 +15,89 @@ class Header extends StatelessWidget {
     final isMobile = width < 768;
 
     return Container(
-      height: 70,
-      margin: const EdgeInsets.only(top: 16, left: 16, right: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(35),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+      color: Colors.white,
+      child: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 1120),
+          height: 70,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(35),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Логотип слева
-          _buildLogo(context),
-          
-          // Навигация по центру (только для десктопа) - ТОЛЬКО ЛЕНДИНГ
-          if (!isMobile) _buildCenterNavigation(context),
-          
-          // Кнопки справа - ТОЛЬКО ВХОД/РЕГИСТРАЦИЯ
-          _buildActions(context, isMobile),
-        ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildLogo(context),
+                if (!isMobile) _buildCenterNavigation(context),
+                _buildActions(context, isMobile),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildLogo(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20),
-      child: GestureDetector(
-        onTap: () {
-          if (currentRoute != AppRouter.home) {
-            Navigator.pushNamedAndRemoveUntil(
-              context,
-              AppRouter.home,
-              (route) => false,
-            );
-          }
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.psychology, color: Colors.white, size: 18),
+    return GestureDetector(
+      onTap: () {
+        if (currentRoute != AppRouter.home) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRouter.home,
+            (route) => false,
+          );
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(10),
               ),
-              const SizedBox(width: 8),
-              Text(
-                'Balance',
-                style: AppTextStyles.h3.copyWith(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
+              child: const Icon(
+                Icons.psychology,
+                color: Colors.white,
+                size: 18,
               ),
-              Text(
-                'Psy',
-                style: AppTextStyles.h3.copyWith(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
-                ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Balance',
+              style: AppTextStyles.h3.copyWith(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
               ),
-            ],
-          ),
+            ),
+            Text(
+              'Psy',
+              style: AppTextStyles.h3.copyWith(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -117,10 +119,7 @@ class Header extends StatelessWidget {
               const SizedBox(width: 8),
               _buildNavItem(context, 'Психологи', AppRouter.psychologists),
               const SizedBox(width: 8),
-              _buildNavItem(context, 'Блог', AppRouter.blog),
-              const SizedBox(width: 8),
-
-              _buildNavItem(context, 'О нас', AppRouter.about),
+              _buildNavItem(context, 'О сервисе', AppRouter.about),
               const SizedBox(width: 8),
               _buildNavItem(context, 'Контакты', AppRouter.contacts),
             ],
@@ -132,15 +131,11 @@ class Header extends StatelessWidget {
 
   Widget _buildNavItem(BuildContext context, String title, String route) {
     final isActive = currentRoute == route;
-    
+
     return GestureDetector(
       onTap: () {
         if (currentRoute != route) {
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            route,
-            (route) => false,
-          );
+          Navigator.pushNamedAndRemoveUntil(context, route, (route) => false);
         }
       },
       child: Container(
@@ -163,8 +158,8 @@ class Header extends StatelessWidget {
 
   Widget _buildActions(BuildContext context, bool isMobile) {
     return Padding(
-      padding: const EdgeInsets.only(right: 20),
-      child: isMobile 
+      padding: EdgeInsets.zero,
+      child: isMobile
           ? _buildMobileMenuButton(context)
           : _buildDesktopActions(context),
     );
@@ -183,9 +178,7 @@ class Header extends StatelessWidget {
           Container(
             height: 36,
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-            ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(18)),
             child: TextButton(
               onPressed: () => Navigator.pushNamed(context, AppRouter.login),
               child: Text(
@@ -261,11 +254,24 @@ class Header extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             _buildMobileNavItem(context, 'Главная', AppRouter.home, Icons.home),
-            _buildMobileNavItem(context, 'Психологи', AppRouter.psychologists, Icons.psychology),
-            _buildMobileNavItem(context, 'Блог', AppRouter.blog, Icons.article),
-
-            _buildMobileNavItem(context, 'О нас', AppRouter.about, Icons.info),
-            _buildMobileNavItem(context, 'Контакты', AppRouter.contacts, Icons.contact_page),
+            _buildMobileNavItem(
+              context,
+              'Психологи',
+              AppRouter.psychologists,
+              Icons.psychology,
+            ),
+            _buildMobileNavItem(
+              context,
+              'О сервисе',
+              AppRouter.about,
+              Icons.info,
+            ),
+            _buildMobileNavItem(
+              context,
+              'Контакты',
+              AppRouter.contacts,
+              Icons.contact_page,
+            ),
             const SizedBox(height: 24),
             const Divider(),
             const SizedBox(height: 16),
@@ -317,7 +323,12 @@ class Header extends StatelessWidget {
     );
   }
 
-  Widget _buildMobileNavItem(BuildContext context, String title, String route, IconData icon) {
+  Widget _buildMobileNavItem(
+    BuildContext context,
+    String title,
+    String route,
+    IconData icon,
+  ) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon, color: AppColors.primary, size: 20),
@@ -331,11 +342,7 @@ class Header extends StatelessWidget {
       onTap: () {
         Navigator.pop(context);
         if (currentRoute != route) {
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            route,
-            (route) => false,
-          );
+          Navigator.pushNamedAndRemoveUntil(context, route, (route) => false);
         }
       },
     );

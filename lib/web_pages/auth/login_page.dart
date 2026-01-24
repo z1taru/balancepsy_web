@@ -1,10 +1,10 @@
 // lib/web_pages/auth/login_page.dart
-
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/custom_button.dart';
 import '../../сore/router/app_router.dart';
+import '../../сore/services/auth_api_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,10 +14,15 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _authService = AuthApiService();
+  
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -30,12 +35,35 @@ class _LoginPageState extends State<LoginPage> {
       _emailController.text.contains('@') &&
       _passwordController.text.length >= 6;
 
-  void _loginAsPatient() {
-    Navigator.pushReplacementNamed(context, AppRouter.dashboard);
-  }
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
 
-  void _loginAsPsychologist() {
-    Navigator.pushReplacementNamed(context, AppRouter.psychoDashboard);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await _authService.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (response['success'] == true && mounted) {
+        // Успешный вход
+        Navigator.pushReplacementNamed(context, AppRouter.dashboard);
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -43,123 +71,92 @@ class _LoginPageState extends State<LoginPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 768;
 
+    if (isMobile) {
+      return _buildMobileLayout();
+    }
+
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      body: isMobile
-          ? _buildMobileLayout()
-          : _buildDesktopLayout(),
-    );
-  }
-
-  Widget _buildMobileLayout() {
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: _buildLoginForm(isMobile: true),
+      body: Row(
+        children: [
+          Expanded(flex: 5, child: _buildLoginForm()),
+          Expanded(flex: 4, child: _buildIllustrationSide()),
+        ],
       ),
     );
   }
 
-  Widget _buildDesktopLayout() {
-    return Row(
-      children: [
-        Expanded(
-          flex: 5,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: const EdgeInsets.all(40),
-                      child: _buildLoginForm(isMobile: false),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
+  Widget _buildMobileLayout() {
+    return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: _buildLoginForm(),
         ),
-        Expanded(
-          flex: 4,
-          child: _buildIllustrationSide(),
-        ),
-      ],
+      ),
     );
   }
 
-  Widget _buildLoginForm({required bool isMobile}) {
+  Widget _buildLoginForm() {
     return Container(
-      constraints: const BoxConstraints(maxWidth: 500),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildLogo(),
-          const SizedBox(height: 32),
-          Text('Вход в аккаунт', style: AppTextStyles.h1),
-          const SizedBox(height: 12),
-          Text(
-            'Выберите тип аккаунта для входа',
-            style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 32),
-          _buildEmailField(),
-          const SizedBox(height: 20),
-          _buildPasswordField(),
-          const SizedBox(height: 16),
-          _buildRememberAndForgot(),
-          const SizedBox(height: 28),
-          // Кнопка входа для пациентов
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: CustomButton(
-              text: 'Войти как клиент',
-              onPressed: _canLogin ? _loginAsPatient : null,
-              isPrimary: true,
-              isFullWidth: true,
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Кнопка входа для психологов
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: OutlinedButton(
-              onPressed: _canLogin ? _loginAsPsychologist : null,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary, width: 2),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+      padding: const EdgeInsets.all(60),
+      child: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildLogo(),
+                const SizedBox(height: 48),
+                Text('Вход в аккаунт', style: AppTextStyles.h1),
+                const SizedBox(height: 12),
+                Text(
+                  'Рады видеть вас снова!',
+                  style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
                 ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.psychology_outlined, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Войти как психолог',
-                    style: AppTextStyles.button.copyWith(
-                      color: AppColors.primary,
+                const SizedBox(height: 40),
+                
+                // Сообщение об ошибке
+                if (_errorMessage != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.error),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline, color: AppColors.error, size: 20),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: AppTextStyles.body2.copyWith(color: AppColors.error),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  const SizedBox(height: 24),
                 ],
-              ),
+                
+                _buildEmailField(),
+                const SizedBox(height: 24),
+                _buildPasswordField(),
+                const SizedBox(height: 16),
+                _buildRememberAndForgot(),
+                const SizedBox(height: 32),
+                _buildLoginButton(),
+                const SizedBox(height: 32),
+                _buildRegisterLink(),
+              ],
             ),
           ),
-          const SizedBox(height: 20),
-          _buildDivider(),
-          const SizedBox(height: 20),
-          _buildSocialButtons(),
-          const SizedBox(height: 28),
-          _buildRegisterLink(),
-        ],
+        ),
       ),
     );
   }
@@ -174,7 +171,7 @@ class _LoginPageState extends State<LoginPage> {
             color: AppColors.primary,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.favorite, color: Colors.white, size: 28),
+          child: const Icon(Icons.psychology, color: Colors.white, size: 28),
         ),
         const SizedBox(width: 12),
         Text('Balance', style: AppTextStyles.logo.copyWith(fontSize: 28)),
@@ -195,24 +192,28 @@ class _LoginPageState extends State<LoginPage> {
       children: [
         Text('Email', style: AppTextStyles.body1),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: _emailController,
           style: AppTextStyles.input,
           keyboardType: TextInputType.emailAddress,
+          enabled: !_isLoading,
           decoration: InputDecoration(
             hintText: 'example@email.com',
             hintStyle: AppTextStyles.inputHint,
-            prefixIcon: const Icon(Icons.email_outlined, color: AppColors.primary),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.inputBorder),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.inputBorder),
+            prefixIcon: const Icon(
+              Icons.email_outlined,
+              color: AppColors.primary,
             ),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Введите email';
+            }
+            if (!value.contains('@')) {
+              return 'Введите корректный email';
+            }
+            return null;
+          },
           onChanged: (value) => setState(() {}),
         ),
       ],
@@ -225,31 +226,36 @@ class _LoginPageState extends State<LoginPage> {
       children: [
         Text('Пароль', style: AppTextStyles.body1),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: _passwordController,
           style: AppTextStyles.input,
           obscureText: _obscurePassword,
+          enabled: !_isLoading,
           decoration: InputDecoration(
             hintText: 'Введите пароль',
             hintStyle: AppTextStyles.inputHint,
-            prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
+            prefixIcon: const Icon(
+              Icons.lock_outline,
+              color: AppColors.primary,
+            ),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword ? Icons.visibility_off : Icons.visibility,
                 color: AppColors.textSecondary,
               ),
-              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.inputBorder),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.inputBorder),
+              onPressed: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
             ),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Введите пароль';
+            }
+            if (value.length < 6) {
+              return 'Пароль должен быть минимум 6 символов';
+            }
+            return null;
+          },
           onChanged: (value) => setState(() {}),
         ),
       ],
@@ -264,14 +270,20 @@ class _LoginPageState extends State<LoginPage> {
           children: [
             Checkbox(
               value: _rememberMe,
-              onChanged: (value) => setState(() => _rememberMe = value ?? false),
+              onChanged: _isLoading ? null : (value) =>
+                  setState(() => _rememberMe = value ?? false),
               activeColor: AppColors.primary,
             ),
             Text('Запомнить меня', style: AppTextStyles.body2),
           ],
         ),
         TextButton(
-          onPressed: () {},
+          onPressed: _isLoading ? null : () {
+            // TODO: Forgot password flow
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Восстановление пароля в разработке')),
+            );
+          },
           child: Text(
             'Забыли пароль?',
             style: AppTextStyles.body2.copyWith(color: AppColors.primary),
@@ -281,55 +293,32 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildDivider() {
-    return Row(
-      children: [
-        const Expanded(child: Divider(color: AppColors.textTertiary)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'или',
-            style: AppTextStyles.body2.copyWith(color: AppColors.textTertiary),
+  Widget _buildLoginButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: (_canLogin && !_isLoading) ? _login : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
           ),
         ),
-        const Expanded(child: Divider(color: AppColors.textTertiary)),
-      ],
-    );
-  }
-
-  Widget _buildSocialButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildSocialButton('Google', Icons.g_mobiledata, () {}),
-        ),
-        const SizedBox(width: 16),
-        Expanded(child: _buildSocialButton('Facebook', Icons.facebook, () {})),
-      ],
-    );
-  }
-
-  Widget _buildSocialButton(String label, IconData icon, VoidCallback onPressed) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        side: const BorderSide(color: AppColors.inputBorder, width: 2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: AppColors.textPrimary),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: AppTextStyles.body1.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+        child: _isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : Text(
+                'Войти',
+                style: AppTextStyles.button,
+              ),
       ),
     );
   }
@@ -344,7 +333,7 @@ class _LoginPageState extends State<LoginPage> {
             style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
           ),
           TextButton(
-            onPressed: () => Navigator.pushNamed(context, AppRouter.register),
+            onPressed: _isLoading ? null : () => Navigator.pushNamed(context, AppRouter.register),
             child: Text(
               'Зарегистрироваться',
               style: AppTextStyles.body1.copyWith(
@@ -376,15 +365,15 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 280,
-              height: 280,
+              width: 300,
+              height: 300,
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.6),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.psychology_outlined,
-                size: 140,
+                size: 150,
                 color: AppColors.primary.withOpacity(0.5),
               ),
             ),
@@ -392,8 +381,11 @@ class _LoginPageState extends State<LoginPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: Text(
-                'Профессиональная психологическая поддержка',
-                style: AppTextStyles.h3.copyWith(fontSize: 20),
+                'Ваш путь к балансу начинается здесь',
+                style: AppTextStyles.h3.copyWith(
+                  color: AppColors.textSecondary,
+                  fontSize: 20,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -401,8 +393,10 @@ class _LoginPageState extends State<LoginPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 60),
               child: Text(
-                'Для клиентов и психологов',
-                style: AppTextStyles.body1.copyWith(color: AppColors.textTertiary),
+                'Профессиональная психологическая поддержка онлайн',
+                style: AppTextStyles.body1.copyWith(
+                  color: AppColors.textTertiary,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
