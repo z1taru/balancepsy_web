@@ -6,7 +6,6 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/custom_button.dart';
 import '../../сore/router/app_router.dart';
-import '../services/auth_service.dart';
 import '../services/user_provider.dart';
 
 class LoginPage extends StatefulWidget {
@@ -20,7 +19,6 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = AuthService();
 
   bool _obscurePassword = true;
   bool _rememberMe = false;
@@ -45,33 +43,52 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      // Выполняем вход
-      final result = await _authService.login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+      // Выполняем вход через UserProvider
+      final success = await userProvider.login(
+        _emailController.text.trim(),
+        _passwordController.text,
       );
 
-      // Загружаем данные пользователя в Provider
-      if (mounted) {
-        final userProvider = Provider.of<UserProvider>(context, listen: false);
+      if (success && mounted) {
+        // ВАЖНО: Ждем загрузки профиля
         await userProvider.loadProfile();
 
-        // Определяем куда перенаправить пользователя
-        final role = userProvider.userRole;
-        final dashboardRoute = AppRouter.getDashboardRoute(role);
-
-        // Переходим на нужную страницу
         if (mounted) {
+          final role = userProvider.userRole;
+          final dashboardRoute = AppRouter.getDashboardRoute(role);
+
+          print('Login successful - Role: $role');
+          print('Redirecting to: $dashboardRoute');
+
+          // Переходим на соответствующий дашборд
           Navigator.pushNamedAndRemoveUntil(
             context,
             dashboardRoute,
             (route) => false,
           );
         }
+      } else {
+        setState(() {
+          _errorMessage = userProvider.error ?? 'Ошибка входа';
+          _isLoading = false;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_errorMessage ?? 'Ошибка входа'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     } catch (e) {
+      print('Login error: $e');
       setState(() {
-        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        _errorMessage = e.toString();
         _isLoading = false;
       });
 

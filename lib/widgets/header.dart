@@ -10,14 +10,6 @@ class Header extends StatelessWidget {
 
   const Header({super.key, required this.currentRoute});
 
-  UserProvider? _maybeUserProvider(BuildContext context) {
-    try {
-      return Provider.of<UserProvider>(context, listen: false);
-    } on ProviderNotFoundException {
-      return null;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -164,27 +156,25 @@ class Header extends StatelessWidget {
   }
 
   Widget _buildActions(BuildContext context, bool isMobile) {
-    final userProvider = _maybeUserProvider(context);
+    // ВАЖНО: Используем Consumer для отслеживания изменений
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        print(
+          'Header rebuild - isAuthenticated: ${userProvider.isAuthenticated}',
+        );
+        print('Header rebuild - userName: ${userProvider.userName}');
 
-    return Padding(
-      padding: const EdgeInsets.only(right: 20),
-      child: userProvider == null
-          ? (isMobile
-              ? _buildMobileMenuButton(context)
-              : _buildDesktopActions(context))
-          : Consumer<UserProvider>(
-              builder: (context, userProvider, child) {
-                if (userProvider.isAuthenticated) {
-                  return isMobile
-                      ? _buildMobileMenuButton(context)
-                      : _buildAuthenticatedActions(context, userProvider);
-                } else {
-                  return isMobile
-                      ? _buildMobileMenuButton(context)
-                      : _buildDesktopActions(context);
-                }
-              },
-            ),
+        return Padding(
+          padding: const EdgeInsets.only(right: 20),
+          child: userProvider.isAuthenticated
+              ? (isMobile
+                    ? _buildMobileMenuButton(context)
+                    : _buildAuthenticatedActions(context, userProvider))
+              : (isMobile
+                    ? _buildMobileMenuButton(context)
+                    : _buildDesktopActions(context)),
+        );
+      },
     );
   }
 
@@ -242,8 +232,9 @@ class Header extends StatelessWidget {
     BuildContext context,
     UserProvider userProvider,
   ) {
-    final maxNameWidth =
-        MediaQuery.of(context).size.width < 1024 ? 120.0 : 180.0;
+    final maxNameWidth = MediaQuery.of(context).size.width < 1024
+        ? 120.0
+        : 180.0;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -257,7 +248,10 @@ class Header extends StatelessWidget {
           // Кнопка профиля
           GestureDetector(
             onTap: () {
-              Navigator.pushNamed(context, '/profile');
+              // Переход в личный кабинет в зависимости от роли
+              final role = userProvider.userRole;
+              final profileRoute = AppRouter.getProfileRoute(role);
+              Navigator.pushNamed(context, profileRoute);
             },
             child: Container(
               height: 36,
@@ -308,6 +302,7 @@ class Header extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout, size: 20),
             color: AppColors.error,
+            tooltip: 'Выйти',
             onPressed: () async {
               await userProvider.performLogout();
               if (context.mounted) {
@@ -339,8 +334,9 @@ class Header extends StatelessWidget {
   }
 
   void _showMobileMenu(BuildContext context) {
-    final userProvider = _maybeUserProvider(context);
-    final isAuthenticated = userProvider?.isAuthenticated ?? false;
+    // Получаем текущее состояние авторизации через Consumer
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final isAuthenticated = userProvider.isAuthenticated;
 
     showModalBottomSheet(
       context: context,
@@ -358,159 +354,157 @@ class Header extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Навигация
-            _buildMobileNavItem(context, 'Главная', AppRouter.home, Icons.home),
-            _buildMobileNavItem(
-              context,
-              'Психологи',
-              AppRouter.psychologists,
-              Icons.psychology,
-            ),
-            _buildMobileNavItem(
-              context,
-              'О сервисе',
-              AppRouter.about,
-              Icons.info,
-            ),
-            _buildMobileNavItem(
-              context,
-              'Контакты',
-              AppRouter.contacts,
-              Icons.contact_page,
-            ),
-
-            const SizedBox(height: 24),
-            const Divider(),
-            const SizedBox(height: 16),
-
-            // Действия в зависимости от авторизации
-            if (isAuthenticated && userProvider != null) ...[
-              // Профиль
               Container(
-                height: 44,
+                width: 40,
+                height: 4,
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.primary),
-                  borderRadius: BorderRadius.circular(22),
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, '/profile');
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.person,
-                        color: AppColors.primary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Профиль',
-                        style: AppTextStyles.body1.copyWith(
+              ),
+              const SizedBox(height: 24),
+              _buildMobileNavItem(
+                context,
+                'Главная',
+                AppRouter.home,
+                Icons.home,
+              ),
+              _buildMobileNavItem(
+                context,
+                'Психологи',
+                AppRouter.psychologists,
+                Icons.psychology,
+              ),
+              _buildMobileNavItem(
+                context,
+                'О сервисе',
+                AppRouter.about,
+                Icons.info,
+              ),
+              _buildMobileNavItem(
+                context,
+                'Контакты',
+                AppRouter.contacts,
+                Icons.contact_page,
+              ),
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+              if (isAuthenticated) ...[
+                Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.primary),
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      final role = userProvider.userRole;
+                      final profileRoute = AppRouter.getProfileRoute(role);
+                      Navigator.pushNamed(context, profileRoute);
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.person,
                           color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
+                          size: 20,
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Выход
-              Container(
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.error,
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: TextButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await userProvider.performLogout();
-                    if (context.mounted) {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        AppRouter.home,
-                        (route) => false,
-                      );
-                    }
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.logout, color: Colors.white, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Выйти',
-                        style: AppTextStyles.body1.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                        const SizedBox(width: 8),
+                        Text(
+                          'Профиль',
+                          style: AppTextStyles.body1.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ] else ...[
-              // Вход
-              Container(
-                height: 44,
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.primary),
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, AppRouter.login);
-                  },
-                  child: Text(
-                    'Войти',
-                    style: AppTextStyles.body1.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
+                      ],
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              // Регистрация
-              Container(
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, AppRouter.register);
-                  },
-                  child: Text(
-                    'Регистрация',
-                    style: AppTextStyles.body1.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+                const SizedBox(height: 12),
+                Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.error,
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: TextButton(
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      await userProvider.performLogout();
+                      if (context.mounted) {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          AppRouter.home,
+                          (route) => false,
+                        );
+                      }
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.logout, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Выйти',
+                          style: AppTextStyles.body1.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
+              ] else ...[
+                Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.primary),
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, AppRouter.login);
+                    },
+                    child: Text(
+                      'Войти',
+                      style: AppTextStyles.body1.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, AppRouter.register);
+                    },
+                    child: Text(
+                      'Регистрация',
+                      style: AppTextStyles.body1.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
             ],
-            const SizedBox(height: 16),
-          ],
-        ),
+          ),
         ),
       ),
     );
