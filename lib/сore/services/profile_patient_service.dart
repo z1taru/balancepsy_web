@@ -10,7 +10,13 @@ class ProfilePatientService {
   // Get Current User Profile
   // ========================================
   Future<Map<String, dynamic>> getCurrentProfile() async {
-    return await _apiClient.get(ApiConfig.currentUser, requiresAuth: true);
+    print('📡 Getting current profile...');
+    final response = await _apiClient.get(
+      ApiConfig.currentUser,
+      requiresAuth: true,
+    );
+    print('✅ Profile response: $response');
+    return response;
   }
 
   // ========================================
@@ -33,22 +39,30 @@ class ProfilePatientService {
     if (interests != null) body['interests'] = interests;
     if (registrationGoal != null) body['registrationGoal'] = registrationGoal;
 
-    return await _apiClient.put(
+    print('📡 Updating profile: $body');
+
+    final response = await _apiClient.put(
       ApiConfig.updateProfile,
       body,
       requiresAuth: true,
     );
+
+    print('✅ Update response: $response');
+    return response;
   }
 
   // ========================================
   // Upload Avatar
   // ========================================
   Future<Map<String, dynamic>> uploadAvatar(File imageFile) async {
-    return await _apiClient.uploadFile(
+    print('📡 Uploading avatar...');
+    final response = await _apiClient.uploadFile(
       ApiConfig.uploadAvatar,
       imageFile,
       'avatar',
     );
+    print('✅ Avatar upload response: $response');
+    return response;
   }
 
   // ========================================
@@ -59,25 +73,40 @@ class ProfilePatientService {
     required String newPassword,
     required String confirmPassword,
   }) async {
-    return await _apiClient.put(ApiConfig.changePassword, {
+    print('📡 Changing password...');
+    final response = await _apiClient.put(ApiConfig.changePassword, {
       'currentPassword': currentPassword,
       'newPassword': newPassword,
       'confirmPassword': confirmPassword,
     }, requiresAuth: true);
+    print('✅ Password change response: $response');
+    return response;
   }
 
   // ========================================
   // Delete Account
   // ========================================
   Future<Map<String, dynamic>> deleteAccount() async {
-    return await _apiClient.delete(ApiConfig.deleteAccount, requiresAuth: true);
+    print('📡 Deleting account...');
+    final response = await _apiClient.delete(
+      ApiConfig.deleteAccount,
+      requiresAuth: true,
+    );
+    print('✅ Delete account response: $response');
+    return response;
   }
 
   // ========================================
   // Get User Statistics
   // ========================================
   Future<Map<String, dynamic>> getUserStatistics() async {
-    return await _apiClient.get(ApiConfig.myStatistics, requiresAuth: true);
+    print('📡 Getting user statistics...');
+    final response = await _apiClient.get(
+      ApiConfig.myStatistics,
+      requiresAuth: true,
+    );
+    print('✅ Statistics response: $response');
+    return response;
   }
 }
 
@@ -116,8 +145,10 @@ class UserProfile {
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
+    print('🔍 Parsing UserProfile from JSON: $json');
+
     return UserProfile(
-      id: json['id'],
+      id: json['userId'] ?? json['id'] ?? 0,
       fullName: json['fullName'] ?? json['full_name'] ?? '',
       email: json['email'] ?? '',
       phone: json['phone'],
@@ -132,7 +163,10 @@ class UserProfile {
       avatarUrl: json['avatarUrl'] ?? json['avatar_url'],
       role: json['role'] ?? 'CLIENT',
       isEmailVerified:
-          json['isEmailVerified'] ?? json['is_email_verified'] ?? false,
+          json['isEmailVerified'] ??
+          json['is_email_verified'] ??
+          json['emailVerified'] ??
+          false,
       createdAt: DateTime.parse(
         json['createdAt'] ??
             json['created_at'] ??
@@ -230,6 +264,8 @@ class UserStatistics {
   });
 
   factory UserStatistics.fromJson(Map<String, dynamic> json) {
+    print('🔍 Parsing UserStatistics from JSON: $json');
+
     return UserStatistics(
       totalSessions: json['totalSessions'] ?? json['total_sessions'] ?? 0,
       completedSessions:

@@ -5,8 +5,8 @@ class ApiConfig {
   // Base URLs
   // ========================================
 
-  // Для разработки (локальный сервер)
-  static const String devBaseUrl = 'http://localhost:8080/api';
+  // ✅ ИСПРАВЛЕНО: Для Flutter Web используем 127.0.0.1 вместо localhost
+  static const String devBaseUrl = 'http://127.0.0.1:8080/api';
 
   // Для продакшена (замените на ваш домен)
   static const String prodBaseUrl = 'https://api.balance-psy.kz/api';
@@ -201,4 +201,15 @@ class ApiConfig {
   // ========================================
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
+
+  // ========================================
+  // Debug Helper
+  // ========================================
+  static void printDebugInfo() {
+    print('🔧 API Configuration:');
+    print('   Base URL: $baseUrl');
+    print('   Mode: ${isDevelopment ? "Development" : "Production"}');
+    print('   Login: $login');
+    print('   Profile: $me');
+  }
 }
