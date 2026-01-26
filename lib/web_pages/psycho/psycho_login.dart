@@ -1,10 +1,12 @@
 // lib/web_pages/psycho/psycho_login.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/custom_button.dart';
 import '../../сore/router/app_router.dart';
+import '../services/user_provider.dart';
 
 class PsychoLoginPage extends StatefulWidget {
   const PsychoLoginPage({super.key});
@@ -30,8 +32,48 @@ class _PsychoLoginPageState extends State<PsychoLoginPage> {
       _emailController.text.contains('@') &&
       _passwordController.text.length >= 6;
 
-  void _login() {
-    Navigator.pushReplacementNamed(context, AppRouter.psychoDashboard);
+  void _login() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    // Выполняем вход
+    final success = await userProvider.login(
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
+
+    if (success && mounted) {
+      // Загружаем профиль
+      await userProvider.loadProfile();
+
+      if (mounted) {
+        final role = userProvider.userRole;
+
+        String redirectRoute;
+        switch (role) {
+          case 'PSYCHOLOGIST':
+            redirectRoute = AppRouter.psychoDashboard;
+            break;
+          case 'CLIENT':
+            redirectRoute = AppRouter.dashboard;
+            break;
+          case 'ADMIN':
+            redirectRoute = AppRouter.psychoDashboard;
+            break;
+          default:
+            redirectRoute = AppRouter.home;
+        }
+
+        Navigator.pushReplacementNamed(context, redirectRoute);
+      }
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(userProvider.error ?? 'Ошибка входа'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -154,8 +196,14 @@ class _PsychoLoginPageState extends State<PsychoLoginPage> {
           decoration: InputDecoration(
             hintText: 'psychologist@email.com',
             hintStyle: AppTextStyles.inputHint,
-            prefixIcon: const Icon(Icons.email_outlined, color: AppColors.primary),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            prefixIcon: const Icon(
+              Icons.email_outlined,
+              color: AppColors.primary,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.inputBorder),
@@ -184,15 +232,22 @@ class _PsychoLoginPageState extends State<PsychoLoginPage> {
           decoration: InputDecoration(
             hintText: 'Введите пароль',
             hintStyle: AppTextStyles.inputHint,
-            prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
+            prefixIcon: const Icon(
+              Icons.lock_outline,
+              color: AppColors.primary,
+            ),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword ? Icons.visibility_off : Icons.visibility,
                 color: AppColors.textSecondary,
               ),
-              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+              onPressed: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.inputBorder),
@@ -216,7 +271,8 @@ class _PsychoLoginPageState extends State<PsychoLoginPage> {
           children: [
             Checkbox(
               value: _rememberMe,
-              onChanged: (value) => setState(() => _rememberMe = value ?? false),
+              onChanged: (value) =>
+                  setState(() => _rememberMe = value ?? false),
               activeColor: AppColors.primary,
             ),
             Text('Запомнить меня', style: AppTextStyles.body2),
@@ -306,7 +362,9 @@ class _PsychoLoginPageState extends State<PsychoLoginPage> {
               padding: const EdgeInsets.symmetric(horizontal: 60),
               child: Text(
                 'Управляйте расписанием, общайтесь с клиентами и развивайте свою практику',
-                style: AppTextStyles.body1.copyWith(color: AppColors.textTertiary),
+                style: AppTextStyles.body1.copyWith(
+                  color: AppColors.textTertiary,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),

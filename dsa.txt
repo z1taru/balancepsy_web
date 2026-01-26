@@ -1,0 +1,41 @@
+@override
+void initState() {
+  super.initState();
+  _checkUserRole(); // ✅ Добавьте
+}
+
+// ✅ Добавьте метод:
+void _checkUserRole() {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    
+    // Если пользователь — клиент, редиректим
+    if (userProvider.userRole == 'CLIENT') {
+      Navigator.pushReplacementNamed(context, AppRouter.profile);
+    }
+  });
+}
+
+
+// ❌ СТАРЫЙ КОД (удалите):
+Navigator.pushReplacementNamed(context, AppRouter.home);
+
+// ✅ НОВЫЙ КОД (добавьте):
+final role = userProvider.userRole;
+
+String redirectRoute;
+switch (role) {
+  case 'PSYCHOLOGIST':
+    redirectRoute = AppRouter.psychoDashboard;
+    break;
+  case 'CLIENT':
+    redirectRoute = AppRouter.dashboard;
+    break;
+  case 'ADMIN':
+    redirectRoute = AppRouter.psychoDashboard;
+    break;
+  default:
+    redirectRoute = AppRouter.home;
+}
+
+Navigator.pushReplacementNamed(context, redirectRoute);

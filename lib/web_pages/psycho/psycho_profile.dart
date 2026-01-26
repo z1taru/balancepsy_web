@@ -1,12 +1,37 @@
 // lib/web_pages/psycho/psycho_profile.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/psycho/psycho_sidebar.dart';
+import '../services/user_provider.dart';
+import '../../сore/router/app_router.dart';
 
-class PsychoProfilePage extends StatelessWidget {
+class PsychoProfilePage extends StatefulWidget {
   const PsychoProfilePage({super.key});
+
+  @override
+  State<PsychoProfilePage> createState() => _PsychoProfilePageState();
+}
+
+class _PsychoProfilePageState extends State<PsychoProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+    _checkUserRole();
+  }
+
+  void _checkUserRole() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+      // Если пользователь — клиент, редиректим
+      if (userProvider.userRole == 'CLIENT') {
+        Navigator.pushReplacementNamed(context, AppRouter.profile);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,10 +68,7 @@ class PsychoProfilePage extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          'Мой профиль',
-          style: AppTextStyles.h1.copyWith(fontSize: 28),
-        ),
+        Text('Мой профиль', style: AppTextStyles.h1.copyWith(fontSize: 28)),
         ElevatedButton.icon(
           onPressed: () {},
           icon: const Icon(Icons.edit, size: 20),
@@ -78,7 +100,9 @@ class PsychoProfilePage extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundImage: const AssetImage('assets/images/avatar/galiya.png'),
+            backgroundImage: const AssetImage(
+              'assets/images/avatar/galiya.png',
+            ),
             onBackgroundImageError: (_, __) {},
           ),
           const SizedBox(width: 24),
@@ -87,23 +111,22 @@ class PsychoProfilePage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Галия Аубакирова',
+                  'Галия Нубакирова',
                   style: AppTextStyles.h2.copyWith(fontSize: 24),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Психолог BalancePsy',
-                  style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
+                  style: AppTextStyles.body1.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'Специализация: КПТ, гештальт-терапия, работа с тревожностью',
                   style: AppTextStyles.body2,
                 ),
-                Text(
-                  'Опыт работы: 7+ лет',
-                  style: AppTextStyles.body2,
-                ),
+                Text('Опыт работы: 7+ лет', style: AppTextStyles.body2),
               ],
             ),
           ),
@@ -254,7 +277,11 @@ class PsychoProfilePage extends StatelessWidget {
               const SizedBox(width: 12),
               Text(text, style: AppTextStyles.body1),
               const Spacer(),
-              const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
+              const Icon(
+                Icons.chevron_right,
+                color: AppColors.textSecondary,
+                size: 20,
+              ),
             ],
           ),
         ),
@@ -266,8 +293,19 @@ class PsychoProfilePage extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
-        onPressed: () {
-          // Логика выхода
+        onPressed: () async {
+          final userProvider = Provider.of<UserProvider>(
+            context,
+            listen: false,
+          );
+          await userProvider.performLogout();
+          if (mounted) {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              AppRouter.home,
+              (route) => false,
+            );
+          }
         },
         icon: const Icon(Icons.logout, size: 20),
         label: const Text('Выйти из аккаунта'),
