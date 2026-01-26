@@ -1,13 +1,13 @@
-// ════════════════════════════════════════════════════════════════════════
 // lib/web_pages/profile_patient/profile_patient.dart
-// ════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
-import '../../../widgets/page_wrapper.dart';
-import '../../../widgets/profile_patient/patient_bar.dart';
-import '../../../theme/app_colors.dart';
-import '../../../theme/app_text_styles.dart';
-import '../../../сore/router/app_router.dart';
+import '../../widgets/profile_patient/patient_bar.dart';
+import '../../widgets/profile_patient/profile_widgets.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../сore/router/app_router.dart';
+import '../../сore/services/profile_patient_service.dart';
+import '../../сore/services/auth_api_service.dart';
 
 class ProfilePatientPage extends StatefulWidget {
   const ProfilePatientPage({super.key});
@@ -17,54 +17,115 @@ class ProfilePatientPage extends StatefulWidget {
 }
 
 class _ProfilePatientPageState extends State<ProfilePatientPage> {
+  final ProfilePatientService _profileService = ProfilePatientService();
+  final AuthApiService _authService = AuthApiService();
+
   bool _isEditing = false;
+  bool _isLoading = true;
+  String? _error;
 
   // Данные профиля
-  String _name = 'Альдияр';
-  String _email = 'aldiyar@example.com';
-  String _phone = '+7 (777) 123-45-67';
-  String _birthDate = '15 марта 1990';
-  String _gender = 'Мужской';
-  String _therapyGoals = 'Снижение тревожности, работа со стрессом';
+  UserProfile? _userProfile;
+  UserStatistics? _userStatistics;
 
   // Контроллеры для редактирования
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _birthDateController = TextEditingController();
   final TextEditingController _therapyGoalsController = TextEditingController();
 
+  String _selectedGender = 'MALE';
+
   @override
   void initState() {
     super.initState();
-    _initializeControllers();
+    _loadProfileData();
+  }
+
+  // ========================================
+  // Загрузка данных профиля
+  // ========================================
+  Future<void> _loadProfileData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      // Загружаем профиль и статистику параллельно
+      final results = await Future.wait([
+        _profileService.getCurrentProfile(),
+        _profileService.getUserStatistics(),
+      ]);
+
+      final profileData = results[0];
+      final statisticsData = results[1];
+
+      setState(() {
+        _userProfile = UserProfile.fromJson(profileData['data'] ?? profileData);
+        _userStatistics = UserStatistics.fromJson(
+          statisticsData['data'] ?? statisticsData,
+        );
+        _isLoading = false;
+
+        // Инициализируем контроллеры
+        _initializeControllers();
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
   }
 
   void _initializeControllers() {
-    _nameController.text = _name;
-    _emailController.text = _email;
-    _phoneController.text = _phone;
-    _birthDateController.text = _birthDate;
-    _therapyGoalsController.text = _therapyGoals;
+    if (_userProfile == null) return;
+
+    _nameController.text = _userProfile!.fullName;
+    _phoneController.text = _userProfile!.phone ?? '';
+    _birthDateController.text = _userProfile!.getFormattedBirthDate();
+    _therapyGoalsController.text = _userProfile!.registrationGoal ?? '';
+    _selectedGender = _userProfile!.gender ?? 'MALE';
+  }
+
+  // ========================================
+  // Сохранение изменений
+  // ========================================
+  Future<void> _saveChanges() async {
+    if (_userProfile == null) return;
+
+    try {
+      setState(() => _isLoading = true);
+
+      await _profileService.updateProfile(
+        fullName: _nameController.text,
+        phone: _phoneController.text.isEmpty ? null : _phoneController.text,
+        gender: _selectedGender,
+        registrationGoal: _therapyGoalsController.text.isEmpty
+            ? null
+            : _therapyGoalsController.text,
+      );
+
+      // Перезагружаем данные
+      await _loadProfileData();
+
+      setState(() {
+        _isEditing = false;
+        _isLoading = false;
+      });
+
+      _showSuccessSnackbar('Данные успешно сохранены');
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showErrorSnackbar('Ошибка сохранения: $e');
+    }
   }
 
   void _startEditing() {
     setState(() {
       _isEditing = true;
     });
-  }
-
-  void _saveChanges() {
-    setState(() {
-      _name = _nameController.text;
-      _email = _emailController.text;
-      _phone = _phoneController.text;
-      _birthDate = _birthDateController.text;
-      _therapyGoals = _therapyGoalsController.text;
-      _isEditing = false;
-    });
-
-    _showSuccessSnackbar('Данные успешно сохранены');
   }
 
   void _cancelEditing() {
@@ -74,40 +135,142 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
     });
   }
 
+  // ========================================
+  // Смена аватара
+  // ========================================
+  Future<void> _changeAvatar() async {
+    _showComingSoon(context, 'Смена аватара');
+    // TODO: Реализовать выбор и загрузку изображения
+    // final picker = ImagePicker();
+    // final image = await picker.pickImage(source: ImageSource.gallery);
+    // if (image != null) {
+    //   await _profileService.uploadAvatar(File(image.path));
+    //   await _loadProfileData();
+    // }
+  }
+
+  // ========================================
+  // Выход из аккаунта
+  // ========================================
+  Future<void> _logout() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Выход', style: AppTextStyles.h2),
+        content: Text(
+          'Вы уверены, что хотите выйти?',
+          style: AppTextStyles.body1,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Отмена', style: AppTextStyles.body1),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text('Выйти', style: AppTextStyles.button),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _authService.logout();
+      if (mounted) {
+        AppRouter.navigateAndRemoveUntil(context, AppRouter.home);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext ctx) {
     return Scaffold(
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Фиксированный сайдбар, который не скролится
           Container(
             width: 280,
             child: PatientBar(currentRoute: AppRouter.profile),
           ),
-          // Основной контент с возможностью скролла
           Expanded(
-            child: SingleChildScrollView(
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 800),
-                margin: const EdgeInsets.all(40),
-                child: Column(
-                  children: [
-                    _buildProfileHeader(ctx),
-                    const SizedBox(height: 32),
-                    _buildProfileInfo(),
-                    const SizedBox(height: 32),
-                    _buildProfileActions(ctx),
-                  ],
-                ),
-              ),
-            ),
+            child: _isLoading
+                ? _buildLoadingState()
+                : _error != null
+                ? _buildErrorState()
+                : _buildProfileContent(ctx),
           ),
         ],
       ),
     );
   }
 
+  // ========================================
+  // Состояние загрузки
+  // ========================================
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(color: AppColors.primary),
+          const SizedBox(height: 16),
+          Text('Загрузка профиля...', style: AppTextStyles.body1),
+        ],
+      ),
+    );
+  }
+
+  // ========================================
+  // Состояние ошибки
+  // ========================================
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 64, color: Colors.red),
+          const SizedBox(height: 16),
+          Text('Ошибка загрузки профиля', style: AppTextStyles.h2),
+          const SizedBox(height: 8),
+          Text(_error ?? '', style: AppTextStyles.body1),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: _loadProfileData,
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: Text('Попробовать снова', style: AppTextStyles.button),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ========================================
+  // Основной контент
+  // ========================================
+  Widget _buildProfileContent(BuildContext ctx) {
+    if (_userProfile == null) return const SizedBox.shrink();
+
+    return SingleChildScrollView(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 800),
+        margin: const EdgeInsets.all(40),
+        child: Column(
+          children: [
+            _buildProfileHeader(ctx),
+            const SizedBox(height: 32),
+            _buildProfileInfo(),
+            const SizedBox(height: 32),
+            _buildProfileActions(ctx),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ========================================
+  // Заголовок профиля
+  // ========================================
   Widget _buildProfileHeader(BuildContext ctx) {
     return Container(
       padding: const EdgeInsets.all(32),
@@ -124,74 +287,23 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
       ),
       child: Row(
         children: [
-          // Аватар с возможностью редактирования
-          Stack(
-            children: [
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.primary.withOpacity(0.15),
-                    width: 3,
-                  ),
-                ),
-                child: ClipOval(
-                  child: Image.asset(
-                    'assets/images/avatar/aldiyar.png',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              if (_isEditing)
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: GestureDetector(
-                    onTap: _changeAvatar,
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppColors.primary,
-                            AppColors.primary.withOpacity(0.8),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.camera_alt,
-                        size: 16,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+          // Аватар
+          EditableAvatar(
+            avatarUrl: _userProfile!.avatarUrl,
+            isEditing: _isEditing,
+            onEditTap: _changeAvatar,
           ),
 
           const SizedBox(width: 28),
 
+          // Информация о пользователе
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (!_isEditing) ...[
                   Text(
-                    _name,
+                    _userProfile!.fullName,
                     style: AppTextStyles.h1.copyWith(
                       fontSize: 32,
                       fontWeight: FontWeight.w700,
@@ -200,25 +312,17 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    _email,
+                    _userProfile!.email,
                     style: AppTextStyles.body1.copyWith(
                       color: AppColors.textSecondary,
                       fontSize: 16,
                     ),
                   ),
                 ] else ...[
-                  _buildEditableField(
-                    controller: _nameController,
-                    hintText: 'Введите имя',
-                    style: AppTextStyles.h1.copyWith(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  _buildEditableHeaderField(_nameController, 'Имя'),
                   const SizedBox(height: 6),
-                  _buildEditableField(
-                    controller: _emailController,
-                    hintText: 'Введите email',
+                  Text(
+                    _userProfile!.email,
                     style: AppTextStyles.body1.copyWith(
                       color: AppColors.textSecondary,
                       fontSize: 16,
@@ -229,27 +333,37 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
                 const SizedBox(height: 20),
 
                 // Статистика
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryLight.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppColors.primary.withOpacity(0.1),
+                if (_userStatistics != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(0.1),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        ProfileStatWidget(
+                          label: 'Сессии',
+                          value: _userStatistics!.completedSessions.toString(),
+                        ),
+                        ProfileStatWidget(
+                          label: 'Статьи',
+                          value: _userStatistics!.articlesRead.toString(),
+                        ),
+                        ProfileStatWidget(
+                          label: 'Недели',
+                          value: _userStatistics!.getWeeksActive(),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildProfileStat('Сессии', '12'),
-                      _buildProfileStat('Статьи', '8'),
-                      _buildProfileStat('Недели', '6'),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),
@@ -257,80 +371,19 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
           const SizedBox(width: 20),
 
           // Кнопки действий
-          if (!_isEditing) _buildEditButton() else _buildActionButtons(),
+          if (!_isEditing)
+            EditButton(onPressed: _startEditing)
+          else
+            EditActionButtons(onSave: _saveChanges, onCancel: _cancelEditing),
         ],
       ),
     );
   }
 
-  Widget _buildEditButton() {
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: IconButton(
-        onPressed: _startEditing,
-        icon: const Icon(Icons.edit, color: Colors.white, size: 20),
-        tooltip: 'Редактировать профиль',
-      ),
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Column(
-      children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: AppColors.success.withOpacity(0.1),
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.success.withOpacity(0.2)),
-          ),
-          child: IconButton(
-            onPressed: _saveChanges,
-            icon: Icon(Icons.check, color: AppColors.success, size: 20),
-            tooltip: 'Сохранить',
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: Colors.red.withOpacity(0.1),
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.red.withOpacity(0.2)),
-          ),
-          child: IconButton(
-            onPressed: _cancelEditing,
-            icon: const Icon(Icons.close, color: Colors.red, size: 20),
-            tooltip: 'Отменить',
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEditableField({
-    required TextEditingController controller,
-    required String hintText,
-    required TextStyle style,
-  }) {
+  Widget _buildEditableHeaderField(
+    TextEditingController controller,
+    String hint,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.inputBackground,
@@ -339,10 +392,16 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
       ),
       child: TextField(
         controller: controller,
-        style: style,
+        style: AppTextStyles.h1.copyWith(
+          fontSize: 32,
+          fontWeight: FontWeight.w700,
+        ),
         decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: style.copyWith(color: AppColors.textTertiary),
+          hintText: hint,
+          hintStyle: AppTextStyles.h1.copyWith(
+            fontSize: 32,
+            color: AppColors.textTertiary,
+          ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
@@ -354,29 +413,9 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
     );
   }
 
-  Widget _buildProfileStat(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: AppTextStyles.h3.copyWith(
-            color: AppColors.primary,
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: AppTextStyles.body2.copyWith(
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-
+  // ========================================
+  // Личная информация
+  // ========================================
   Widget _buildProfileInfo() {
     return Container(
       padding: const EdgeInsets.all(32),
@@ -431,313 +470,96 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
 
           const SizedBox(height: 28),
 
-          _buildInfoRow(
-            'Телефон',
-            _phone,
-            _phoneController,
-            Icons.phone_outlined,
+          ProfileInfoRow(
+            label: 'Телефон',
+            value: _userProfile!.phone ?? 'Не указан',
+            icon: Icons.phone_outlined,
+            isEditing: _isEditing,
+            controller: _phoneController,
           ),
+
           const SizedBox(height: 20),
-          _buildInfoRow(
-            'Дата рождения',
-            _birthDate,
-            _birthDateController,
-            Icons.calendar_today_outlined,
+
+          ProfileInfoRow(
+            label: 'Дата рождения',
+            value: _userProfile!.getFormattedBirthDate(),
+            icon: Icons.calendar_today_outlined,
+            isEditing: false, // Дату рождения не редактируем
           ),
+
           const SizedBox(height: 20),
-          _buildGenderRow(),
+
+          // Пол
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.person_outline,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Пол',
+                      style: AppTextStyles.body1.copyWith(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    _isEditing
+                        ? GenderSelector(
+                            selectedGender: _selectedGender,
+                            onGenderChanged: (gender) {
+                              setState(() {
+                                _selectedGender = gender;
+                              });
+                            },
+                          )
+                        : Text(
+                            _userProfile!.getLocalizedGender(),
+                            style: AppTextStyles.body1.copyWith(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
           const SizedBox(height: 20),
-          _buildTherapyGoalsRow(),
+
+          ProfileInfoRow(
+            label: 'Цели терапии',
+            value: _userProfile!.registrationGoal ?? 'Не указаны',
+            icon: Icons.flag_outlined,
+            isEditing: _isEditing,
+            controller: _therapyGoalsController,
+            maxLines: 3,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(
-    String label,
-    String value,
-    TextEditingController controller,
-    IconData icon,
-  ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, size: 20, color: AppColors.primary),
-        ),
-
-        const SizedBox(width: 16),
-
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: AppTextStyles.body1.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 6),
-              _isEditing
-                  ? _buildEditableInfoField(controller, label)
-                  : Text(
-                      value,
-                      style: AppTextStyles.body1.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEditableInfoField(
-    TextEditingController controller,
-    String label,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.inputBackground,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
-      ),
-      child: TextField(
-        controller: controller,
-        style: AppTextStyles.body1.copyWith(
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-        ),
-        maxLines: label == 'Цели терапии' ? 3 : 1,
-        decoration: InputDecoration(
-          hintText: 'Введите $label',
-          hintStyle: AppTextStyles.body1.copyWith(
-            color: AppColors.textTertiary,
-          ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGenderRow() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(
-            Icons.person_outline,
-            size: 20,
-            color: AppColors.primary,
-          ),
-        ),
-
-        const SizedBox(width: 16),
-
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Пол',
-                style: AppTextStyles.body1.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 6),
-              _isEditing
-                  ? _buildGenderSelector()
-                  : Text(
-                      _gender,
-                      style: AppTextStyles.body1.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGenderSelector() {
-    return Row(
-      children: [
-        Expanded(child: _buildGenderOption('Мужской', Icons.male)),
-        const SizedBox(width: 12),
-        Expanded(child: _buildGenderOption('Женский', Icons.female)),
-      ],
-    );
-  }
-
-  Widget _buildGenderOption(String gender, IconData icon) {
-    final isSelected = _gender == gender;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            _gender = gender;
-          });
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? AppColors.primary.withOpacity(0.1)
-                : AppColors.inputBackground,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected
-                  ? AppColors.primary
-                  : AppColors.inputBorder.withOpacity(0.5),
-              width: isSelected ? 2 : 1,
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                gender,
-                style: AppTextStyles.body1.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTherapyGoalsRow() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(
-            Icons.flag_outlined,
-            size: 20,
-            color: AppColors.primary,
-          ),
-        ),
-
-        const SizedBox(width: 16),
-
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Цели терапии',
-                style: AppTextStyles.body1.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 6),
-              _isEditing
-                  ? _buildEditableInfoField(
-                      _therapyGoalsController,
-                      'Цели терапии',
-                    )
-                  : Text(
-                      _therapyGoals,
-                      style: AppTextStyles.body1.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        height: 1.4,
-                      ),
-                    ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
+  // ========================================
+  // Действия профиля
+  // ========================================
   Widget _buildProfileActions(BuildContext ctx) {
-    final actions = [
-      _ProfileAction(
-        icon: Icons.person_outline,
-        title: 'Личные данные',
-        subtitle: 'Управление основной информацией',
-        onTap: _startEditing,
-        isActive: _isEditing,
-      ),
-      _ProfileAction(
-        icon: Icons.event_available_outlined,
-        title: 'Мои сессии',
-        subtitle: 'История и расписание консультаций',
-        onTap: () => _showComingSoon(ctx, 'Мои сессии'),
-      ),
-      _ProfileAction(
-        icon: Icons.credit_card_outlined,
-        title: 'Оплата и подписка',
-        subtitle: 'Способы оплаты и тарифы',
-        onTap: () => _showComingSoon(ctx, 'Оплата и подписка'),
-      ),
-      _ProfileAction(
-        icon: Icons.settings_outlined,
-        title: 'Настройки',
-        subtitle: 'Конфиденциальность и уведомления',
-        onTap: () => _showComingSoon(ctx, 'Настройки'),
-      ),
-      _ProfileAction(
-        icon: Icons.logout_outlined,
-        title: 'Выйти',
-        subtitle: 'Завершить текущий сеанс',
-        color: Colors.red,
-        onTap: () => _showComingSoon(ctx, 'Выход'),
-      ),
-    ];
-
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -751,94 +573,47 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
         ],
       ),
       child: Column(
-        children: actions
-            .map((action) => _buildProfileActionTile(action))
-            .toList(),
+        children: [
+          ProfileActionTile(
+            icon: Icons.person_outline,
+            title: 'Личные данные',
+            subtitle: 'Управление основной информацией',
+            onTap: _startEditing,
+            isActive: _isEditing,
+          ),
+          ProfileActionTile(
+            icon: Icons.event_available_outlined,
+            title: 'Мои сессии',
+            subtitle: 'История и расписание консультаций',
+            onTap: () => _showComingSoon(ctx, 'Мои сессии'),
+          ),
+          ProfileActionTile(
+            icon: Icons.credit_card_outlined,
+            title: 'Оплата и подписка',
+            subtitle: 'Способы оплаты и тарифы',
+            onTap: () => _showComingSoon(ctx, 'Оплата и подписка'),
+          ),
+          ProfileActionTile(
+            icon: Icons.settings_outlined,
+            title: 'Настройки',
+            subtitle: 'Конфиденциальность и уведомления',
+            onTap: () => _showComingSoon(ctx, 'Настройки'),
+          ),
+          ProfileActionTile(
+            icon: Icons.logout_outlined,
+            title: 'Выйти',
+            subtitle: 'Завершить текущий сеанс',
+            color: Colors.red,
+            onTap: _logout,
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildProfileActionTile(_ProfileAction action) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: action.onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: AppColors.inputBorder.withOpacity(0.2),
-                width: 1,
-              ),
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: action.isActive
-                      ? AppColors.primary.withOpacity(0.1)
-                      : (action.color ?? AppColors.primary).withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: action.isActive
-                      ? Border.all(color: AppColors.primary.withOpacity(0.3))
-                      : null,
-                ),
-                child: Icon(
-                  action.icon,
-                  color:
-                      action.color ??
-                      (action.isActive
-                          ? AppColors.primary
-                          : AppColors.textSecondary),
-                  size: 22,
-                ),
-              ),
-
-              const SizedBox(width: 16),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      action.title,
-                      style: AppTextStyles.body1.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: action.color ?? AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      action.subtitle,
-                      style: AppTextStyles.body3.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 16,
-                color: action.color ?? AppColors.textSecondary.withOpacity(0.6),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _changeAvatar() {
-    _showComingSoon(context, 'Смена аватара');
-  }
-
+  // ========================================
+  // Утилиты
+  // ========================================
   void _showComingSoon(BuildContext ctx, String feature) {
     ScaffoldMessenger.of(ctx).showSnackBar(
       SnackBar(
@@ -861,31 +636,23 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
     );
   }
 
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
     _phoneController.dispose();
     _birthDateController.dispose();
     _therapyGoalsController.dispose();
     super.dispose();
   }
-}
-
-class _ProfileAction {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-  final Color? color;
-  final bool isActive;
-
-  _ProfileAction({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-    this.color,
-    this.isActive = false,
-  });
 }
