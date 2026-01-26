@@ -1,172 +1,239 @@
-import 'package:flutter/foundation.dart';
-import 'auth_service_impl.dart';
-import 'api_service.dart';
-import 'storage_service.dart';
+// lib/web_pages/services/user_provider.dart
 
-/// Provider для управления состоянием пользователя
-class UserProvider extends ChangeNotifier {
+import 'package:flutter/material.dart';
+import './auth_service_impl.dart';
+import './profile_service.dart';
+import './storage_service.dart';
+
+class UserProvider with ChangeNotifier {
+  final StorageService _storage = StorageService();
+  final ProfileService _profileService = ProfileService();
+
   Map<String, dynamic>? _user;
-  String? _token;
   bool _isLoading = false;
   String? _error;
-  bool _isInitialized = false;
 
-  // Getters
   Map<String, dynamic>? get user => _user;
-  String? get token => _token;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  bool get isAuthenticated => _user != null && _token != null;
-  bool get isInitialized => _isInitialized;
+  bool get isAuthenticated => _user != null;
 
-  /// Инициализация - загрузить данные из локального хранилища
+  // Геттеры для удобного доступа к данным
+  String? get userName => _user?['name'];
+  String? get userEmail => _user?['email'];
+  String? get userAvatar => _user?['avatarUrl'];
+  String? get userRole => _user?['role'];
+  String? get userPhone => _user?['phone'];
+  String? get userBirthDate => _user?['birthDate'];
+  String? get userGender => _user?['gender'];
+  String? get userTherapyGoals => _user?['therapyGoals'];
+
+  // Инициализация при запуске приложения
   Future<void> initialize() async {
-    if (_isInitialized) return;
+    await loadProfile();
+  }
 
-    _isLoading = true;
-    notifyListeners();
-
+  // Вход в систему
+  Future<bool> login(String email, String password) async {
     try {
-      final token = await StorageService.getToken();
-      final userData = await StorageService.getUser();
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
 
-      if (token != null && userData != null) {
-        _token = token;
-        _user = userData;
-        ApiService.setToken(token);
+      final result = await AuthServiceImpl.login(email, password);
+      if (result['success'] == true) {
+        final token = result['token'] as String?;
+        final user = result['user'];
 
-        // Попробовать обновить профиль
-        await loadProfile();
+        if (token != null) {
+          await _storage.saveToken(token);
+        }
+        if (user is Map<String, dynamic>) {
+          await _storage.saveUserData(user);
+          _user = user;
+        } else {
+          _user = null;
+        }
+
+        _isLoading = false;
+        notifyListeners();
+        return true;
       }
-    } catch (e) {
-      debugPrint('Error initializing user: $e');
-    } finally {
-      _isInitialized = true;
+
+      _error = result['message']?.toString() ?? 'Ошибка входа';
       _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Загрузить профиль с сервера
+  Future<void> loadProfile() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final token = await _storage.getToken();
+      
+      if (token == null) {
+        _user = null;
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      final userData = await _profileService.getCurrentUser();
+      _user = userData;
+      
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      print('Ошибка загрузки профиля: $e');
+      _error = e.toString();
+      _isLoading = false;
+      
+      // Если ошибка авторизации, очищаем данные
+      if (e.toString().contains('Сессия истекла')) {
+        _user = null;
+      }
+      
       notifyListeners();
     }
   }
 
-  /// Установить данные пользователя
-  Future<void> setUser(Map<String, dynamic> userData, String authToken) async {
-    _user = userData;
-    _token = authToken;
-    _error = null;
+  // Обновить профиль
+  Future<bool> updateProfile({
+    String? name,
+    String? phone,
+    String? birthDate,
+    String? gender,
+    String? therapyGoals,
+  }) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
 
-    // Сохраняем в локальное хранилище
-    await StorageService.saveToken(authToken);
-    await StorageService.saveUser(userData);
-    ApiService.setToken(authToken);
+      final updatedUser = await _profileService.updateProfile(
+        name: name,
+        phone: phone,
+        birthDate: birthDate,
+        gender: gender,
+        therapyGoals: therapyGoals,
+      );
 
+      _user = updatedUser;
+      _isLoading = false;
+      notifyListeners();
+      
+      return true;
+    } catch (e) {
+      print('Ошибка обновления профиля: $e');
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      
+      return false;
+    }
+  }
+
+  // Загрузить аватар
+  Future<bool> uploadAvatar(String imagePath) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final result = await _profileService.uploadAvatar(imagePath);
+      
+      // Обновляем URL аватара в локальных данных
+      if (_user != null) {
+        _user!['avatarUrl'] = result['avatarUrl'];
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      
+      return true;
+    } catch (e) {
+      print('Ошибка загрузки аватара: $e');
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      
+      return false;
+    }
+  }
+
+  // Изменить пароль
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      await _profileService.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+
+      _isLoading = false;
+      notifyListeners();
+      
+      return true;
+    } catch (e) {
+      print('Ошибка смены пароля: $e');
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      
+      return false;
+    }
+  }
+
+  // Выход из системы
+  Future<void> performLogout() async {
+    await _storage.clearToken();
+    _user = null;
     notifyListeners();
   }
 
-  /// Обновить данные пользователя
-  Future<void> updateUser(Map<String, dynamic> userData) async {
-    _user = userData;
-    _error = null;
+  // Удалить аккаунт
+  Future<bool> deleteAccount() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
 
-    // Сохраняем в локальное хранилище
-    await StorageService.saveUser(userData);
-
-    notifyListeners();
+      await _profileService.deleteAccount();
+      
+      _user = null;
+      _isLoading = false;
+      notifyListeners();
+      
+      return true;
+    } catch (e) {
+      print('Ошибка удаления аккаунта: $e');
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      
+      return false;
+    }
   }
 
-  /// Установить состояние загрузки
-  void setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-
-  /// Установить ошибку
-  void setError(String errorMessage) {
-    _error = errorMessage;
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  /// Очистить ошибку
+  // Очистить ошибку
   void clearError() {
     _error = null;
     notifyListeners();
-  }
-
-  /// Выход из системы
-  Future<void> logout() async {
-    _user = null;
-    _token = null;
-    _error = null;
-    _isLoading = false;
-
-    // Очищаем локальное хранилище
-    await StorageService.clearAll();
-    ApiService.clearToken();
-
-    notifyListeners();
-  }
-
-  /// Получить роль пользователя
-  String? get userRole => _user?['role'];
-
-  /// Получить имя пользователя
-  String? get userName => _user?['fullName'];
-
-  /// Получить email
-  String? get userEmail => _user?['email'];
-
-  /// Получить аватар
-  String? get userAvatar => _user?['avatarUrl'];
-
-  /// Проверить, является ли пользователь клиентом
-  bool get isClient => userRole == 'CLIENT';
-
-  /// Проверить, является ли пользователь психологом
-  bool get isPsychologist => userRole == 'PSYCHOLOGIST';
-
-  /// Проверить, является ли пользователь админом
-  bool get isAdmin => userRole == 'ADMIN';
-
-  /// Вход в систему
-  Future<bool> login(String email, String password) async {
-    setLoading(true);
-    clearError();
-
-    final result = await AuthServiceImpl.login(email, password);
-
-    if (result['success'] == true) {
-      await setUser(result['user'], result['token']);
-      setLoading(false);
-      return true;
-    } else {
-      setError(result['message'] ?? 'Ошибка входа');
-      setLoading(false);
-      return false;
-    }
-  }
-
-  /// Загрузить профиль
-  Future<bool> loadProfile() async {
-    if (!ApiService.isAuthenticated()) {
-      return false;
-    }
-
-    setLoading(true);
-
-    final result = await AuthServiceImpl.getProfile();
-
-    if (result['success'] == true) {
-      await updateUser(result['user']);
-      setLoading(false);
-      return true;
-    } else {
-      setLoading(false);
-      return false;
-    }
-  }
-
-  /// Выход с очисткой токена
-  Future<void> performLogout() async {
-    await AuthServiceImpl.logout();
-    await logout();
   }
 }

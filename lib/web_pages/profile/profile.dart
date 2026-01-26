@@ -1,3 +1,5 @@
+// lib/web_pages/profile/profile.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
@@ -31,18 +33,118 @@ class _ProfilePageState extends State<ProfilePage> {
       currentRoute: '/profile',
       child: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
-          if (userProvider.isLoading && !userProvider.isAuthenticated) {
+          // Показываем загрузку только при первой загрузке
+          if (userProvider.isLoading && userProvider.user == null) {
             return const Center(
               child: CircularProgressIndicator(color: AppColors.primary),
             );
           }
 
+          // Показываем ошибку если есть
+          if (userProvider.error != null && userProvider.user == null) {
+            return _buildErrorState(context, userProvider.error!);
+          }
+
+          // Проверяем авторизацию
           if (!userProvider.isAuthenticated) {
             return _buildUnauthorized(context);
           }
 
+          // Показываем профиль
           return _buildProfileContent(userProvider);
         },
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, String error) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primaryLight.withOpacity(0.1),
+            AppColors.backgroundLight,
+          ],
+        ),
+      ),
+      child: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 500),
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: AppColors.error.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.error_outline,
+                  size: 60,
+                  color: AppColors.error,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                'Ошибка загрузки профиля',
+                style: AppTextStyles.h1.copyWith(fontSize: 28),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                error,
+                style: AppTextStyles.body1.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => _loadProfile(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text('Повторить', style: AppTextStyles.button),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          AppRouter.login,
+                          (route) => false,
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text('Войти снова', style: AppTextStyles.button),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -154,23 +256,14 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Заголовок
                 _buildHeader(userProvider, isMobile),
                 const SizedBox(height: 32),
-
-                // Карточка профиля
                 _buildProfileCard(userProvider, isMobile),
                 const SizedBox(height: 24),
-
-                // Статистика
                 _buildStatsSection(isMobile),
                 const SizedBox(height: 24),
-
-                // Быстрые действия
                 _buildQuickActions(isMobile),
                 const SizedBox(height: 24),
-
-                // Настройки
                 _buildSettingsSection(isMobile, userProvider),
               ],
             ),
@@ -250,7 +343,6 @@ class _ProfilePageState extends State<ProfilePage> {
         children: [
           Row(
             children: [
-              // Аватар
               Stack(
                 children: [
                   Container(
@@ -258,9 +350,14 @@ class _ProfilePageState extends State<ProfilePage> {
                     height: isMobile ? 80 : 100,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [AppColors.primary, AppColors.primaryLight],
-                      ),
+                      gradient: userProvider.userAvatar == null
+                          ? LinearGradient(
+                              colors: [
+                                AppColors.primary,
+                                AppColors.primaryLight,
+                              ],
+                            )
+                          : null,
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.primary.withOpacity(0.3),
@@ -303,8 +400,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
               const SizedBox(width: 24),
-
-              // Информация
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,8 +420,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
               ),
-
-              // Кнопка редактирования
               if (!isMobile)
                 IconButton(
                   onPressed: () {
@@ -341,12 +434,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
             ],
           ),
-
           const SizedBox(height: 32),
           const Divider(),
           const SizedBox(height: 24),
-
-          // Детальная информация
           _buildInfoGrid(userProvider, isMobile),
         ],
       ),
@@ -406,7 +496,7 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 16),
               _buildInfoItem(
                 'Телефон',
-                userProvider.user?['phone'] ?? 'Не указан',
+                userProvider.userPhone ?? 'Не указан',
                 Icons.phone_outlined,
               ),
               const SizedBox(height: 16),
@@ -430,7 +520,7 @@ class _ProfilePageState extends State<ProfilePage> {
               Expanded(
                 child: _buildInfoItem(
                   'Телефон',
-                  userProvider.user?['phone'] ?? 'Не указан',
+                  userProvider.userPhone ?? 'Не указан',
                   Icons.phone_outlined,
                 ),
               ),
@@ -516,7 +606,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
           const SizedBox(height: 24),
-
           isMobile
               ? Column(
                   children: [
@@ -658,7 +747,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
           const SizedBox(height: 20),
-
           Wrap(
             spacing: 12,
             runSpacing: 12,
@@ -675,17 +763,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 'Мои записи',
                 Icons.event_note,
                 AppColors.success,
-                () {
-                  // TODO: My appointments
-                },
+                () {},
               ),
               _buildActionButton(
                 'Чаты',
                 Icons.chat_bubble_outline,
                 Color(0xFF00BCD4),
-                () {
-                  // TODO: Chats
-                },
+                () {},
               ),
               _buildActionButton(
                 'Статьи',
@@ -761,41 +845,32 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
           const SizedBox(height: 20),
-
           _buildSettingItem(
             'Редактировать профиль',
             'Изменить имя, фото и другие данные',
             Icons.edit_outlined,
-            () {
-              // TODO: Edit profile
-            },
+            () {},
           ),
           const Divider(height: 32),
           _buildSettingItem(
             'Изменить пароль',
             'Обновить пароль для входа',
             Icons.lock_outline,
-            () {
-              // TODO: Change password
-            },
+            () {},
           ),
           const Divider(height: 32),
           _buildSettingItem(
             'Уведомления',
             'Настроить уведомления',
             Icons.notifications_outlined,
-            () {
-              // TODO: Notifications
-            },
+            () {},
           ),
           const Divider(height: 32),
           _buildSettingItem(
             'Конфиденциальность',
             'Управление данными и приватностью',
             Icons.privacy_tip_outlined,
-            () {
-              // TODO: Privacy
-            },
+            () {},
           ),
           const Divider(height: 32),
           _buildSettingItem(
@@ -881,7 +956,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Helper methods
   String _getFirstName(String? fullName) {
     if (fullName == null || fullName.isEmpty) return 'Пользователь';
     return fullName.split(' ').first;

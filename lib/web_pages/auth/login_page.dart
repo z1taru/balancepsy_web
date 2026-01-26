@@ -1,9 +1,12 @@
+// lib/web_pages/auth/login_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/custom_button.dart';
 import '../../сore/router/app_router.dart';
+import '../services/auth_service.dart';
 import '../services/user_provider.dart';
 
 class LoginPage extends StatefulWidget {
@@ -14,13 +17,15 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  final _authService = AuthService();
 
   bool _obscurePassword = true;
   bool _rememberMe = false;
   bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -29,37 +34,56 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  bool get _canLogin =>
-      _emailController.text.contains('@') &&
-      _passwordController.text.length >= 6;
-
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-
-    final success = await userProvider.login(
-      _emailController.text.trim(),
-      _passwordController.text,
-    );
-
-    setState(() => _isLoading = false);
-
-    if (success && mounted) {
-      // Переход на главную страницу после успешного входа
-      Navigator.pushReplacementNamed(context, AppRouter.home);
-    } else if (mounted) {
-      // Показываем ошибку
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(userProvider.error ?? 'Ошибка входа'),
-          backgroundColor: AppColors.error,
-        ),
+    try {
+      // Выполняем вход
+      final result = await _authService.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
       );
+
+      // Загружаем данные пользователя в Provider
+      if (mounted) {
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        await userProvider.loadProfile();
+
+        // Определяем куда перенаправить пользователя
+        final role = userProvider.userRole;
+        final dashboardRoute = AppRouter.getDashboardRoute(role);
+
+        // Переходим на нужную страницу
+        if (mounted) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            dashboardRoute,
+            (route) => false,
+          );
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_errorMessage ?? 'Ошибка входа'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -68,61 +92,105 @@ class _LoginPageState extends State<LoginPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 768;
 
-    if (isMobile) {
-      return _buildMobileLayout();
-    }
-
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      body: Row(
-        children: [
-          Expanded(flex: 5, child: _buildLoginForm()),
-          Expanded(flex: 4, child: _buildIllustrationSide()),
-        ],
-      ),
+      body: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
     );
   }
 
   Widget _buildMobileLayout() {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SafeArea(child: SingleChildScrollView(child: _buildLoginForm())),
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: _buildLoginForm(isMobile: true),
+      ),
     );
   }
 
-  Widget _buildLoginForm() {
-    return Container(
-      padding: const EdgeInsets.all(60),
-      child: Form(
-        key: _formKey,
+  Widget _buildDesktopLayout() {
+    return Row(
+      children: [
+        Expanded(
+          flex: 5,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: const EdgeInsets.all(40),
+                      child: _buildLoginForm(isMobile: false),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        Expanded(flex: 4, child: _buildIllustrationSide()),
+      ],
+    );
+  }
+
+  Widget _buildLoginForm({required bool isMobile}) {
+    return Form(
+      key: _formKey,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 500),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildLogo(),
-            const SizedBox(height: 48),
-            Text('Вход в аккаунт', style: AppTextStyles.h1),
+            const SizedBox(height: 32),
+            Text('Добро пожаловать!', style: AppTextStyles.h1),
             const SizedBox(height: 12),
             Text(
-              'Рады видеть вас снова!',
+              'Войдите в свой аккаунт для продолжения',
               style: AppTextStyles.body1.copyWith(
                 color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 32),
+
+            if (_errorMessage != null) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.error_outline, color: AppColors.error, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: AppTextStyles.body2.copyWith(
+                          color: AppColors.error,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+
             _buildEmailField(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             _buildPasswordField(),
             const SizedBox(height: 16),
             _buildRememberAndForgot(),
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
             _buildLoginButton(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
             _buildDivider(),
-            const SizedBox(height: 24),
-            _buildSocialButtons(),
-            const SizedBox(height: 32),
-            _buildRegisterLink(),
+            const SizedBox(height: 28),
+            _buildRegisterPrompt(),
           ],
         ),
       ),
@@ -165,7 +233,7 @@ class _LoginPageState extends State<LoginPage> {
           style: AppTextStyles.input,
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
-            hintText: 'example@email.com',
+            hintText: 'your@email.com',
             hintStyle: AppTextStyles.inputHint,
             prefixIcon: const Icon(
               Icons.email_outlined,
@@ -181,7 +249,6 @@ class _LoginPageState extends State<LoginPage> {
             }
             return null;
           },
-          onChanged: (value) => setState(() {}),
         ),
       ],
     );
@@ -222,7 +289,6 @@ class _LoginPageState extends State<LoginPage> {
             }
             return null;
           },
-          onChanged: (value) => setState(() {}),
         ),
       ],
     );
@@ -262,7 +328,7 @@ class _LoginPageState extends State<LoginPage> {
       height: 56,
       child: CustomButton(
         text: _isLoading ? 'Вход...' : 'Войти',
-        onPressed: (_canLogin && !_isLoading) ? _login : null,
+        onPressed: _isLoading ? null : _login,
         isPrimary: true,
         isFullWidth: true,
       ),
@@ -272,67 +338,26 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildDivider() {
     return Row(
       children: [
-        Expanded(child: Divider(color: AppColors.textTertiary)),
+        Expanded(child: Divider(color: AppColors.inputBorder)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             'или',
-            style: AppTextStyles.body2.copyWith(color: AppColors.textTertiary),
+            style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
           ),
         ),
-        Expanded(child: Divider(color: AppColors.textTertiary)),
+        Expanded(child: Divider(color: AppColors.inputBorder)),
       ],
     );
   }
 
-  Widget _buildSocialButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildSocialButton('Google', Icons.g_mobiledata, () {}),
-        ),
-        const SizedBox(width: 16),
-        Expanded(child: _buildSocialButton('Facebook', Icons.facebook, () {})),
-      ],
-    );
-  }
-
-  Widget _buildSocialButton(
-    String label,
-    IconData icon,
-    VoidCallback onPressed,
-  ) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        side: const BorderSide(color: AppColors.inputBorder, width: 2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+  Widget _buildRegisterPrompt() {
+    return Center(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: AppColors.textPrimary),
-          const SizedBox(width: 8),
           Text(
-            label,
-            style: AppTextStyles.body1.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRegisterLink() {
-    return Center(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'Нет аккаунта? ',
+            'Нет аккаунта?',
             style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
           ),
           TextButton(
@@ -368,15 +393,15 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 300,
-              height: 300,
+              width: 280,
+              height: 280,
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.6),
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.psychology_outlined,
-                size: 150,
+                Icons.favorite,
+                size: 140,
                 color: AppColors.primary.withOpacity(0.5),
               ),
             ),
@@ -384,11 +409,8 @@ class _LoginPageState extends State<LoginPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: Text(
-                'Ваш путь к балансу начинается здесь',
-                style: AppTextStyles.h3.copyWith(
-                  color: AppColors.textSecondary,
-                  fontSize: 20,
-                ),
+                'Ваш путь к внутреннему балансу',
+                style: AppTextStyles.h3.copyWith(fontSize: 20),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -396,7 +418,7 @@ class _LoginPageState extends State<LoginPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 60),
               child: Text(
-                'Профессиональная психологическая поддержка онлайн',
+                'Профессиональная психологическая помощь онлайн',
                 style: AppTextStyles.body1.copyWith(
                   color: AppColors.textTertiary,
                 ),

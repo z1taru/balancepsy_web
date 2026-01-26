@@ -1,4 +1,4 @@
-// lib/core/router/app_router.dart
+// lib/сore/router/app_router.dart
 
 import 'package:balance_psy/web_pages/profile/profile.dart';
 import 'package:flutter/material.dart';
@@ -17,8 +17,15 @@ import '../../web_pages/psycho/psycho_schedule.dart';
 import '../../web_pages/psycho/psycho_messages.dart';
 import '../../web_pages/psycho/psycho_reports.dart';
 import '../../web_pages/psycho/psycho_profile.dart';
+import '../../web_pages/profile_patient/home_patient.dart';
+import '../../web_pages/profile_patient/profile_patient.dart';
+import '../../web_pages/profile_patient/blog_patient.dart';
+import '../../web_pages/profile_patient/chat_patient.dart';
+import '../../web_pages/profile_patient/contacts_patient.dart';
+import '../../web_pages/profile_patient/sessions_calendar.dart';
 
 class AppRouter {
+  // Публичные роуты
   static const String home = '/';
   static const String login = '/login';
   static const String register = '/register';
@@ -28,13 +35,17 @@ class AppRouter {
   static const String articleDetail = '/blog/:id';
   static const String services = '/services';
   static const String contacts = '/contacts';
-  static const String dashboard = '/dashboard';
-  static const String profile = '/profile';
-  static const String contactsPatient = '/contacts-patient';
-  static const String chatPatient = '/chat-patient';
+
+  // Роуты для клиентов (пациентов)
+  static const String dashboard = '/dashboard'; // Главная пациента
+  static const String profile = '/profile'; // Профиль пациента
   static const String patientArticles = '/patient/articles';
-  static const String sessionsCalendar = '/sessions-calendar';
-  static const String diary = '/diary';
+  static const String chatPatient = '/patient/chat';
+  static const String contactsPatient = '/patient/contacts';
+  static const String sessionsCalendar = '/patient/sessions-calendar';
+  static const String diary = '/patient/diary';
+
+  // Роуты для психологов
   static const String psychoDashboard = '/psycho/dashboard';
   static const String psychoSchedule = '/psycho/schedule';
   static const String psychoMessages = '/psycho/messages';
@@ -43,64 +54,125 @@ class AppRouter {
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      // Публичные страницы
       case home:
         return NoAnimationMaterialPageRoute(builder: (_) => const HomePage());
       case login:
         return NoAnimationMaterialPageRoute(builder: (_) => const LoginPage());
       case register:
-        return NoAnimationMaterialPageRoute(builder: (_) => const RegisterMain());
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const RegisterMain(),
+        );
       case about:
         return NoAnimationMaterialPageRoute(builder: (_) => const AboutPage());
       case psychologists:
-        return NoAnimationMaterialPageRoute(builder: (_) => const PsychologistsPage());
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const PsychologistsPage(),
+        );
       case blog:
         return NoAnimationMaterialPageRoute(builder: (_) => const BlogPage());
-      case patientArticles:
-        return NoAnimationMaterialPageRoute(builder: (_) => const ServicesPage());
+      case services:
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const ServicesPage(),
+        );
       case contacts:
-        return NoAnimationMaterialPageRoute(builder: (_) => const ContactsPage());
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const ContactsPage(),
+        );
+
+      // Страницы пациента
       case dashboard:
-        return NoAnimationMaterialPageRoute(builder: (_) => const ProfilePage());
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const HomePatientPage(),
+        );
       case profile:
-        return NoAnimationMaterialPageRoute(builder: (_) => const PsychoDashboardPage());
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const ProfilePatientPage(),
+        );
+      case patientArticles:
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const BlogPatientPage(),
+        );
+      case chatPatient:
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const ChatPatientPage(),
+        );
+      case contactsPatient:
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const ContactsPatientPage(),
+        );
+      case sessionsCalendar:
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const SessionsCalendarPage(),
+        );
+
+      // Страницы психолога
+      case psychoDashboard:
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const PsychoDashboardPage(),
+        );
       case psychoSchedule:
-        return NoAnimationMaterialPageRoute(builder: (_) => const PsychoSchedulePage());
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const PsychoSchedulePage(),
+        );
       case psychoMessages:
-        return NoAnimationMaterialPageRoute(builder: (_) => const PsychoMessagesPage());
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const PsychoMessagesPage(),
+        );
       case psychoReports:
-        return NoAnimationMaterialPageRoute(builder: (_) => const PsychoReportsPage());
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const PsychoReportsPage(),
+        );
       case psychoProfile:
-        return NoAnimationMaterialPageRoute(builder: (_) => const PsychoProfilePage());
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const PsychoProfilePage(),
+        );
 
       default:
+        // Динамические роуты
         if (settings.name?.startsWith('/psychologists/') == true) {
           final id = settings.name!.split('/').last;
-          return NoAnimationMaterialPageRoute(builder: (_) => PsychologistDetail(id: id));
+          return NoAnimationMaterialPageRoute(
+            builder: (_) => PsychologistDetail(id: id),
+          );
         }
-        if (settings.name?.startsWith('/blog/') == true && settings.name != blog) {
+        if (settings.name?.startsWith('/blog/') == true &&
+            settings.name != blog) {
           final id = settings.name!.split('/').last;
-          return NoAnimationMaterialPageRoute(builder: (_) => ArticleDetail(id: id));
+          return NoAnimationMaterialPageRoute(
+            builder: (_) => ArticleDetail(id: id),
+          );
         }
-        return NoAnimationMaterialPageRoute(builder: (_) => const NotFoundPage());
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const NotFoundPage(),
+        );
     }
   }
 
   static Map<String, String> get routes => {
-        'Главная': home,
-        'О нас': about,
-        'Специалисты': psychologists,
-        'Услуги': services,
-        'Блог': blog,
-        'Контакты': contacts,
-      };
+    'Главная': home,
+    'О нас': about,
+    'Специалисты': psychologists,
+    'Услуги': services,
+    'Блог': blog,
+    'Контакты': contacts,
+  };
 
   static Map<String, String> get patientRoutes => {
-        'Главная': dashboard,
-        'Профиль': profile,
-        'Статьи': patientArticles,
-        'Сообщения': chatPatient,
-        'Контакты': contactsPatient,
-      };
+    'Главная': dashboard,
+    'Профиль': profile,
+    'Статьи': patientArticles,
+    'Сообщения': chatPatient,
+    'Контакты': contactsPatient,
+  };
+
+  static Map<String, String> get psychoRoutes => {
+    'Панель': psychoDashboard,
+    'Расписание': psychoSchedule,
+    'Сообщения': psychoMessages,
+    'Отчеты': psychoReports,
+    'Профиль': psychoProfile,
+  };
 
   static void navigateTo(BuildContext context, String routeName) {
     Navigator.pushNamed(context, routeName);
@@ -114,8 +186,40 @@ class AppRouter {
     Navigator.pushNamedAndRemoveUntil(context, routeName, (route) => false);
   }
 
-  static void navigateWithArguments(BuildContext context, String routeName, Object arguments) {
+  static void navigateWithArguments(
+    BuildContext context,
+    String routeName,
+    Object arguments,
+  ) {
     Navigator.pushNamed(context, routeName, arguments: arguments);
+  }
+
+  // Получить роут в зависимости от роли пользователя
+  static String getDashboardRoute(String? role) {
+    switch (role) {
+      case 'PSYCHOLOGIST':
+        return psychoDashboard;
+      case 'CLIENT':
+        return dashboard;
+      case 'ADMIN':
+        return psychoDashboard; // Или создайте отдельный дашборд для админа
+      default:
+        return home;
+    }
+  }
+
+  // Получить роут профиля в зависимости от роли
+  static String getProfileRoute(String? role) {
+    switch (role) {
+      case 'PSYCHOLOGIST':
+        return psychoProfile;
+      case 'CLIENT':
+        return profile;
+      case 'ADMIN':
+        return psychoProfile;
+      default:
+        return home;
+    }
   }
 }
 
@@ -142,12 +246,23 @@ class NotFoundPage extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline, size: 80, color: Colors.grey),
             const SizedBox(height: 20),
-            const Text('404', style: TextStyle(fontSize: 72, fontWeight: FontWeight.bold, color: Colors.grey)),
+            const Text(
+              '404',
+              style: TextStyle(
+                fontSize: 72,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
             const SizedBox(height: 16),
             const Text('Страница не найдена', style: TextStyle(fontSize: 24)),
             const SizedBox(height: 32),
             ElevatedButton(
-              onPressed: () => Navigator.pushNamedAndRemoveUntil(context, AppRouter.home, (route) => false),
+              onPressed: () => Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRouter.home,
+                (route) => false,
+              ),
               child: const Text('На главную'),
             ),
           ],
