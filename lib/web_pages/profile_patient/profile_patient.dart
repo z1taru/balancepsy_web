@@ -18,7 +18,7 @@ class ProfilePatientPage extends StatefulWidget {
 
 class _ProfilePatientPageState extends State<ProfilePatientPage> {
   bool _isEditing = false;
-  
+
   // Данные профиля
   String _name = 'Альдияр';
   String _email = 'aldiyar@example.com';
@@ -26,7 +26,7 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
   String _birthDate = '15 марта 1990';
   String _gender = 'Мужской';
   String _therapyGoals = 'Снижение тревожности, работа со стрессом';
-  
+
   // Контроллеры для редактирования
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -63,7 +63,7 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
       _therapyGoals = _therapyGoalsController.text;
       _isEditing = false;
     });
-    
+
     _showSuccessSnackbar('Данные успешно сохранены');
   }
 
@@ -155,7 +155,10 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
                       height: 36,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+                          colors: [
+                            AppColors.primary,
+                            AppColors.primary.withOpacity(0.8),
+                          ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -169,21 +172,26 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
                           ),
                         ],
                       ),
-                      child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        size: 16,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
             ],
           ),
-          
+
           const SizedBox(width: 28),
-          
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (!_isEditing) ...[
-                  Text(_name, 
+                  Text(
+                    _name,
                     style: AppTextStyles.h1.copyWith(
                       fontSize: 32,
                       fontWeight: FontWeight.w700,
@@ -217,12 +225,15 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
                     ),
                   ),
                 ],
-                
+
                 const SizedBox(height: 20),
-                
+
                 // Статистика
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primaryLight.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(16),
@@ -242,14 +253,11 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
               ],
             ),
           ),
-          
+
           const SizedBox(width: 20),
-          
+
           // Кнопки действий
-          if (!_isEditing)
-            _buildEditButton()
-          else
-            _buildActionButtons(),
+          if (!_isEditing) _buildEditButton() else _buildActionButtons(),
         ],
       ),
     );
@@ -336,7 +344,10 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
           hintText: hintText,
           hintStyle: style.copyWith(color: AppColors.textTertiary),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
           isDense: true,
         ),
       ),
@@ -386,14 +397,16 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Личная информация', 
-                style: AppTextStyles.h2.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+              Text(
+                'Личная информация',
+                style: AppTextStyles.h2.copyWith(fontWeight: FontWeight.w700),
               ),
               if (_isEditing)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -415,12 +428,22 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
                 ),
             ],
           ),
-          
+
           const SizedBox(height: 28),
-          
-          _buildInfoRow('Телефон', _phone, _phoneController, Icons.phone_outlined),
+
+          _buildInfoRow(
+            'Телефон',
+            _phone,
+            _phoneController,
+            Icons.phone_outlined,
+          ),
           const SizedBox(height: 20),
-          _buildInfoRow('Дата рождения', _birthDate, _birthDateController, Icons.calendar_today_outlined),
+          _buildInfoRow(
+            'Дата рождения',
+            _birthDate,
+            _birthDateController,
+            Icons.calendar_today_outlined,
+          ),
           const SizedBox(height: 20),
           _buildGenderRow(),
           const SizedBox(height: 20),
@@ -430,7 +453,12 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, TextEditingController controller, IconData icon) {
+  Widget _buildInfoRow(
+    String label,
+    String value,
+    TextEditingController controller,
+    IconData icon,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -443,9 +471,9 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
           ),
           child: Icon(icon, size: 20, color: AppColors.primary),
         ),
-        
+
         const SizedBox(width: 16),
-        
+
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -474,7 +502,10 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
     );
   }
 
-  Widget _buildEditableInfoField(TextEditingController controller, String label) {
+  Widget _buildEditableInfoField(
+    TextEditingController controller,
+    String label,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.inputBackground,
@@ -490,9 +521,14 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
         maxLines: label == 'Цели терапии' ? 3 : 1,
         decoration: InputDecoration(
           hintText: 'Введите $label',
-          hintStyle: AppTextStyles.body1.copyWith(color: AppColors.textTertiary),
+          hintStyle: AppTextStyles.body1.copyWith(
+            color: AppColors.textTertiary,
+          ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
         ),
       ),
     );
@@ -509,11 +545,15 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
             color: AppColors.primary.withOpacity(0.08),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.person_outline, size: 20, color: AppColors.primary),
+          child: const Icon(
+            Icons.person_outline,
+            size: 20,
+            color: AppColors.primary,
+          ),
         ),
-        
+
         const SizedBox(width: 16),
-        
+
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -567,19 +607,25 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
           duration: const Duration(milliseconds: 300),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary.withOpacity(0.1) : AppColors.inputBackground,
+            color: isSelected
+                ? AppColors.primary.withOpacity(0.1)
+                : AppColors.inputBackground,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.inputBorder.withOpacity(0.5),
+              color: isSelected
+                  ? AppColors.primary
+                  : AppColors.inputBorder.withOpacity(0.5),
               width: isSelected ? 2 : 1,
             ),
-            boxShadow: isSelected ? [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ] : null,
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -615,11 +661,15 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
             color: AppColors.primary.withOpacity(0.08),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.flag_outlined, size: 20, color: AppColors.primary),
+          child: const Icon(
+            Icons.flag_outlined,
+            size: 20,
+            color: AppColors.primary,
+          ),
         ),
-        
+
         const SizedBox(width: 16),
-        
+
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -633,7 +683,10 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
               ),
               const SizedBox(height: 6),
               _isEditing
-                  ? _buildEditableInfoField(_therapyGoalsController, 'Цели терапии')
+                  ? _buildEditableInfoField(
+                      _therapyGoalsController,
+                      'Цели терапии',
+                    )
                   : Text(
                       _therapyGoals,
                       style: AppTextStyles.body1.copyWith(
@@ -698,7 +751,9 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
         ],
       ),
       child: Column(
-        children: actions.map((action) => _buildProfileActionTile(action)).toList(),
+        children: actions
+            .map((action) => _buildProfileActionTile(action))
+            .toList(),
       ),
     );
   }
@@ -725,23 +780,27 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: action.isActive 
+                  color: action.isActive
                       ? AppColors.primary.withOpacity(0.1)
                       : (action.color ?? AppColors.primary).withOpacity(0.08),
                   borderRadius: BorderRadius.circular(12),
-                  border: action.isActive 
+                  border: action.isActive
                       ? Border.all(color: AppColors.primary.withOpacity(0.3))
                       : null,
                 ),
                 child: Icon(
                   action.icon,
-                  color: action.color ?? (action.isActive ? AppColors.primary : AppColors.textSecondary),
+                  color:
+                      action.color ??
+                      (action.isActive
+                          ? AppColors.primary
+                          : AppColors.textSecondary),
                   size: 22,
                 ),
               ),
-              
+
               const SizedBox(width: 16),
-              
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -763,7 +822,7 @@ class _ProfilePatientPageState extends State<ProfilePatientPage> {
                   ],
                 ),
               ),
-              
+
               Icon(
                 Icons.arrow_forward_ios_rounded,
                 size: 16,
