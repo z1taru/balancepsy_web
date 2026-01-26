@@ -1,284 +1,238 @@
 // lib/сore/services/profile_patient_service.dart
+
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
-import 'api_client.dart';
-import 'dart:io';
+import '../storage/token_storage.dart';
 
 class ProfilePatientService {
-  final ApiClient _apiClient = ApiClient();
+  final TokenStorage _storage = TokenStorage();
 
-  // ========================================
-  // Get Current User Profile
-  // ========================================
+  /// Получить текущий профиль пользователя
   Future<Map<String, dynamic>> getCurrentProfile() async {
-    print('📡 Getting current profile...');
-    final response = await _apiClient.get(
-      ApiConfig.currentUser,
-      requiresAuth: true,
-    );
-    print('✅ Profile response: $response');
-    return response;
+    try {
+      final token = await _storage.getToken();
+
+      if (token == null) {
+        throw Exception('Токен не найден');
+      }
+
+      print('📡 Getting profile from: ${ApiConfig.me}');
+
+      final response = await http
+          .get(
+            Uri.parse(ApiConfig.me),
+            headers: ApiConfig.headersWithAuth(token),
+          )
+          .timeout(ApiConfig.connectionTimeout);
+
+      print('📡 Profile response status: ${response.statusCode}');
+      print('📡 Profile response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+
+        if (data['success'] == true && data['data'] != null) {
+          return data;
+        }
+      }
+
+      if (response.statusCode == 401) {
+        print('⚠️ Session expired');
+        await _storage.clearAll();
+        throw Exception('Сессия истекла');
+      }
+
+      throw Exception('Не удалось загрузить профиль');
+    } catch (e) {
+      print('❌ Error in getCurrentProfile: $e');
+      rethrow;
+    }
   }
 
-  // ========================================
-  // Update Profile
-  // ========================================
+  /// Обновить профиль пользователя
   Future<Map<String, dynamic>> updateProfile({
     String? fullName,
     String? phone,
     String? dateOfBirth,
     String? gender,
-    List<String>? interests,
     String? registrationGoal,
   }) async {
-    final body = <String, dynamic>{};
+    try {
+      final token = await _storage.getToken();
 
-    if (fullName != null) body['fullName'] = fullName;
-    if (phone != null) body['phone'] = phone;
-    if (dateOfBirth != null) body['dateOfBirth'] = dateOfBirth;
-    if (gender != null) body['gender'] = gender;
-    if (interests != null) body['interests'] = interests;
-    if (registrationGoal != null) body['registrationGoal'] = registrationGoal;
+      if (token == null) {
+        throw Exception('Токен не найден');
+      }
 
-    print('📡 Updating profile: $body');
+      final updates = <String, dynamic>{};
+      if (fullName != null) updates['fullName'] = fullName;
+      if (phone != null) updates['phone'] = phone;
+      if (dateOfBirth != null) updates['dateOfBirth'] = dateOfBirth;
+      if (gender != null) updates['gender'] = gender;
+      if (registrationGoal != null)
+        updates['registrationGoal'] = registrationGoal;
 
-    final response = await _apiClient.put(
-      ApiConfig.updateProfile,
-      body,
-      requiresAuth: true,
-    );
+      print('📡 Updating profile: $updates');
 
-    print('✅ Update response: $response');
-    return response;
+      final response = await http
+          .put(
+            Uri.parse(ApiConfig.updateProfile),
+            headers: ApiConfig.headersWithAuth(token),
+            body: json.encode(updates),
+          )
+          .timeout(ApiConfig.connectionTimeout);
+
+      print('📡 Update response status: ${response.statusCode}');
+      print('📡 Update response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+
+        if (data['success'] == true) {
+          print('✅ Profile updated successfully');
+          return data;
+        }
+      }
+
+      final error = json.decode(utf8.decode(response.bodyBytes));
+      throw Exception(error['message'] ?? 'Ошибка обновления профиля');
+    } catch (e) {
+      print('❌ Error in updateProfile: $e');
+      rethrow;
+    }
   }
 
-  // ========================================
-  // Upload Avatar
-  // ========================================
-  Future<Map<String, dynamic>> uploadAvatar(File imageFile) async {
-    print('📡 Uploading avatar...');
-    final response = await _apiClient.uploadFile(
-      ApiConfig.uploadAvatar,
-      imageFile,
-      'avatar',
-    );
-    print('✅ Avatar upload response: $response');
-    return response;
-  }
-
-  // ========================================
-  // Change Password
-  // ========================================
-  Future<Map<String, dynamic>> changePassword({
-    required String currentPassword,
-    required String newPassword,
-    required String confirmPassword,
-  }) async {
-    print('📡 Changing password...');
-    final response = await _apiClient.put(ApiConfig.changePassword, {
-      'currentPassword': currentPassword,
-      'newPassword': newPassword,
-      'confirmPassword': confirmPassword,
-    }, requiresAuth: true);
-    print('✅ Password change response: $response');
-    return response;
-  }
-
-  // ========================================
-  // Delete Account
-  // ========================================
-  Future<Map<String, dynamic>> deleteAccount() async {
-    print('📡 Deleting account...');
-    final response = await _apiClient.delete(
-      ApiConfig.deleteAccount,
-      requiresAuth: true,
-    );
-    print('✅ Delete account response: $response');
-    return response;
-  }
-
-  // ========================================
-  // Get User Statistics
-  // ========================================
+  /// Получить статистику пользователя
   Future<Map<String, dynamic>> getUserStatistics() async {
-    print('📡 Getting user statistics...');
-    final response = await _apiClient.get(
-      ApiConfig.myStatistics,
-      requiresAuth: true,
-    );
-    print('✅ Statistics response: $response');
-    return response;
+    try {
+      final token = await _storage.getToken();
+
+      if (token == null) {
+        throw Exception('Токен не найден');
+      }
+
+      // Временно возвращаем моковые данные, пока не будет реализован бэкенд endpoint
+      // TODO: Реализовать /api/users/me/statistics на бэкенде
+      return {
+        'success': true,
+        'data': {
+          'completedSessions': 0,
+          'articlesRead': 0,
+          'daysActive': 0,
+          'moodEntriesCount': 0,
+          'weeksSinceJoined': _getWeeksSinceJoined(),
+        },
+      };
+    } catch (e) {
+      print('❌ Error in getUserStatistics: $e');
+      rethrow;
+    }
+  }
+
+  int _getWeeksSinceJoined() {
+    // Временная реализация
+    return 1;
   }
 }
 
-// ========================================
-// User Profile Model
-// ========================================
+/// Модель профиля пользователя
 class UserProfile {
-  final int id;
-  final String fullName;
+  final int userId;
   final String email;
+  final String fullName;
   final String? phone;
-  final DateTime? dateOfBirth;
-  final String? gender;
-  final List<String>? interests;
-  final String? registrationGoal;
+  final String? dateOfBirth;
   final String? avatarUrl;
   final String role;
-  final bool isEmailVerified;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final String? gender;
+  final String? registrationGoal;
+  final bool isActive;
+  final bool emailVerified;
 
   UserProfile({
-    required this.id,
-    required this.fullName,
+    required this.userId,
     required this.email,
+    required this.fullName,
     this.phone,
     this.dateOfBirth,
-    this.gender,
-    this.interests,
-    this.registrationGoal,
     this.avatarUrl,
     required this.role,
-    required this.isEmailVerified,
-    required this.createdAt,
-    required this.updatedAt,
+    this.gender,
+    this.registrationGoal,
+    required this.isActive,
+    required this.emailVerified,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
-    print('🔍 Parsing UserProfile from JSON: $json');
-
     return UserProfile(
-      id: json['userId'] ?? json['id'] ?? 0,
-      fullName: json['fullName'] ?? json['full_name'] ?? '',
-      email: json['email'] ?? '',
-      phone: json['phone'],
-      dateOfBirth: json['dateOfBirth'] != null || json['date_of_birth'] != null
-          ? DateTime.parse(json['dateOfBirth'] ?? json['date_of_birth'])
-          : null,
-      gender: json['gender'],
-      interests: json['interests'] != null
-          ? List<String>.from(json['interests'])
-          : null,
-      registrationGoal: json['registrationGoal'] ?? json['registration_goal'],
-      avatarUrl: json['avatarUrl'] ?? json['avatar_url'],
-      role: json['role'] ?? 'CLIENT',
-      isEmailVerified:
-          json['isEmailVerified'] ??
-          json['is_email_verified'] ??
-          json['emailVerified'] ??
-          false,
-      createdAt: DateTime.parse(
-        json['createdAt'] ??
-            json['created_at'] ??
-            DateTime.now().toIso8601String(),
-      ),
-      updatedAt: DateTime.parse(
-        json['updatedAt'] ??
-            json['updated_at'] ??
-            DateTime.now().toIso8601String(),
-      ),
+      userId: json['userId'] as int,
+      email: json['email'] as String,
+      fullName: json['fullName'] as String,
+      phone: json['phone'] as String?,
+      dateOfBirth: json['dateOfBirth'] as String?,
+      avatarUrl: json['avatarUrl'] as String?,
+      role: json['role'] as String,
+      gender: json['gender'] as String?,
+      registrationGoal: json['registrationGoal'] as String?,
+      isActive: json['isActive'] as bool? ?? true,
+      emailVerified: json['emailVerified'] as bool? ?? false,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'fullName': fullName,
-      'email': email,
-      'phone': phone,
-      'dateOfBirth': dateOfBirth?.toIso8601String(),
-      'gender': gender,
-      'interests': interests,
-      'registrationGoal': registrationGoal,
-      'avatarUrl': avatarUrl,
-      'role': role,
-      'isEmailVerified': isEmailVerified,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
-    };
-  }
-
-  // Вычисляемый возраст
-  int? getAge() {
-    if (dateOfBirth == null) return null;
-    final now = DateTime.now();
-    int age = now.year - dateOfBirth!.year;
-    if (now.month < dateOfBirth!.month ||
-        (now.month == dateOfBirth!.month && now.day < dateOfBirth!.day)) {
-      age--;
-    }
-    return age;
-  }
-
-  // Форматированная дата рождения
   String getFormattedBirthDate() {
     if (dateOfBirth == null) return 'Не указана';
-    const months = [
-      'января',
-      'февраля',
-      'марта',
-      'апреля',
-      'мая',
-      'июня',
-      'июля',
-      'августа',
-      'сентября',
-      'октября',
-      'ноября',
-      'декабря',
-    ];
-    return '${dateOfBirth!.day} ${months[dateOfBirth!.month - 1]} ${dateOfBirth!.year}';
+
+    try {
+      final date = DateTime.parse(dateOfBirth!);
+      return '${date.day}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+    } catch (e) {
+      return 'Не указана';
+    }
   }
 
-  // Локализованный пол
   String getLocalizedGender() {
     switch (gender?.toUpperCase()) {
       case 'MALE':
         return 'Мужской';
       case 'FEMALE':
         return 'Женский';
-      case 'OTHER':
-        return 'Другой';
       default:
         return 'Не указан';
     }
   }
 }
 
-// ========================================
-// User Statistics Model
-// ========================================
+/// Модель статистики пользователя
 class UserStatistics {
-  final int totalSessions;
   final int completedSessions;
-  final int upcomingSessions;
   final int articlesRead;
   final int daysActive;
+  final int moodEntriesCount;
+  final int weeksSinceJoined;
 
   UserStatistics({
-    required this.totalSessions,
     required this.completedSessions,
-    required this.upcomingSessions,
     required this.articlesRead,
     required this.daysActive,
+    required this.moodEntriesCount,
+    required this.weeksSinceJoined,
   });
 
   factory UserStatistics.fromJson(Map<String, dynamic> json) {
-    print('🔍 Parsing UserStatistics from JSON: $json');
-
     return UserStatistics(
-      totalSessions: json['totalSessions'] ?? json['total_sessions'] ?? 0,
-      completedSessions:
-          json['completedSessions'] ?? json['completed_sessions'] ?? 0,
-      upcomingSessions:
-          json['upcomingSessions'] ?? json['upcoming_sessions'] ?? 0,
-      articlesRead: json['articlesRead'] ?? json['articles_read'] ?? 0,
-      daysActive: json['daysActive'] ?? json['days_active'] ?? 0,
+      completedSessions: json['completedSessions'] as int? ?? 0,
+      articlesRead: json['articlesRead'] as int? ?? 0,
+      daysActive: json['daysActive'] as int? ?? 0,
+      moodEntriesCount: json['moodEntriesCount'] as int? ?? 0,
+      weeksSinceJoined: json['weeksSinceJoined'] as int? ?? 0,
     );
   }
 
-  // Форматированные данные для отображения
   String getWeeksActive() {
-    return (daysActive / 7).floor().toString();
+    if (weeksSinceJoined == 0) return '0 недель';
+    if (weeksSinceJoined == 1) return '1 неделя';
+    if (weeksSinceJoined < 5) return '$weeksSinceJoined недели';
+    return '$weeksSinceJoined недель';
   }
 }

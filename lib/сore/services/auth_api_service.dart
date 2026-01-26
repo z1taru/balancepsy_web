@@ -69,7 +69,7 @@ class AuthApiService {
     if (parentEmail != null) body['parentEmail'] = parentEmail;
 
     return await _apiClient.post(
-      ApiConfig.registerClient,
+      ApiConfig.register,
       body,
       requiresAuth: false,
     );

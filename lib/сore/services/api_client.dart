@@ -122,7 +122,7 @@ class ApiClient {
 
       // Добавляем токен
       if (token != null) {
-        request.headers.addAll(ApiConfig.multipartHeadersWithAuth(token));
+        request.headers.addAll(ApiConfig.headersWithAuth(token));
       }
 
       // Добавляем файл

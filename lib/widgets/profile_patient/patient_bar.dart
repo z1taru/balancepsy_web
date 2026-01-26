@@ -1,17 +1,16 @@
 // lib/widgets/profile_patient/patient_bar.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../сore/router/app_router.dart';
+import '../../web_pages/services/user_provider.dart';
 
 class PatientBar extends StatelessWidget {
   final String currentRoute;
 
-  const PatientBar({
-    super.key,
-    required this.currentRoute,
-  });
+  const PatientBar({super.key, required this.currentRoute});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +30,7 @@ class PatientBar extends StatelessWidget {
       child: Column(
         children: [
           _buildLogo(context),
-          _buildUserInfo(),
+          _buildUserInfo(context),
           const SizedBox(height: 24),
           Expanded(child: _buildMainMenu(context)),
           _buildBottomMenu(context),
@@ -60,8 +59,17 @@ class PatientBar extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Balance', style: AppTextStyles.logo.copyWith(fontSize: 20)),
-                Text('Psy', style: AppTextStyles.logo.copyWith(color: AppColors.primary, fontSize: 20)),
+                Text(
+                  'Balance',
+                  style: AppTextStyles.logo.copyWith(fontSize: 20),
+                ),
+                Text(
+                  'Psy',
+                  style: AppTextStyles.logo.copyWith(
+                    color: AppColors.primary,
+                    fontSize: 20,
+                  ),
+                ),
               ],
             ),
           ],
@@ -70,41 +78,155 @@ class PatientBar extends StatelessWidget {
     );
   }
 
-  Widget _buildUserInfo() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
+  Widget _buildUserInfo(BuildContext context) {
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        // Показываем загрузку
+        if (userProvider.isLoading && userProvider.user == null) {
+          return Container(
+            padding: const EdgeInsets.all(20),
+            margin: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primary, width: 2),
-              image: const DecorationImage(
-                image: AssetImage('assets/images/avatar/aldiyar.png'),
-                fit: BoxFit.cover,
+              color: AppColors.primary.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+                strokeWidth: 2,
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
+          );
+        }
+
+        // Если пользователь не загружен
+        if (!userProvider.isAuthenticated) {
+          return Container(
+            padding: const EdgeInsets.all(20),
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Альдияр', style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
-                Text('Пациент', style: AppTextStyles.body3.copyWith(color: AppColors.textSecondary)),
+                Icon(Icons.person_outline, color: AppColors.textSecondary),
+                const SizedBox(height: 8),
+                Text(
+                  'Гость',
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ],
             ),
+          );
+        }
+
+        // Показываем реальные данные пользователя
+        final userName = userProvider.userName ?? 'Пользователь';
+        final avatarUrl = userProvider.userAvatar;
+        final userRole = _getRoleText(userProvider.userRole);
+        final firstName = _getFirstName(userName);
+
+        return Container(
+          padding: const EdgeInsets.all(20),
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(16),
           ),
-        ],
+          child: Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primary, width: 2),
+                ),
+                child: ClipOval(
+                  child: avatarUrl != null && avatarUrl.isNotEmpty
+                      ? Image.network(
+                          avatarUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return _buildAvatarPlaceholder(userName);
+                          },
+                        )
+                      : _buildAvatarPlaceholder(userName),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      firstName,
+                      style: AppTextStyles.body1.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      userRole,
+                      style: AppTextStyles.body3.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAvatarPlaceholder(String userName) {
+    return Container(
+      color: AppColors.primary.withOpacity(0.1),
+      child: Center(
+        child: Text(
+          _getInitials(userName),
+          style: TextStyle(
+            color: AppColors.primary,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
     );
+  }
+
+  String _getFirstName(String fullName) {
+    if (fullName.isEmpty) return 'Пользователь';
+    return fullName.split(' ').first;
+  }
+
+  String _getInitials(String fullName) {
+    if (fullName.isEmpty) return 'П';
+    final parts = fullName.split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return fullName[0].toUpperCase();
+  }
+
+  String _getRoleText(String? role) {
+    switch (role) {
+      case 'CLIENT':
+        return 'Пациент';
+      case 'PSYCHOLOGIST':
+        return 'Психолог';
+      case 'ADMIN':
+        return 'Администратор';
+      default:
+        return 'Пользователь';
+    }
   }
 
   Widget _buildMainMenu(BuildContext context) {
@@ -196,10 +318,15 @@ class PatientBar extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isActive ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+              color: isActive
+                  ? AppColors.primary.withOpacity(0.1)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
               border: isActive
-                  ? Border.all(color: AppColors.primary.withOpacity(0.2), width: 1)
+                  ? Border.all(
+                      color: AppColors.primary.withOpacity(0.2),
+                      width: 1,
+                    )
                   : null,
             ),
             child: Row(
@@ -213,7 +340,9 @@ class PatientBar extends StatelessWidget {
                 Text(
                   item.label,
                   style: AppTextStyles.body1.copyWith(
-                    color: isActive ? AppColors.primary : AppColors.textSecondary,
+                    color: isActive
+                        ? AppColors.primary
+                        : AppColors.textSecondary,
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
                   ),
                 ),
@@ -241,24 +370,41 @@ class PatientBar extends StatelessWidget {
   }
 
   void _showLogoutDialog(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Выход', style: AppTextStyles.h3),
-        content: Text('Вы действительно хотите выйти?', style: AppTextStyles.body1),
+        content: Text(
+          'Вы действительно хотите выйти?',
+          style: AppTextStyles.body1,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Отмена', style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary)),
+            child: Text(
+              'Отмена',
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                AppRouter.home,
-                (route) => false,
-              );
+
+              // Выполняем выход через UserProvider
+              await userProvider.performLogout();
+
+              // Переходим на главную страницу
+              if (context.mounted) {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRouter.home,
+                  (route) => false,
+                );
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: Text('Выйти', style: AppTextStyles.button),

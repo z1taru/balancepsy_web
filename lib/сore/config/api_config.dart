@@ -1,65 +1,61 @@
 // lib/сore/config/api_config.dart
 
 class ApiConfig {
-  // ========================================
-  // Base URLs
-  // ========================================
+  // Base URL
+  static const String baseUrl = 'http://localhost:8080/api';
 
-  // ✅ ИСПРАВЛЕНО: Для Flutter Web используем 127.0.0.1 вместо localhost
-  static const String devBaseUrl = 'http://127.0.0.1:8080/api';
-
-  // Для продакшена (замените на ваш домен)
-  static const String prodBaseUrl = 'https://api.balance-psy.kz/api';
-
-  // Текущий режим
-  static const bool isDevelopment = true;
-
-  // Активный базовый URL
-  static String get baseUrl => isDevelopment ? devBaseUrl : prodBaseUrl;
+  // Timeout
+  static const Duration connectionTimeout = Duration(seconds: 30);
 
   // ========================================
-  // Auth Endpoints
+  // AUTH ENDPOINTS
   // ========================================
-  static String get registerClient => '$baseUrl/auth/register/client';
-  static String get registerPsychologist =>
+  static const String login = '$baseUrl/auth/login';
+  static const String register = '$baseUrl/auth/register/client';
+  static const String registerPsychologist =
       '$baseUrl/auth/register/psychologist';
-  static String get login => '$baseUrl/auth/login';
-  static String get sendCode => '$baseUrl/auth/send-code';
-  static String get verifyCode => '$baseUrl/auth/verify-code';
-  static String get me => '$baseUrl/auth/me';
-  static String get forgotPassword => '$baseUrl/auth/forgot-password';
-  static String get resetPassword => '$baseUrl/auth/reset-password';
+  static const String me = '$baseUrl/auth/me';
+  static const String forgotPassword = '$baseUrl/auth/forgot-password';
+  static const String resetPassword = '$baseUrl/auth/reset-password';
+
+  // Email verification
+  static const String sendCode = '$baseUrl/auth/send-code';
+  static const String verifyCode = '$baseUrl/auth/verify-code';
 
   // ========================================
-  // User Endpoints
+  // PROFILE ENDPOINTS
   // ========================================
-  static String get currentUser => '$baseUrl/users/me';
-  static String get updateProfile => '$baseUrl/users/me';
-  static String get changePassword => '$baseUrl/users/me/password';
-  static String get uploadAvatar => '$baseUrl/users/me/avatar';
-  static String get deleteAccount => '$baseUrl/users/me';
-  static String get searchClient => '$baseUrl/users/search';
+  static const String profile = '$baseUrl/profile/me';
+  static const String updateProfile = '$baseUrl/profile/me';
+  static const String uploadAvatar = '$baseUrl/profile/me/avatar';
+  static const String deleteAvatar = '$baseUrl/profile/me/avatar';
+  static const String updateAvailability = '$baseUrl/profile/me/availability';
 
   // ========================================
-  // Psychologist Endpoints
+  // USER ENDPOINTS
   // ========================================
-  static String get psychologists => '$baseUrl/psychologists';
-  static String get topPsychologists => '$baseUrl/psychologists/top';
+  static const String users = '$baseUrl/users/me';
+  static const String changePassword = '$baseUrl/users/me/password';
+  static const String deleteAccount = '$baseUrl/users/me';
+  static const String searchUsers = '$baseUrl/users/search';
+
+  // ========================================
+  // PSYCHOLOGISTS ENDPOINTS
+  // ========================================
+  static const String psychologists = '$baseUrl/psychologists';
+
   static String psychologistById(int id) => '$baseUrl/psychologists/$id';
-  static String get myPsychologist => '$baseUrl/psychologists/me';
-  static String get updateAvailability =>
-      '$baseUrl/psychologists/me/availability';
   static String psychologistSchedule(int id) =>
       '$baseUrl/psychologists/$id/schedule';
-  static String get mySchedule => '$baseUrl/psychologists/me/schedule';
 
   // ========================================
-  // Appointment Endpoints
+  // APPOINTMENTS ENDPOINTS
   // ========================================
-  static String get appointments => '$baseUrl/appointments';
-  static String get myAppointments => '$baseUrl/appointments/me';
-  static String get psychologistAppointments =>
+  static const String appointments = '$baseUrl/appointments';
+  static const String myAppointments = '$baseUrl/appointments/me';
+  static const String psychologistAppointments =
       '$baseUrl/appointments/psychologist/me';
+
   static String confirmAppointment(int id) =>
       '$baseUrl/appointments/$id/confirm';
   static String rejectAppointment(int id) => '$baseUrl/appointments/$id/reject';
@@ -67,149 +63,74 @@ class ApiConfig {
   static String startAppointment(int id) => '$baseUrl/appointments/$id/start';
   static String completeAppointment(int id) =>
       '$baseUrl/appointments/$id/complete';
-  static String markNoShow(int id) => '$baseUrl/appointments/$id/no-show';
+  static String noShowAppointment(int id) =>
+      '$baseUrl/appointments/$id/no-show';
 
   // ========================================
-  // Article Endpoints
+  // ARTICLES ENDPOINTS
   // ========================================
-  static String get articles => '$baseUrl/articles';
+  static const String articles = '$baseUrl/articles';
+
   static String articleBySlug(String slug) => '$baseUrl/articles/slug/$slug';
-  static String get searchArticles => '$baseUrl/articles/search';
-  static String get topArticles => '$baseUrl/articles/top';
-  static String get favoriteArticles => '$baseUrl/articles/favorites';
-  static String addToFavorites(int id) => '$baseUrl/articles/$id/favorite';
-  static String removeFromFavorites(int id) => '$baseUrl/articles/$id/favorite';
-  static String isFavorite(int id) => '$baseUrl/articles/$id/is-favorite';
+  static String articleById(int id) => '$baseUrl/articles/$id';
 
   // ========================================
-  // Review Endpoints
+  // REVIEWS ENDPOINTS
   // ========================================
-  static String get reviews => '$baseUrl/reviews';
-  static String get myReviews => '$baseUrl/reviews/my';
+  static const String reviews = '$baseUrl/reviews';
+  static const String myReviews = '$baseUrl/reviews/my';
+
   static String psychologistReviews(int psychologistId) =>
       '$baseUrl/reviews/psychologist/$psychologistId';
   static String reviewById(int id) => '$baseUrl/reviews/$id';
-  static String canReview(int appointmentId) =>
+  static String canReviewAppointment(int appointmentId) =>
       '$baseUrl/reviews/appointment/$appointmentId/can-review';
 
   // ========================================
-  // Chat Endpoints
+  // DIAGNOSTICS ENDPOINTS
   // ========================================
-  static String get chats => '$baseUrl/chats';
-  static String chatWithPsychologist(int psychologistId) =>
-      '$baseUrl/chats/psychologist/$psychologistId';
-  static String chatMessages(int chatRoomId) =>
-      '$baseUrl/chats/$chatRoomId/messages';
-  static String get sendMessage => '$baseUrl/chats/messages';
-  static String uploadChatFile(int chatRoomId) =>
-      '$baseUrl/chats/$chatRoomId/upload';
-  static String uploadVoice(int chatRoomId) =>
-      '$baseUrl/chats/$chatRoomId/voice';
-  static String markAsRead(int chatRoomId) => '$baseUrl/chats/$chatRoomId/read';
-  static String zvondaUrl(int chatRoomId) =>
-      '$baseUrl/chats/$chatRoomId/zvonda-url';
+  static const String diagnosticTests = '$baseUrl/diagnostics/tests';
+  static const String submitDiagnostic = '$baseUrl/diagnostics/sessions/submit';
 
-  // ========================================
-  // Diagnostic Endpoints
-  // ========================================
-  static String get submitDiagnostic => '$baseUrl/diagnostic/submit';
-  static String get latestDiagnostic => '$baseUrl/diagnostic/latest';
-  static String get diagnosticHistory => '$baseUrl/diagnostic/history';
-  static String clientDiagnostic(int clientId) =>
-      '$baseUrl/diagnostic/client/$clientId';
-
-  // ========================================
-  // Dynamic Diagnostic Endpoints
-  // ========================================
-  static String testQuestions(String testCode) =>
+  static String diagnosticTest(String testCode) =>
       '$baseUrl/diagnostics/tests/$testCode';
-  static String get submitSession => '$baseUrl/diagnostics/sessions/submit';
-  static String get mySessions => '$baseUrl/diagnostics/sessions/my';
-  static String exportSession(int sessionId) =>
-      '$baseUrl/diagnostics/sessions/$sessionId/export';
+  static String diagnosticSession(int sessionId) =>
+      '$baseUrl/diagnostics/sessions/$sessionId';
+  static String myDiagnosticSessions = '$baseUrl/diagnostics/sessions/my';
 
   // ========================================
-  // Intro Endpoints
+  // SURVEYS ENDPOINTS
   // ========================================
-  static String get introContent => '$baseUrl/intro/content';
-  static String get completeIntro => '$baseUrl/intro/complete';
-  static String get introStatus => '$baseUrl/intro/status';
+  static const String surveys = '$baseUrl/surveys';
+  static const String mySurveySessions = '$baseUrl/surveys/my/sessions';
+
+  static String surveyById(int id) => '$baseUrl/surveys/$id';
+  static String submitSurveyResponse(int surveyId) =>
+      '$baseUrl/surveys/$surveyId/responses';
+  static String surveyAnalytics(int surveyId) =>
+      '$baseUrl/surveys/$surveyId/analytics';
+  static String surveyQuestionAnalytics(int surveyId, int questionId) =>
+      '$baseUrl/surveys/$surveyId/analytics/question/$questionId';
+  static String exportSurvey(int surveyId) =>
+      '$baseUrl/surveys/$surveyId/export';
 
   // ========================================
-  // Mood Survey Endpoints
+  // INTRO ENDPOINTS
   // ========================================
-  static String get moodSurveys => '$baseUrl/mood-surveys';
-  static String get moodHistory => '$baseUrl/mood-surveys/history';
+  static const String introContent = '$baseUrl/intro/content';
+  static const String completeIntro = '$baseUrl/intro/complete';
+  static const String introStatus = '$baseUrl/intro/status';
 
   // ========================================
-  // Progress Endpoints
-  // ========================================
-  static String get myProgress => '$baseUrl/progress/me';
-
-  // ========================================
-  // Statistics Endpoints
-  // ========================================
-  static String get myStatistics => '$baseUrl/statistics/me';
-  static String psychologistStatistics(int psychologistId) =>
-      '$baseUrl/statistics/psychologists/$psychologistId';
-
-  // ========================================
-  // Report Endpoints
-  // ========================================
-  static String get reports => '$baseUrl/reports';
-  static String get myReports => '$baseUrl/reports/my';
-  static String get incompleteReports => '$baseUrl/reports/incomplete';
-  static String reportById(int id) => '$baseUrl/reports/$id';
-  static String clientReports(int clientId) =>
-      '$baseUrl/reports/client/$clientId';
-  static String reportByAppointment(int appointmentId) =>
-      '$baseUrl/reports/appointment/$appointmentId';
-
-  // ========================================
-  // Survey Endpoints
-  // ========================================
-  static String survey(String code) => '$baseUrl/surveys/$code';
-  static String submitSurvey(String code) => '$baseUrl/surveys/$code/responses';
-  static String surveyAnalytics(String code) =>
-      '$baseUrl/surveys/$code/analytics';
-  static String questionAnalytics(String code, int questionId) =>
-      '$baseUrl/surveys/$code/analytics/question/$questionId';
-  static String exportSurvey(String code) => '$baseUrl/surveys/$code/export';
-  static String get mySurveys => '$baseUrl/surveys/my/sessions';
-
-  // ========================================
-  // HTTP Headers
+  // HEADERS
   // ========================================
   static Map<String, String> get headers => {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json; charset=UTF-8',
     'Accept': 'application/json',
   };
 
   static Map<String, String> headersWithAuth(String token) => {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    ...headers,
     'Authorization': 'Bearer $token',
   };
-
-  static Map<String, String> multipartHeadersWithAuth(String token) => {
-    'Authorization': 'Bearer $token',
-    'Accept': 'application/json',
-  };
-
-  // ========================================
-  // Timeout Settings
-  // ========================================
-  static const Duration connectionTimeout = Duration(seconds: 30);
-  static const Duration receiveTimeout = Duration(seconds: 30);
-
-  // ========================================
-  // Debug Helper
-  // ========================================
-  static void printDebugInfo() {
-    print('🔧 API Configuration:');
-    print('   Base URL: $baseUrl');
-    print('   Mode: ${isDevelopment ? "Development" : "Production"}');
-    print('   Login: $login');
-    print('   Profile: $me');
-  }
 }
