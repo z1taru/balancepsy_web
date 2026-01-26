@@ -1,6 +1,7 @@
 // lib/сore/router/app_router.dart
 
 import 'package:balance_psy/web_pages/profile/profile.dart';
+import 'package:balance_psy/web_pages/profile_patient/psy_catalog.dart';
 import 'package:flutter/material.dart';
 import '../../web_pages/home/home_page.dart';
 import '../../web_pages/auth/login_page.dart';
@@ -21,7 +22,6 @@ import '../../web_pages/profile_patient/home_patient.dart';
 import '../../web_pages/profile_patient/profile_patient.dart';
 import '../../web_pages/profile_patient/blog_patient.dart';
 import '../../web_pages/profile_patient/chat_patient.dart';
-import '../../web_pages/profile_patient/contacts_patient.dart';
 import '../../web_pages/profile_patient/sessions_calendar.dart';
 
 class AppRouter {
@@ -99,7 +99,7 @@ class AppRouter {
         );
       case contactsPatient:
         return NoAnimationMaterialPageRoute(
-          builder: (_) => const ContactsPatientPage(),
+          builder: (_) => const PsyCatalogPage(),
         );
       case sessionsCalendar:
         return NoAnimationMaterialPageRoute(

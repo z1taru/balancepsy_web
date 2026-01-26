@@ -41,7 +41,7 @@ class PatientBar extends StatelessWidget {
 
   Widget _buildLogo(BuildContext context) {
     return InkWell(
-      onTap: () => _navigateTo(context, AppRouter.dashboard),
+      onTap: () => _navigateTo(context, AppRouter.home),
       child: Container(
         padding: const EdgeInsets.all(24),
         child: Row(

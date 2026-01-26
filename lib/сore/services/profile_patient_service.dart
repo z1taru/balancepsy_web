@@ -134,6 +134,60 @@ class ProfilePatientService {
     // Временная реализация
     return 1;
   }
+
+  Future<List<Map<String, dynamic>>> getArticles({
+    String? category,
+    int page = 0,
+    int limit = 10,
+  }) async {
+    try {
+      final token = await _storage.getToken();
+
+      String url = '${ApiConfig.articles}?page=$page&size=$limit';
+      if (category != null && category.isNotEmpty) {
+        url += '&category=$category';
+      }
+
+      print('🔍 Fetching articles from: $url');
+
+      final response = await http
+          .get(
+            Uri.parse(url),
+            headers: token != null
+                ? ApiConfig.headersWithAuth(token)
+                : ApiConfig.headers,
+          )
+          .timeout(ApiConfig.connectionTimeout);
+
+      print('📡 Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+
+        if (data['success'] == true && data['data'] != null) {
+          final articlesData = data['data'];
+
+          // Если данные в формате пагинации
+          if (articlesData is Map && articlesData['articles'] != null) {
+            final List<dynamic> articles = articlesData['articles'];
+            print('✅ Loaded ${articles.length} article(s)');
+            return articles.cast<Map<String, dynamic>>();
+          }
+
+          // Если данные в виде прямого списка
+          if (articlesData is List) {
+            print('✅ Loaded ${articlesData.length} article(s)');
+            return articlesData.cast<Map<String, dynamic>>();
+          }
+        }
+      }
+
+      return [];
+    } catch (e) {
+      print('❌ Error loading articles: $e');
+      return [];
+    }
+  }
 }
 
 /// Модель профиля пользователя

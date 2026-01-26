@@ -5,186 +5,64 @@ import '../../../widgets/profile_patient/patient_bar.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../theme/app_colors.dart';
 import '../../../сore/router/app_router.dart';
+import '../../../сore/services/profile_patient_service.dart';
+import '../../../web_pages/services/psychologist_service.dart';
+import 'package:provider/provider.dart';
+import '../../../web_pages/services/user_provider.dart';
 
-// УДАЛЯЕМ импорт SessionsCalendarPage отсюда - он уже в app_router.dart
-// import 'sessions_calendar.dart';
-
-class HomePatientPage extends StatelessWidget {
+class HomePatientPage extends StatefulWidget {
   const HomePatientPage({super.key});
 
-  // === СТАТЬИ ===
-  List<Map<String, dynamic>> _getFeaturedArticles() {
-    final allArticles = _getAllArticles();
-    return allArticles.take(4).toList();
+  @override
+  State<HomePatientPage> createState() => _HomePatientPageState();
+}
+
+class _HomePatientPageState extends State<HomePatientPage> {
+  final ProfilePatientService _profileService = ProfilePatientService();
+  final PsychologistService _psychologistService = PsychologistService();
+
+  bool _isLoading = true;
+  String? _error;
+
+  // Данные
+  List<Map<String, dynamic>> _appointments = [];
+  List<Map<String, dynamic>> _articles = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
   }
 
-  List<Map<String, dynamic>> _getAllArticles() {
-    return [
-      {
-        'title': 'Mindfulness: как практика осознанности меняет мозг',
-        'category': 'МЕДИТАЦИЯ',
-        'readTime': '10 мин чтения',
-        'date': '15 ноября 2024',
-        'image': 'assets/images/article/calm.png',
-        'color': const Color(0xFFFF6B9D),
-        'preview':
-            'Регулярная практика осознанности перестраивает мозг, снижая стресс и улучшая фокус.',
-        'content': '''
-# Что такое mindfulness?
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
 
-Mindfulness — это осознанное пребывание в настоящем моменте без оценки. Это не медитация в лотосе, а навык, который можно тренировать в любой момент: за еды, в транспорте, на встрече.
+    try {
+      // Загружаем записи и статьи параллельно
+      final results = await Future.wait([
+        _psychologistService.getMyAppointments(),
+        _profileService.getArticles(limit: 4),
+      ]);
 
-## Как это работает в мозге?
+      setState(() {
+        _appointments = results[0];
+        _articles = results[1];
+        _isLoading = false;
+      });
 
-Нейробиологи из Гарварда провели МРТ-исследования и обнаружили:
-
-- Увеличение серого вещества в гиппокампе — центре памяти и обучения
-- Снижение активности миндалины — центра страха и тревоги
-- Усиление связей в префронтальной коре — зоне самоконтроля
-
-### Практика 5 минут в день
-
-1. Сядьте удобно
-2. Закройте глаза
-3. Сфокусируйтесь на дыхании
-4. Когда мысли уводят — мягко возвращайтесь
-
-> Уже через 8 недель регулярной практики мозг начинает меняться физически.
-
-### Польза для жизни
-
-- Снижение кортизола на 30%
-- Улучшение сна на 40%
-- Рост эмпатии и эмоционального интеллекта
-
-Попробуйте прямо сейчас — это бесплатно и доступно каждому.
-        ''',
-        'featured': true,
-      },
-      {
-        'title': 'Как справляться с тревогой в повседневной жизни',
-        'category': 'Эмоции',
-        'readTime': '8 мин',
-        'date': '12 ноя 2024',
-        'image': 'assets/images/article/sad.png',
-        'color': const Color(0xFF4A90E2),
-        'preview':
-            'Тревога — это не враг. Это сигнал. Учитесь его понимать и управлять.',
-        'content': '''
-# Тревога — это нормально
-
-Каждый человек испытывает тревогу. Это защитный механизм, который помогал нашим предкам выживать. Проблема начинается, когда тревога становится хронической.
-
-## Техника "Назови и отпусти"
-
-1. Заметьте тревогу
-2. Назови её: "Я чувствую тревогу в груди"
-3. Спросите: "Это реальная угроза?"
-4. Дайте телу 90 секунд — пик тревоги пройдёт
-
-### Дыхание 4-7-8
-
-- Вдох на 4 счёта
-- Задержка на 7
-- Выдох на 8
-
-Повторите 4 раза. Это активирует парасимпатическую систему.
-
-> Тревога не может длиться вечно. Она всегда проходит.
-
-### Что делать дальше?
-
-- Двигайтесь — 10 минут прогулки снижают тревогу на 25%
-- Пишите — выгрузите мысли на бумагу
-- Говорите — поделитесь с близким
-
-Тревога — это не вы. Это временное состояние.
-        ''',
-        'featured': false,
-      },
-      {
-        'title': 'Техники дыхания для релаксации',
-        'category': 'Самопомощь',
-        'readTime': '6 мин',
-        'date': '10 ноя 2024',
-        'image': 'assets/images/article/5min.png',
-        'color': const Color(0xFF50E3C2),
-        'preview': 'Дыхание — самый быстрый способ успокоить нервную систему.',
-        'content': '''
-# Дыхание — ваш встроенный антистресс
-
-Когда вы дышите глубоко, вы активируете блуждающий нерв, который замедляет сердцебиение и снижает давление.
-
-## Техника "Коробочное дыхание"
-
-1. Вдох — 4 секунды
-2. Задержка — 4 секунды
-3. Выдох — 4 секунды
-4. Задержка — 4 секунды
-
-Повторите 5 циклов.
-
-### Когда использовать?
-
-- Перед важной встречей
-- После конфликта
-- При бессоннице
-- В пробке
-
-> 3 минуты практики = 30 минут спокойствия.
-
-### Бонус: дыхание "по квадрату"
-
-Представьте квадрат:
-- Вверх — вдох
-- Вправо — задержка
-- Вниз — выдох
-- Влево — задержка
-
-Это помогает детям и взрослым с СДВГ.
-
-Дышите осознанно — живите спокойнее.
-        ''',
-        'featured': false,
-      },
-      {
-        'title': 'Почему мы избегаем конфликтов',
-        'category': 'Отношения',
-        'readTime': '9 мин',
-        'date': '8 ноя 2024',
-        'image': 'assets/images/article/dontAgro.png',
-        'color': const Color(0xFFF5A623),
-        'preview':
-            'Избегание конфликтов разрушает отношения. Учитесь говорить открыто.',
-        'content': '''
-# Конфликт — это не плохо
-
-Конфликт — это столкновение потребностей. Избегание его приводит к накоплению обид и дистанции.
-
-## Почему мы боимся?
-
-- Страх быть отвергнутым
-- Воспитание: "Хорошие девочки не спорят"
-- Прошлый негативный опыт
-
-### Как начать говорить?
-
-1. Используйте "Я-сообщения": "Я чувствую..."
-2. Говорите о фактах, не о личности
-3. Слушайте, не перебивая
-
-> Здоровый конфликт укрепляет доверие.
-
-### Пример диалога
-
-Вместо: "Ты никогда не помогаешь!"
-Скажите: "Я чувствую себя перегруженной, когда убираюсь одна. Давай распределим обязанности?"
-
-Конфликт — это мост к пониманию.
-        ''',
-        'featured': false,
-      },
-    ];
+      print(
+        '✅ Loaded ${_appointments.length} appointments and ${_articles.length} articles',
+      );
+    } catch (e) {
+      print('❌ Error loading data: $e');
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -193,53 +71,92 @@ Mindfulness — это осознанное пребывание в настоя
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Фиксированный сайдбар, который не скролится
           Container(
             width: 280,
             child: PatientBar(currentRoute: AppRouter.dashboard),
           ),
-          // Основной контент с возможностью скролла
           Expanded(
-            child: SingleChildScrollView(
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 1200),
-                margin: const EdgeInsets.all(40),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(context),
-                    const SizedBox(height: 32),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Column(
-                            children: [
-                              _buildWelcomeCard(context),
-                              const SizedBox(height: 24),
-                              _buildUpcomingSession(context),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 24),
-                        Expanded(flex: 2, child: _buildQuickActions(context)),
-                      ],
-                    ),
-                    const SizedBox(height: 40),
-                    _buildArticlesSection(context),
-                    const SizedBox(height: 40),
-                  ],
-                ),
-              ),
-            ),
+            child: _isLoading
+                ? _buildLoadingState()
+                : _error != null
+                ? _buildErrorState()
+                : _buildContent(),
           ),
         ],
       ),
     );
   }
 
-  // === ЗАГОЛОВОК ===
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(color: AppColors.primary),
+          const SizedBox(height: 16),
+          Text('Загрузка данных...', style: AppTextStyles.body1),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 64, color: Colors.red),
+          const SizedBox(height: 16),
+          Text('Ошибка загрузки данных', style: AppTextStyles.h2),
+          const SizedBox(height: 8),
+          Text(_error ?? '', style: AppTextStyles.body1),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: _loadData,
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: Text('Попробовать снова', style: AppTextStyles.button),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    return SingleChildScrollView(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        margin: const EdgeInsets.all(40),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(context),
+            const SizedBox(height: 32),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    children: [
+                      _buildWelcomeCard(context),
+                      const SizedBox(height: 24),
+                      _buildUpcomingSession(context),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 24),
+                Expanded(flex: 2, child: _buildQuickActions(context)),
+              ],
+            ),
+            const SizedBox(height: 40),
+            _buildArticlesSection(context),
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -271,7 +188,7 @@ Mindfulness — это осознанное пребывание в настоя
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Пятница, 1 ноября',
+                    _formatDate(DateTime.now()),
                     style: AppTextStyles.body1.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -334,8 +251,10 @@ Mindfulness — это осознанное пребывание в настоя
     );
   }
 
-  // === КАРТОЧКА ПРИВЕТСТВИЯ ===
   Widget _buildWelcomeCard(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final userName = userProvider.userName ?? 'Пользователь';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(32),
@@ -361,7 +280,7 @@ Mindfulness — это осознанное пребывание в настоя
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Как ваше самочувствие сегодня?',
+                  'Здравствуйте, $userName!',
                   style: AppTextStyles.h3.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -369,7 +288,7 @@ Mindfulness — это осознанное пребывание в настоя
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Пройдите быстрый тест и получите персонализированные рекомендации',
+                  'Как ваше самочувствие сегодня? Пройдите быстрый тест и получите персонализированные рекомендации',
                   style: AppTextStyles.body1.copyWith(
                     color: Colors.white.withOpacity(0.9),
                     height: 1.5,
@@ -430,7 +349,6 @@ Mindfulness — это осознанное пребывание в настоя
     );
   }
 
-  // === БЫСТРЫЕ ДЕЙСТВИЯ ===
   Widget _buildQuickActions(BuildContext context) {
     final actions = [
       {
@@ -555,42 +473,12 @@ Mindfulness — это осознанное пребывание в настоя
     );
   }
 
-  // === КАЛЕНДАРЬ ===
-  void _showSessionsCalendar(BuildContext context) {
-    // Используем навигацию через AppRouter вместо прямого импорта
-    AppRouter.navigateTo(context, AppRouter.sessionsCalendar);
-  }
-
-  void _showComingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$feature - скоро будет доступно'),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  // === БЛИЖАЙШИЕ СЕССИИ ===
   Widget _buildUpcomingSession(BuildContext context) {
-    final sessions = [
-      {
-        'date': DateTime.now().add(const Duration(days: 1)),
-        'time': '15:30',
-        'psychologist': 'Diana',
-        'avatar': 'assets/images/avatar/diana.png',
-        'type': 'Видео-сессия',
-        'status': 'Подтверждено',
-      },
-      {
-        'date': DateTime.now().add(const Duration(days: 5)),
-        'time': '14:00',
-        'psychologist': 'Laura',
-        'avatar': 'assets/images/avatar/laura2.png',
-        'type': 'Аудио-сессия',
-        'status': 'Ожидает',
-      },
-    ];
+    // Фильтруем только предстоящие записи (PENDING, CONFIRMED)
+    final upcomingSessions = _appointments.where((apt) {
+      final status = apt['status']?.toString() ?? '';
+      return status == 'PENDING' || status == 'CONFIRMED';
+    }).toList();
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -626,17 +514,23 @@ Mindfulness — это осознанное пребывание в настоя
             ],
           ),
           const SizedBox(height: 20),
-          Text(
-            'Предстоящие',
-            style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 12),
-          ...sessions.map((session) => _buildSessionItem(session)),
+          if (upcomingSessions.isEmpty)
+            _buildEmptySessionsState()
+          else ...[
+            Text(
+              'Предстоящие',
+              style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+            ...upcomingSessions
+                .take(2)
+                .map((session) => _buildSessionItem(session)),
+          ],
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => _showNewSessionDialog(context),
+              onPressed: () => _showComingSoon(context, 'Новая сессия'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -651,355 +545,48 @@ Mindfulness — это осознанное пребывание в настоя
               ),
             ),
           ),
-          const SizedBox(height: 24),
-          _buildCalendarSection(sessions),
         ],
       ),
     );
   }
 
-  Widget _buildCalendarSection(List<Map<String, dynamic>> sessions) {
+  Widget _buildEmptySessionsState() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.backgroundLight,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(
+            Icons.event_busy,
+            size: 48,
+            color: AppColors.textTertiary.withOpacity(0.5),
+          ),
+          const SizedBox(height: 12),
           Text(
-            'Ноябрь 2024',
+            'Нет предстоящих сессий',
             style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 16),
-          _buildCalendarGrid(sessions),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCalendarGrid(List<Map<String, dynamic>> sessions) {
-    final days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-    final today = DateTime.now();
-
-    final moods = <DateTime, MoodModel>{
-      today.subtract(const Duration(days: 2)): MoodModel(
-        id: '2',
-        name: 'Радость',
-        emoji: 'positive',
-        imagePath: 'assets/images/mood/mood_happy.png',
-        description: 'Чувствую себя хорошо и позитивно',
-        color: const Color(0xFF4CAF50),
-      ),
-      today.subtract(const Duration(days: 1)): MoodModel(
-        id: '3',
-        name: 'Спокойствие',
-        emoji: 'neutral',
-        imagePath: 'assets/images/mood/mood_neutral.png',
-        description: 'Внутренняя гармония и баланс',
-        color: const Color(0xFF2196F3),
-      ),
-      today: MoodModel(
-        id: '4',
-        name: 'Грусть',
-        emoji: 'negative',
-        imagePath: 'assets/images/mood/mood_sad.png',
-        description: 'Чувствую легкую печаль',
-        color: const Color(0xFF607D8B),
-      ),
-      today.add(const Duration(days: 3)): MoodModel(
-        id: '1',
-        name: 'Эйфория',
-        emoji: 'overjoyed',
-        imagePath: 'assets/images/mood/mood_overjoyed.png',
-        description: 'Отличное настроение! Полон энергии и радости',
-        color: const Color(0xFFFFD700),
-      ),
-    };
-
-    final diaryEntries = <DateTime, List<String>>{
-      today.subtract(const Duration(days: 2)): [
-        'Сегодня был отличный день!',
-        'Встретился с друзьями.',
-      ],
-      today: ['Чувствую усталость после работы.', 'Нужно отдохнуть.'],
-      today.add(const Duration(days: 3)): ['Планирую поездку на выходные.'],
-    };
-
-    return Column(
-      children: [
-        Row(
-          children: days
-              .map(
-                (day) => Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      day,
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.body2.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ),
-              )
-              .toList(),
-        ),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
-            childAspectRatio: 1.0,
-            mainAxisSpacing: 6,
-            crossAxisSpacing: 6,
-          ),
-          itemCount: 35,
-          itemBuilder: (context, index) {
-            final firstDayOfMonth = DateTime(today.year, today.month, 1);
-            final startingWeekday = firstDayOfMonth.weekday;
-            if (index < startingWeekday - 1) {
-              return const SizedBox.shrink();
-            }
-
-            final day = index - startingWeekday + 2;
-            final daysInMonth = DateTime(today.year, today.month + 1, 0).day;
-            if (day < 1 || day > daysInMonth) {
-              return const SizedBox.shrink();
-            }
-
-            final date = DateTime(today.year, today.month, day);
-            final isToday =
-                date.year == today.year &&
-                date.month == today.month &&
-                date.day == today.day;
-            final mood = moods[date];
-            final hasDiary = diaryEntries.containsKey(date);
-            final hasSession = sessions.any(
-              (s) =>
-                  (s['date'] as DateTime).day == day &&
-                  (s['date'] as DateTime).month == today.month,
-            );
-
-            return GestureDetector(
-              onTap: () =>
-                  _showDayDetails(context, date, mood, diaryEntries[date]),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: isToday
-                      ? AppColors.primary.withOpacity(0.12)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                  border: isToday
-                      ? Border.all(color: AppColors.primary, width: 1.5)
-                      : null,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      day.toString(),
-                      style: AppTextStyles.body2.copyWith(
-                        fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
-                        color: isToday
-                            ? AppColors.primary
-                            : AppColors.textPrimary,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 3,
-                      runSpacing: 2,
-                      children: [
-                        if (hasSession)
-                          Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: AppColors.primary,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        if (mood != null)
-                          Container(
-                            width: 18,
-                            height: 18,
-                            decoration: BoxDecoration(
-                              color: mood.color.withOpacity(0.15),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: mood.color.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: Center(
-                              child: Image.asset(
-                                mood.imagePath,
-                                width: 12,
-                                height: 12,
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                          ),
-                        if (hasDiary)
-                          const Icon(
-                            Icons.note_alt_outlined,
-                            size: 14,
-                            color: AppColors.primary,
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  void _showDayDetails(
-    BuildContext context,
-    DateTime date,
-    MoodModel? mood,
-    List<String>? entries,
-  ) {
-    final formattedDate = _formatDate(date);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Icon(Icons.calendar_today, size: 20, color: AppColors.primary),
-            const SizedBox(width: 8),
-            Text(formattedDate, style: AppTextStyles.h3),
-          ],
-        ),
-        content: SizedBox(
-          width: 380,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildDetailSection(
-                  'Настроение',
-                  mood != null
-                      ? Row(
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: mood.color.withOpacity(0.15),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Image.asset(
-                                  mood.imagePath,
-                                  width: 32,
-                                  height: 32,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    mood.name,
-                                    style: AppTextStyles.body1.copyWith(
-                                      color: mood.color,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  Text(
-                                    mood.description,
-                                    style: AppTextStyles.body2.copyWith(
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        )
-                      : Text(
-                          'Не оценивалось',
-                          style: AppTextStyles.body2.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                ),
-                const SizedBox(height: 16),
-                _buildDetailSection(
-                  'Записи в дневнике',
-                  entries != null && entries.isNotEmpty
-                      ? Column(
-                          children: entries
-                              .map(
-                                (e) => Container(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  padding: const EdgeInsets.all(12),
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.backgroundLight,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(e, style: AppTextStyles.body2),
-                                ),
-                              )
-                              .toList(),
-                        )
-                      : Text(
-                          'Нет записей',
-                          style: AppTextStyles.body2.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Закрыть',
-              style: AppTextStyles.body1.copyWith(color: AppColors.primary),
-            ),
+          const SizedBox(height: 4),
+          Text(
+            'Запланируйте консультацию с психологом',
+            style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildDetailSection(String title, Widget content) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        content,
-      ],
     );
   }
 
   Widget _buildSessionItem(Map<String, dynamic> session) {
+    final psychologistName = session['psychologistName'] ?? 'Психолог';
+    final date = session['appointmentDate'] ?? '';
+    final startTime = session['startTime'] ?? '';
+    final status = session['status'] ?? 'PENDING';
+    final format = session['format'] ?? 'VIDEO';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -1019,7 +606,8 @@ Mindfulness — это осознанное пребывание в настоя
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundImage: AssetImage(session['avatar']),
+            backgroundColor: AppColors.primary.withOpacity(0.1),
+            child: Icon(Icons.person, color: AppColors.primary, size: 20),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -1027,14 +615,14 @@ Mindfulness — это осознанное пребывание в настоя
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  session['psychologist'],
+                  psychologistName,
                   style: AppTextStyles.body1.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${_formatDate(session['date'] as DateTime)} • ${session['time']} • ${session['type']}',
+                  '$date • $startTime • ${_getFormatText(format)}',
                   style: AppTextStyles.body2.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -1045,13 +633,13 @@ Mindfulness — это осознанное пребывание в настоя
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: _getStatusColor(status).withOpacity(0.1),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
-              session['status'],
+              _getStatusText(status),
               style: AppTextStyles.body3.copyWith(
-                color: AppColors.primary,
+                color: _getStatusColor(status),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -1061,379 +649,54 @@ Mindfulness — это осознанное пребывание в настоя
     );
   }
 
-  String _formatDate(DateTime date) {
-    const months = [
-      'января',
-      'февраля',
-      'марта',
-      'апреля',
-      'мая',
-      'июня',
-      'июля',
-      'августа',
-      'сентября',
-      'октября',
-      'ноября',
-      'декабря',
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  String _getFormatText(String format) {
+    switch (format) {
+      case 'VIDEO':
+        return 'Видео';
+      case 'AUDIO':
+        return 'Аудио';
+      case 'CHAT':
+        return 'Чат';
+      default:
+        return format;
+    }
   }
 
-  // === ДИАЛОГИ ===
-  void _showNewSessionDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Запланировать сессию', style: AppTextStyles.h2),
-        content: SizedBox(
-          width: 400,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildFormField('Выберите психолога', Icons.person),
-                const SizedBox(height: 16),
-                _buildFormField('Выберите дату', Icons.calendar_today),
-                const SizedBox(height: 16),
-                _buildFormField('Выберите время', Icons.access_time),
-                const SizedBox(height: 16),
-                _buildFormField('Тип сессии', Icons.video_call),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Отмена',
-              style: AppTextStyles.body1.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Сессия успешно запланирована'),
-                  duration: Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: Text('Запланировать', style: AppTextStyles.button),
-          ),
-        ],
-      ),
-    );
+  String _getStatusText(String status) {
+    switch (status) {
+      case 'PENDING':
+        return 'Ожидает';
+      case 'CONFIRMED':
+        return 'Подтверждено';
+      case 'IN_PROGRESS':
+        return 'В процессе';
+      case 'COMPLETED':
+        return 'Завершено';
+      case 'CANCELLED':
+        return 'Отменено';
+      default:
+        return status;
+    }
   }
 
-  Widget _buildFormField(String hint, IconData icon) {
-    return TextFormField(
-      decoration: InputDecoration(
-        hintText: hint,
-        prefixIcon: Icon(icon, color: AppColors.primary),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.inputBorder),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.inputBorder),
-        ),
-      ),
-    );
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'PENDING':
+        return Colors.orange;
+      case 'CONFIRMED':
+        return AppColors.primary;
+      case 'IN_PROGRESS':
+        return Colors.green;
+      case 'COMPLETED':
+        return Colors.grey;
+      case 'CANCELLED':
+        return Colors.red;
+      default:
+        return AppColors.textSecondary;
+    }
   }
 
-  void _showNotifications(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.notifications, color: AppColors.primary),
-            const SizedBox(width: 12),
-            Text('Уведомления', style: AppTextStyles.h2),
-          ],
-        ),
-        content: SizedBox(
-          width: 400,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildNotificationItem(
-                  'Новая сессия',
-                  'У вас запланирована сессия с психологом сегодня в 15:30',
-                  Icons.event_available,
-                  AppColors.primary,
-                ),
-                const SizedBox(height: 12),
-                _buildNotificationItem(
-                  'Напоминание',
-                  'Не забудьте заполнить дневник настроения',
-                  Icons.assignment,
-                  const Color(0xFFFF6B9D),
-                ),
-                const SizedBox(height: 12),
-                _buildNotificationItem(
-                  'Новая статья',
-                  'Доступна новая статья о техниках релаксации',
-                  Icons.article,
-                  const Color(0xFF4CAF50),
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Закрыть',
-              style: AppTextStyles.body1.copyWith(color: AppColors.primary),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNotificationItem(
-    String title,
-    String message,
-    IconData icon,
-    Color color,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.1)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 20, color: color),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppTextStyles.body1.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  message,
-                  style: AppTextStyles.body2.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showHelp(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.help_outline, color: AppColors.primary),
-            const SizedBox(width: 12),
-            Text('Помощь', style: AppTextStyles.h2),
-          ],
-        ),
-        content: SizedBox(
-          width: 500,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Часто задаваемые вопросы:', style: AppTextStyles.h3),
-                const SizedBox(height: 16),
-                _buildHelpItem(
-                  'Как записаться на сессию?',
-                  'Перейдите в раздел "Мои сессии" и выберите удобное время',
-                ),
-                _buildHelpItem(
-                  'Где найти дневник настроения?',
-                  'Дневник доступен в разделе "Быстрые действия" на главной странице',
-                ),
-                _buildHelpItem(
-                  'Как связаться с психологом?',
-                  'Используйте чат в разделе "Мои сессии" для общения с вашим психологом',
-                ),
-                _buildHelpItem(
-                  'Техническая поддержка',
-                  'По вопросам работы приложения обращайтесь: support@balancepsy.ru',
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Закрыть',
-              style: AppTextStyles.body1.copyWith(color: AppColors.primary),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _showContactSupport(context);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: Text('Связаться с поддержкой', style: AppTextStyles.button),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHelpItem(String question, String answer) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            question,
-            style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            answer,
-            style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showContactSupport(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Связаться с поддержкой', style: AppTextStyles.h2),
-        content: SizedBox(
-          width: 400,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Выберите удобный способ связи:',
-                  style: AppTextStyles.body1,
-                ),
-                const SizedBox(height: 16),
-                _buildContactMethod(
-                  'Email',
-                  'support@balancepsy.ru',
-                  Icons.email,
-                  context,
-                ),
-                _buildContactMethod(
-                  'Телефон',
-                  '+7 (999) 123-45-67',
-                  Icons.phone,
-                  context,
-                ),
-                _buildContactMethod(
-                  'Telegram',
-                  '@balancepsy_support',
-                  Icons.send,
-                  context,
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Закрыть',
-              style: AppTextStyles.body1.copyWith(color: AppColors.primary),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContactMethod(
-    String method,
-    String contact,
-    IconData icon,
-    BuildContext context,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: AppColors.primary.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: () => _showComingSoon(context, 'Контакт: $method'),
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(icon, color: AppColors.primary),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        method,
-                        style: AppTextStyles.body1.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        contact,
-                        style: AppTextStyles.body2.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // === СТАТЬИ ===
   Widget _buildArticlesSection(BuildContext context) {
-    final articles = _getFeaturedArticles();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1456,50 +719,63 @@ Mindfulness — это осознанное пребывание в настоя
           ],
         ),
         const SizedBox(height: 24),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            childAspectRatio: 0.8,
-            mainAxisSpacing: 24,
-            crossAxisSpacing: 24,
+        if (_articles.isEmpty)
+          _buildEmptyArticlesState()
+        else
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              childAspectRatio: 0.8,
+              mainAxisSpacing: 24,
+              crossAxisSpacing: 24,
+            ),
+            itemCount: _articles.length,
+            itemBuilder: (context, index) =>
+                _buildArticleCard(_articles[index], context),
           ),
-          itemCount: articles.length,
-          itemBuilder: (context, index) =>
-              _buildArticleCard(articles[index], context),
-        ),
       ],
     );
   }
 
+  Widget _buildEmptyArticlesState() {
+    return Container(
+      padding: const EdgeInsets.all(40),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundLight,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(
+              Icons.article_outlined,
+              size: 48,
+              color: AppColors.textTertiary.withOpacity(0.5),
+            ),
+            const SizedBox(height: 12),
+            Text('Статьи не найдены', style: AppTextStyles.body1),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildArticleCard(Map<String, dynamic> article, BuildContext context) {
+    final title = article['title'] ?? 'Без названия';
+    final category = article['category'] ?? 'other';
+    final readTime = article['readTime']?.toString() ?? '5';
+    final thumbnailUrl = article['thumbnailUrl'];
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation1, animation2) {
-                return Scaffold(
-                  body: Row(
-                    children: [
-                      Container(
-                        width: 280,
-                        child: PatientBar(
-                          currentRoute: AppRouter.patientArticles,
-                        ),
-                      ),
-                      Expanded(child: ArticleReaderPage(article: article)),
-                    ],
-                  ),
-                );
-              },
-              transitionDuration: Duration.zero,
-              reverseTransitionDuration: Duration.zero,
-            ),
-          );
+          final slug = article['slug'];
+          if (slug != null) {
+            AppRouter.navigateTo(context, '/articles/$slug');
+          }
         },
         borderRadius: BorderRadius.circular(20),
         child: Container(
@@ -1524,11 +800,38 @@ Mindfulness — это осознанное пребывание в настоя
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
                   ),
-                  image: DecorationImage(
-                    image: AssetImage(article['image']),
-                    fit: BoxFit.cover,
-                  ),
+                  color: _getCategoryColor(category).withOpacity(0.1),
                 ),
+                child: thumbnailUrl != null && thumbnailUrl.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        ),
+                        child: Image.network(
+                          thumbnailUrl,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Icon(
+                                Icons.article,
+                                size: 48,
+                                color: _getCategoryColor(
+                                  category,
+                                ).withOpacity(0.3),
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                    : Center(
+                        child: Icon(
+                          Icons.article,
+                          size: 48,
+                          color: _getCategoryColor(category).withOpacity(0.3),
+                        ),
+                      ),
               ),
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -1541,20 +844,20 @@ Mindfulness — это осознанное пребывание в настоя
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: (article['color'] as Color).withOpacity(0.1),
+                        color: _getCategoryColor(category).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        article['category'],
+                        _getCategoryText(category),
                         style: AppTextStyles.body3.copyWith(
-                          color: article['color'],
+                          color: _getCategoryColor(category),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      article['title'],
+                      title,
                       style: AppTextStyles.body1.copyWith(
                         fontWeight: FontWeight.w700,
                         height: 1.3,
@@ -1572,7 +875,7 @@ Mindfulness — это осознанное пребывание в настоя
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          article['readTime'],
+                          '$readTime мин чтения',
                           style: AppTextStyles.body3.copyWith(
                             color: AppColors.textSecondary,
                           ),
@@ -1588,352 +891,65 @@ Mindfulness — это осознанное пребывание в настоя
       ),
     );
   }
-}
 
-// Класс для модели настроения
-class MoodModel {
-  final String id;
-  final String name;
-  final String emoji;
-  final String imagePath;
-  final String description;
-  final Color color;
-
-  MoodModel({
-    required this.id,
-    required this.name,
-    required this.emoji,
-    required this.imagePath,
-    required this.description,
-    required this.color,
-  });
-}
-
-// Класс для страницы чтения статьи (добавляем в конец файла)
-class ArticleReaderPage extends StatefulWidget {
-  final Map<String, dynamic> article;
-  const ArticleReaderPage({super.key, required this.article});
-
-  @override
-  State<ArticleReaderPage> createState() => _ArticleReaderPageState();
-}
-
-class _ArticleReaderPageState extends State<ArticleReaderPage> {
-  final ScrollController _scrollController = ScrollController();
-  double _readingProgress = 0.0;
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_updateProgress);
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _updateProgress() {
-    if (_scrollController.hasClients) {
-      final max = _scrollController.position.maxScrollExtent;
-      final current = _scrollController.position.pixels;
-      setState(() => _readingProgress = (current / max).clamp(0.0, 1.0));
+  Color _getCategoryColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'emotions':
+        return const Color(0xFF4A90E2);
+      case 'self_help':
+        return const Color(0xFF50E3C2);
+      case 'relationships':
+        return const Color(0xFFF5A623);
+      case 'stress':
+        return const Color(0xFFE56B6F);
+      default:
+        return AppColors.primary;
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(
-          height: 6,
-          child: LinearProgressIndicator(
-            value: _readingProgress,
-            backgroundColor: AppColors.inputBackground,
-            valueColor: AlwaysStoppedAnimation(
-              widget.article['color'] as Color,
-            ),
-          ),
-        ),
-        Expanded(
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 1000),
-              margin: const EdgeInsets.symmetric(horizontal: 60, vertical: 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(40),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.shadow.withOpacity(0.08),
-                          blurRadius: 20,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: (widget.article['color'] as Color)
-                                .withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            widget.article['category'] as String,
-                            style: AppTextStyles.body1.copyWith(
-                              color: widget.article['color'] as Color,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          widget.article['title'] as String,
-                          style: AppTextStyles.h1.copyWith(
-                            fontWeight: FontWeight.w700,
-                            height: 1.2,
-                            fontSize: 38,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.access_time_outlined,
-                              size: 18,
-                              color: AppColors.textSecondary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              widget.article['readTime'] as String,
-                              style: AppTextStyles.body1.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                            const SizedBox(width: 24),
-                            Icon(
-                              Icons.calendar_today_outlined,
-                              size: 18,
-                              color: AppColors.textSecondary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              widget.article['date'] as String,
-                              style: AppTextStyles.body1.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  Container(
-                    padding: const EdgeInsets.all(40),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.shadow.withOpacity(0.06),
-                          blurRadius: 15,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: _buildArticleContent(
-                      widget.article['content'] as String,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 14,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(color: AppColors.inputBorder),
-                          ),
-                        ),
-                        icon: const Icon(Icons.arrow_back, size: 18),
-                        label: Text(
-                          'Назад',
-                          style: AppTextStyles.body1.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () => _shareArticle(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: widget.article['color'] as Color,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 14,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        icon: const Icon(
-                          Icons.share,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                        label: Text(
-                          'Поделиться',
-                          style: AppTextStyles.body1.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 40),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
+  String _getCategoryText(String category) {
+    switch (category.toLowerCase()) {
+      case 'emotions':
+        return 'Эмоции';
+      case 'self_help':
+        return 'Самопомощь';
+      case 'relationships':
+        return 'Отношения';
+      case 'stress':
+        return 'Стресс';
+      default:
+        return 'Другое';
+    }
+  }
+
+  void _showSessionsCalendar(BuildContext context) {
+    AppRouter.navigateTo(context, AppRouter.sessionsCalendar);
+  }
+
+  void _showComingSoon(BuildContext context, String feature) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$feature - скоро будет доступно'),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
-  Widget _buildArticleContent(String content) {
-    final lines = content.split('\n');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: lines.map((line) {
-        if (line.startsWith('# ')) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 28, bottom: 14),
-            child: Text(
-              line.substring(2),
-              style: AppTextStyles.h1.copyWith(
-                fontSize: 30,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          );
-        } else if (line.startsWith('## ')) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 22, bottom: 10),
-            child: Text(
-              line.substring(3),
-              style: AppTextStyles.h2.copyWith(
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          );
-        } else if (line.startsWith('### ')) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 18, bottom: 8),
-            child: Text(
-              line.substring(4),
-              style: AppTextStyles.h3.copyWith(
-                fontSize: 19,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          );
-        } else if (line.startsWith('- ')) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 7, right: 10),
-                  child: Container(
-                    width: 5,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: widget.article['color'] as Color,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    line.substring(2),
-                    style: AppTextStyles.body1.copyWith(
-                      fontSize: 15.5,
-                      height: 1.55,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        } else if (line.trim().isEmpty) {
-          return const SizedBox(height: 14);
-        } else if (line.startsWith('> ')) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(
-              line.substring(2),
-              style: AppTextStyles.body1.copyWith(
-                fontSize: 16,
-                height: 1.6,
-                fontStyle: FontStyle.italic,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          );
-        } else {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 7),
-            child: Text(
-              line,
-              style: AppTextStyles.body1.copyWith(
-                fontSize: 15.5,
-                height: 1.55,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          );
-        }
-      }).toList(),
-    );
-  }
-
-  void _shareArticle(BuildContext context) {
+  void _showNotifications(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text('Поделиться статьей', style: AppTextStyles.h2),
-        content: Text(
-          'Ссылка скопирована в буфер обмена!',
-          style: AppTextStyles.body1,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.notifications, color: AppColors.primary),
+            const SizedBox(width: 12),
+            Text('Уведомления', style: AppTextStyles.h2),
+          ],
+        ),
+        content: const SizedBox(
+          width: 400,
+          child: Text('У вас нет новых уведомлений'),
         ),
         actions: [
           TextButton(
@@ -1947,9 +963,63 @@ class _ArticleReaderPageState extends State<ArticleReaderPage> {
       ),
     );
   }
+
+  void _showHelp(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.help_outline, color: AppColors.primary),
+            const SizedBox(width: 12),
+            Text('Помощь', style: AppTextStyles.h2),
+          ],
+        ),
+        content: const SizedBox(
+          width: 500,
+          child: Text('Здесь будет справочная информация'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Закрыть',
+              style: AppTextStyles.body1.copyWith(color: AppColors.primary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    const months = [
+      'января',
+      'февраля',
+      'марта',
+      'апреля',
+      'мая',
+      'июня',
+      'июля',
+      'августа',
+      'сентября',
+      'октября',
+      'ноября',
+      'декабря',
+    ];
+    const weekdays = [
+      'Понедельник',
+      'Вторник',
+      'Среда',
+      'Четверг',
+      'Пятница',
+      'Суббота',
+      'Воскресенье',
+    ];
+    return '${weekdays[date.weekday - 1]}, ${date.day} ${months[date.month - 1]}';
+  }
 }
 
-// Импорт для MoodAssessmentPage - нужно создать отдельный файл или оставить заглушку
 class MoodAssessmentPage extends StatelessWidget {
   const MoodAssessmentPage({super.key});
 

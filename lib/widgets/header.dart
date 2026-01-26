@@ -70,7 +70,7 @@ class Header extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
-                  Icons.psychology,
+                  Icons.favorite,
                   color: Colors.white,
                   size: 18,
                 ),
