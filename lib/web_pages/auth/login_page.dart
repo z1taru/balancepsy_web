@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/custom_button.dart';
 import '../../сore/router/app_router.dart';
+import '../services/user_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,8 +16,11 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -28,9 +33,34 @@ class _LoginPageState extends State<LoginPage> {
       _emailController.text.contains('@') &&
       _passwordController.text.length >= 6;
 
-  void _login() {
-    // TODO: Авторизация
-    Navigator.pushReplacementNamed(context, AppRouter.dashboard);
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    final success = await userProvider.login(
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
+
+    setState(() => _isLoading = false);
+
+    if (success && mounted) {
+      // Переход на главную страницу после успешного входа
+      Navigator.pushReplacementNamed(context, AppRouter.home);
+    } else if (mounted) {
+      // Показываем ошибку
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(userProvider.error ?? 'Ошибка входа'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   @override
@@ -63,33 +93,38 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildLoginForm() {
     return Container(
       padding: const EdgeInsets.all(60),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildLogo(),
-          const SizedBox(height: 48),
-          Text('Вход в аккаунт', style: AppTextStyles.h1),
-          const SizedBox(height: 12),
-          Text(
-            'Рады видеть вас снова!',
-            style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 40),
-          _buildEmailField(),
-          const SizedBox(height: 24),
-          _buildPasswordField(),
-          const SizedBox(height: 16),
-          _buildRememberAndForgot(),
-          const SizedBox(height: 32),
-          _buildLoginButton(),
-          const SizedBox(height: 24),
-          _buildDivider(),
-          const SizedBox(height: 24),
-          _buildSocialButtons(),
-          const SizedBox(height: 32),
-          _buildRegisterLink(),
-        ],
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildLogo(),
+            const SizedBox(height: 48),
+            Text('Вход в аккаунт', style: AppTextStyles.h1),
+            const SizedBox(height: 12),
+            Text(
+              'Рады видеть вас снова!',
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 40),
+            _buildEmailField(),
+            const SizedBox(height: 24),
+            _buildPasswordField(),
+            const SizedBox(height: 16),
+            _buildRememberAndForgot(),
+            const SizedBox(height: 32),
+            _buildLoginButton(),
+            const SizedBox(height: 24),
+            _buildDivider(),
+            const SizedBox(height: 24),
+            _buildSocialButtons(),
+            const SizedBox(height: 32),
+            _buildRegisterLink(),
+          ],
+        ),
       ),
     );
   }
@@ -125,7 +160,7 @@ class _LoginPageState extends State<LoginPage> {
       children: [
         Text('Email', style: AppTextStyles.body1),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: _emailController,
           style: AppTextStyles.input,
           keyboardType: TextInputType.emailAddress,
@@ -137,6 +172,15 @@ class _LoginPageState extends State<LoginPage> {
               color: AppColors.primary,
             ),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Введите email';
+            }
+            if (!value.contains('@')) {
+              return 'Введите корректный email';
+            }
+            return null;
+          },
           onChanged: (value) => setState(() {}),
         ),
       ],
@@ -149,7 +193,7 @@ class _LoginPageState extends State<LoginPage> {
       children: [
         Text('Пароль', style: AppTextStyles.body1),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: _passwordController,
           style: AppTextStyles.input,
           obscureText: _obscurePassword,
@@ -169,6 +213,15 @@ class _LoginPageState extends State<LoginPage> {
                   setState(() => _obscurePassword = !_obscurePassword),
             ),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Введите пароль';
+            }
+            if (value.length < 6) {
+              return 'Пароль должен быть не менее 6 символов';
+            }
+            return null;
+          },
           onChanged: (value) => setState(() {}),
         ),
       ],
@@ -191,7 +244,9 @@ class _LoginPageState extends State<LoginPage> {
           ],
         ),
         TextButton(
-          onPressed: () {},
+          onPressed: () {
+            // TODO: Forgot password
+          },
           child: Text(
             'Забыли пароль?',
             style: AppTextStyles.body2.copyWith(color: AppColors.primary),
@@ -206,8 +261,8 @@ class _LoginPageState extends State<LoginPage> {
       width: double.infinity,
       height: 56,
       child: CustomButton(
-        text: 'Войти',
-        onPressed: _canLogin ? _login : null,
+        text: _isLoading ? 'Вход...' : 'Войти',
+        onPressed: (_canLogin && !_isLoading) ? _login : null,
         isPrimary: true,
         isFullWidth: true,
       ),

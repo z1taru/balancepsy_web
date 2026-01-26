@@ -1,3 +1,4 @@
+// lib/widgets/web_footer.dart
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -10,37 +11,41 @@ class WebFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
-    final isTablet = width >= 768 && width < 1024;
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
-        vertical: 40,
-      ),
       color: AppColors.textPrimary,
-      child: Column(
-        children: [
-          if (!isMobile)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(flex: 2, child: _buildBrandSection()),
-                const SizedBox(width: 40),
-                Expanded(child: _buildNavigationSection(context)),
-                const SizedBox(width: 40),
-                Expanded(child: _buildSupportSection(context)),
-                const SizedBox(width: 40),
-                Expanded(child: _buildContactsSection()),
-              ],
-            )
-          else
-            _buildMobileFooter(context),
-          const SizedBox(height: 32),
-          const Divider(color: Colors.white24),
-          const SizedBox(height: 16),
-          _buildCopyright(isMobile),
-        ],
+      child: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 1120),
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 20 : 0,
+            vertical: 40,
+          ),
+          child: Column(
+            children: [
+              if (!isMobile)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(flex: 2, child: _buildBrandSection()),
+                    const SizedBox(width: 40),
+                    Expanded(child: _buildNavigationSection(context)),
+                    const SizedBox(width: 40),
+                    Expanded(child: _buildSupportSection(context)),
+                    const SizedBox(width: 40),
+                    Expanded(child: _buildContactsSection()),
+                  ],
+                )
+              else
+                _buildMobileFooter(context),
+              const SizedBox(height: 32),
+              const Divider(color: Colors.white24),
+              const SizedBox(height: 16),
+              _buildCopyright(isMobile),
+            ],
+          ),
+        ),
       ),
     );
   }

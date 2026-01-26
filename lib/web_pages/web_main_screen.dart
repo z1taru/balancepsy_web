@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/custom_button.dart';
+import '../../сore/router/app_router.dart';
+import '../../widgets/page_wrapper.dart';
 
 /// Entry point для веб-версии Balance Psy
 /// Запуск: flutter run -d chrome -t lib/web_main.dart
@@ -15,7 +17,7 @@ class BalancePsyWeb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'BalancePsy - Онлайн психотерапия',
+      title: 'Balance Psy',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: AppColors.primary,
@@ -43,207 +45,20 @@ class WebMainScreen extends StatefulWidget {
 }
 
 class _WebMainScreenState extends State<WebMainScreen> {
-  int _selectedNavIndex = 0;
-  final ScrollController _scrollController = ScrollController();
-
-  final _navItems = [
-    'Главная',
-    'О нас',
-    'Специалисты',
-    'Услуги',
-    'Отзывы',
-    'Контакты',
-  ];
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          children: [
-            _buildHeader(context),
-            _buildHeroSection(context),
-            _buildMissionSection(context),
-            _buildHowItWorksSection(context),
-            _buildPsychologistsSection(context),
-            _buildStepsSection(context),
-            _buildArticlesSection(context),
-            _buildFooter(context),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Хедер с навигацией
-  Widget _buildHeader(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final isMobile = width < 768;
-    final isTablet = width >= 768 && width < 1024;
-
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
-        vertical: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return PageWrapper(
+      currentRoute: AppRouter.home,
+      child: Column(
         children: [
-          // Логотип
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.favorite,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Balance',
-                style: AppTextStyles.logo.copyWith(
-                  fontSize: isMobile ? 20 : 24,
-                ),
-              ),
-              Text(
-                'Psy',
-                style: AppTextStyles.logo.copyWith(
-                  fontSize: isMobile ? 20 : 24,
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
-          ),
-
-          // Навигация для десктопа
-          if (!isMobile && !isTablet)
-            Row(
-              children: _navItems.asMap().entries.map((entry) {
-                final isSelected = entry.key == _selectedNavIndex;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: TextButton(
-                    onPressed: () =>
-                        setState(() => _selectedNavIndex = entry.key),
-                    child: Text(
-                      entry.value,
-                      style: AppTextStyles.body1.copyWith(
-                        color: isSelected
-                            ? AppColors.primary
-                            : AppColors.textSecondary,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-
-          // Кнопка "Войти"
-          if (!isMobile)
-            SizedBox(
-              width: 140,
-              height: 48,
-              child: CustomButton(
-                text: 'Войти',
-                onPressed: () {
-                  Navigator.pushNamed(context, '/login');
-                },
-                isPrimary: true,
-                isFullWidth: true,
-              ),
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.menu, color: AppColors.textPrimary),
-              onPressed: () => _showMobileMenu(context),
-            ),
+          _buildHeroSection(context),
+          _buildMissionSection(context),
+          _buildHowItWorksSection(context),
+          _buildPsychologistsSection(context),
+          _buildStepsSection(context),
+          _buildArticlesSection(context),
         ],
-      ),
-    );
-  }
-
-  void _showMobileMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.textTertiary,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ..._navItems.asMap().entries.map((entry) {
-              return ListTile(
-                title: Text(
-                  entry.value,
-                  style: AppTextStyles.body1.copyWith(
-                    color: entry.key == _selectedNavIndex
-                        ? AppColors.primary
-                        : AppColors.textPrimary,
-                  ),
-                ),
-                onTap: () {
-                  setState(() => _selectedNavIndex = entry.key);
-                  Navigator.pop(context);
-                },
-              );
-            }),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: CustomButton(
-                  text: 'Войти',
-                  onPressed: () {},
-                  isPrimary: true,
-                  isFullWidth: true,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
       ),
     );
   }
@@ -337,7 +152,9 @@ class _WebMainScreenState extends State<WebMainScreen> {
           height: 56,
           child: CustomButton(
             text: 'Выбрать психолога',
-            onPressed: () {},
+            onPressed: () {
+               Navigator.pushNamed(context, AppRouter.psychologists);
+            },
             isPrimary: true,
             isFullWidth: true,
           ),
@@ -803,12 +620,12 @@ class _WebMainScreenState extends State<WebMainScreen> {
                 children: [
                   Icon(
                     Icons.article_outlined,
-                    size: 100,
-                    color: AppColors.primary.withOpacity(0.3),
+                    size: 64,
+                    color: AppColors.primary.withOpacity(0.5),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Скоро здесь появятся полезные статьи',
+                    'Раздел статей скоро появится',
                     style: AppTextStyles.body1.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -819,142 +636,6 @@ class _WebMainScreenState extends State<WebMainScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  /// Футер
-  Widget _buildFooter(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final isMobile = width < 768;
-    final isTablet = width >= 768 && width < 1024;
-
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
-        vertical: 40,
-      ),
-      color: AppColors.textPrimary,
-      child: Column(
-        children: [
-          if (!isMobile)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Balance',
-                            style: AppTextStyles.h3.copyWith(
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            'Psy',
-                            style: AppTextStyles.h3.copyWith(
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Онлайн-платформа для психологической поддержки',
-                        style: AppTextStyles.body2.copyWith(
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 40),
-                Expanded(
-                  child: _buildFooterLinks('Навигация', [
-                    'О нас',
-                    'Психологи',
-                    'Статьи',
-                    'Контакты',
-                  ]),
-                ),
-                const SizedBox(width: 40),
-                Expanded(
-                  child: _buildFooterLinks('Поддержка', [
-                    'FAQ',
-                    'Политика конфиденциальности',
-                    'Условия использования',
-                  ]),
-                ),
-              ],
-            )
-          else
-            Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Balance',
-                      style: AppTextStyles.h3.copyWith(color: Colors.white),
-                    ),
-                    Text(
-                      'Psy',
-                      style: AppTextStyles.h3.copyWith(
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Онлайн-платформа для психологической поддержки',
-                  style: AppTextStyles.body2.copyWith(color: Colors.white70),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          const SizedBox(height: 32),
-          const Divider(color: Colors.white24),
-          const SizedBox(height: 16),
-          Text(
-            '© 2025 BalancePsy. Все права защищены',
-            style: AppTextStyles.body3.copyWith(color: Colors.white70),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFooterLinks(String title, List<String> links) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: AppTextStyles.body1.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 12),
-        ...links.map(
-          (link) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: InkWell(
-              onTap: () {},
-              child: Text(
-                link,
-                style: AppTextStyles.body2.copyWith(color: Colors.white70),
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

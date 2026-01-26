@@ -29,6 +29,15 @@ class AppTextStyles {
     height: 1.3,
   );
 
+  // Добавлен h4 — решает ошибку «Member not found: 'h4'»
+  static const TextStyle h4 = TextStyle(
+    fontFamily: 'Manrope',
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    color: Color(0xFF2D2D2D),
+    height: 1.4,
+  );
+
   // === Основной текст ===
   static const TextStyle body1 = TextStyle(
     fontFamily: 'Manrope',
@@ -299,5 +308,31 @@ class AppTextStyles {
     fontWeight: FontWeight.w400,
     color: Color(0xFF6B6B6B),
     height: 1.2,
+  );
+  
+// ========== ARTICLE ==========
+  static const TextStyle articleTitle = TextStyle(
+    fontSize: 32,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+    height: 1.3,
+    fontFamily: 'Manrope',
+  );
+
+  static const TextStyle articleBody = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+    height: 1.8,
+    fontFamily: 'Manrope',
+  );
+
+  static const TextStyle articleQuote = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textSecondary,
+    fontStyle: FontStyle.italic,
+    height: 1.6,
+    fontFamily: 'Manrope',
   );
 }

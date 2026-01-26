@@ -25,9 +25,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // ==============================================================
-  // HERO SECTION
-  // ==============================================================
+  // HERO SECTION только с кнопкой "Выбрать психолога"
   Widget _buildHeroSection(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
@@ -89,6 +87,8 @@ class HomePage extends StatelessWidget {
           textAlign: isMobile ? TextAlign.center : TextAlign.left,
         ),
         const SizedBox(height: 24),
+        
+        // Только кнопка выбора психолога
         SizedBox(
           width: isMobile ? double.infinity : 240,
           height: 56,
@@ -120,9 +120,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // ==============================================================
-  // С ЧЕМ ПОМОГУТ ПСИХОЛОГИ
-  // ==============================================================
+  // Секция "С чем помогут психологи"
   Widget _buildHelpSection(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
@@ -189,9 +187,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // ==============================================================
-  // СДЕЛАЙ ШАГ К ЗАБОТЕ О СЕБЕ
-  // ==============================================================
+  // Секция "Сделай шаг к заботе о себе"
   Widget _buildStepsSection(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
@@ -323,9 +319,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // ==============================================================
-  // КОМАНДА ПСИХОЛОГОВ
-  // ==============================================================
+  // Секция "Команда психологов"
   Widget _buildPsychologistsSection(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
@@ -415,9 +409,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // ==============================================================
-  // БЛОК СТАТЕЙ — ТЕКСТ И ТЕЛЕФОН СДВИНУТЫ ВПРАВО + ВНИЗ
-  // ==============================================================
+  // Секция промо статей
   Widget _buildArticlesPromoSection(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
@@ -442,7 +434,6 @@ class HomePage extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Телефон сдвинут правее
         Image.asset(
           'assets/images/main_page/phone2.png',
           width: 320,
@@ -450,12 +441,10 @@ class HomePage extends StatelessWidget {
           fit: BoxFit.contain,
           errorBuilder: (_, __, ___) => _buildPhonePlaceholder(320, 520),
         ),
-        const SizedBox(width: 60), // Было 40 → теперь 60
-
-        // Текст: вниз + вправо
+        const SizedBox(width: 60),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(left: 30), // Сдвиг вправо
+            padding: const EdgeInsets.only(left: 30),
             child: _buildArticlesText(textAlign: TextAlign.left),
           ),
         ),
@@ -479,14 +468,12 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  
   Widget _buildArticlesText({TextAlign textAlign = TextAlign.left}) {
     return Column(
       crossAxisAlignment:
           textAlign == TextAlign.center ? CrossAxisAlignment.center : CrossAxisAlignment.start,
       children: [
-        // Заголовок опущен ниже
-        const SizedBox(height: 42), // Было 24 → теперь 32
+        const SizedBox(height: 42),
         Text(
           'BalancePsy',
           style: const TextStyle(
@@ -498,15 +485,11 @@ class HomePage extends StatelessWidget {
           textAlign: textAlign,
         ),
         const SizedBox(height: 16),
-
-        // Строка 1
         Text(
           'Читайте актуальные',
           style: AppTextStyles.stepsTitle.copyWith(height: 1.0),
           textAlign: textAlign,
         ),
-
-        // Строка 3 — "статьи от наших"
         Text.rich(
           TextSpan(
             children: [
@@ -522,8 +505,6 @@ class HomePage extends StatelessWidget {
           ),
           textAlign: textAlign,
         ),
-
-        // Строка 4 — "психологов" отдельно
         Text(
           'психологов',
           style: AppTextStyles.stepsTitle.copyWith(height: 1.0),
@@ -533,9 +514,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // ==============================================================
-  // УТИЛИТЫ
-  // ==============================================================
+  // Вспомогательные методы для placeholder'ов
   Widget _buildImagePlaceholder(double height, IconData icon, {Color? background, Color? color}) {
     return Container(
       height: height,

@@ -18,13 +18,20 @@ class CustomButton extends StatelessWidget {
     this.isPrimary = true,
     this.isOutlined = false,
     this.icon,
-    this.showArrow = false, required bool isFullWidth,
+    this.showArrow = false,
+    this.backgroundColor,
+    this.textColor,
+    this.isFullWidth = true,
   });
+
+  final Color? backgroundColor;
+  final Color? textColor;
+  final bool isFullWidth;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
+      width: isFullWidth ? double.infinity : null,
       height: 56,
       decoration: BoxDecoration(
         color: _getBackgroundColor(),
@@ -76,12 +83,14 @@ class CustomButton extends StatelessWidget {
 
   // Определяем цвет фона кнопки
   Color _getBackgroundColor() {
+    if (backgroundColor != null) return backgroundColor!;
     if (isOutlined) return Colors.transparent;
     return isPrimary ? AppColors.primary : AppColors.background;
   }
 
   // Определяем цвет текста кнопки
   Color _getTextColor() {
+    if (textColor != null) return textColor!;
     if (isOutlined) return AppColors.primary;
     return isPrimary ? AppColors.textWhite : AppColors.primary;
   }

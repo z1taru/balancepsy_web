@@ -10,17 +10,27 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.5
+  vector_math: ^2.2.0
 
   youtube_player_flutter: ^8.1.2
   video_player: ^2.8.2
   flutter_svg: ^2.0.9
 
+  date_format: ^2.0.8
+
+  provider: ^6.1.1
+
   dio: ^5.0.0
   flutter_secure_storage: ^8.0.0
   flutter_riverpod: ^2.3.0
   form_field_validator: ^1.1.0
-  json_annotation: ^4.8.0
   url_launcher: ^6.3.2
+
+  http: ^1.2.0
+  
+  shared_preferences: ^2.2.2
+  
+  json_annotation: ^4.8.1
 
 dev_dependencies:
   flutter_test:
@@ -62,15 +72,24 @@ flutter:
     - assets/video/intro.mp4
     - assets/images/main_page/phone1.png
     - assets/images/main_page/features.svg 
-    - assets/images/main_page/laura.svg 
-    - assets/images/main_page/yana.svg
     - assets/images/main_page/woman.svg
     - assets/images/main_page/features-2.png
-    - assets/images/main_page/galiya.svg
     - assets/images/main_page/galiya1.png
     - assets/images/main_page/yana1.png
     - assets/images/main_page/laura1.png
     - assets/images/main_page/phone2.png
+    - assets/images/avatar/aldiyar.png
+    - assets/images/avatar/yana2.png
+    - assets/images/avatar/laura2.png
+    - assets/images/avatar/diana.png
+    - assets/images/avatar/ainur.png
+    - assets/images/avatar/aigerim.png
+    - assets/menu_bar/article.png
+    - assets/menu_bar/catalog.png
+    - assets/menu_bar/home.png
+    - assets/menu_bar/chat.png
+    - assets/menu_bar/profile.png
+
 
   fonts:
     - family: Manrope
