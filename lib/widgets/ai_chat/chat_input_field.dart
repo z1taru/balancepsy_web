@@ -1,5 +1,3 @@
-// lib/widgets/ai_chat/chat_input_field.dart
-
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
@@ -43,102 +41,109 @@ class _ChatInputFieldState extends State<ChatInputField> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: AppColors.inputBorder.withOpacity(0.3),
-            width: 1,
+    return Material(
+      color: Colors.white,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            top: BorderSide(
+              color: AppColors.inputBorder.withOpacity(0.3),
+              width: 1,
+            ),
           ),
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Предупреждение для гостей
-          if (widget.isGuest && widget.remainingMessages != null) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              margin: const EdgeInsets.only(bottom: 12),
-              decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.warning.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, size: 16, color: AppColors.warning),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      widget.remainingMessages! > 0
-                          ? 'Осталось ${widget.remainingMessages} ${_getMessageWord(widget.remainingMessages!)}'
-                          : 'Лимит исчерпан. Зарегистрируйтесь для продолжения',
-                      style: AppTextStyles.caption.copyWith(
-                        color: AppColors.warning.withOpacity(0.9),
-                        fontSize: 12,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (widget.isGuest && widget.remainingMessages != null) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: AppColors.warning,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        widget.remainingMessages! > 0
+                            ? 'Осталось ${widget.remainingMessages} ${_getMessageWord(widget.remainingMessages!)}'
+                            : 'Лимит исчерпан. Зарегистрируйтесь для продолжения',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.warning.withOpacity(0.9),
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-
-          // Поле ввода
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  focusNode: _focusNode,
-                  enabled: widget.isEnabled,
-                  maxLines: null,
-                  minLines: 1,
-                  textInputAction: TextInputAction.newline,
-                  decoration: InputDecoration(
-                    hintText: widget.isEnabled
-                        ? 'Напишите сообщение...'
-                        : 'AI недоступен',
-                    hintStyle: AppTextStyles.body2.copyWith(
-                      color: AppColors.textSecondary.withOpacity(0.5),
-                    ),
-                    filled: true,
-                    fillColor: AppColors.inputBackground,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
-                      borderSide: BorderSide(
-                        color: AppColors.inputBorder.withOpacity(0.3),
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
-                      borderSide: BorderSide(
-                        color: AppColors.primary.withOpacity(0.5),
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                  style: AppTextStyles.body2,
-                  onSubmitted: (_) => _handleSend(),
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
-              _buildSendButton(),
             ],
-          ),
-        ],
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    enabled: widget.isEnabled,
+                    maxLines: null,
+                    minLines: 1,
+                    textInputAction: TextInputAction.newline,
+                    decoration: InputDecoration(
+                      hintText: widget.isEnabled
+                          ? 'Напишите сообщение...'
+                          : 'AI недоступен',
+                      hintStyle: AppTextStyles.body2.copyWith(
+                        color: AppColors.textSecondary.withOpacity(0.5),
+                      ),
+                      filled: true,
+                      fillColor: AppColors.inputBackground,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide(
+                          color: AppColors.inputBorder.withOpacity(0.3),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide(
+                          color: AppColors.primary.withOpacity(0.5),
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    style: AppTextStyles.body2,
+                    onSubmitted: (_) => _handleSend(),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _buildSendButton(),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -160,7 +165,9 @@ class _ChatInputFieldState extends State<ChatInputField> {
         child: InkWell(
           onTap: canSend ? _handleSend : null,
           customBorder: const CircleBorder(),
-          child: Center(child: Icon(Icons.send, color: Colors.white, size: 20)),
+          child: const Center(
+            child: Icon(Icons.send, color: Colors.white, size: 20),
+          ),
         ),
       ),
     );

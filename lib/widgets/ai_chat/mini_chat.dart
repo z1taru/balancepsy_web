@@ -6,16 +6,16 @@ import '../../../theme/app_text_styles.dart';
 import 'chat_message_bubble.dart';
 import 'chat_input_field.dart';
 
-class MiniChatPanel extends StatefulWidget {
+class ChatContainer extends StatefulWidget {
   final VoidCallback onClose;
 
-  const MiniChatPanel({super.key, required this.onClose});
+  const ChatContainer({super.key, required this.onClose});
 
   @override
-  State<MiniChatPanel> createState() => _MiniChatPanelState();
+  State<ChatContainer> createState() => _ChatContainerState();
 }
 
-class _MiniChatPanelState extends State<MiniChatPanel> {
+class _ChatContainerState extends State<ChatContainer> {
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -42,40 +42,54 @@ class _MiniChatPanelState extends State<MiniChatPanel> {
   Widget build(BuildContext context) {
     return Consumer<ChatProvider>(
       builder: (context, chatProvider, _) {
-        // Auto-scroll при новых сообщениях
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _scrollToBottom();
         });
 
-        return Container(
-          height: 500,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 20,
-                offset: Offset(0, -4),
+        final media = MediaQuery.of(context);
+        final maxHeight = media.size.height * 0.8;
+        final maxWidth = media.size.width < 768 ? media.size.width : 520.0;
+
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
+          child: SafeArea(
+            top: false,
+            child: Material(
+              color: Colors.white,
+              elevation: 16,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
               ),
-            ],
-          ),
-          child: Column(
-            children: [
-              _buildHeader(context, chatProvider),
-              Expanded(
-                child: chatProvider.hasSession
-                    ? _buildChatContent(chatProvider)
-                    : _buildEmptyState(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: maxHeight,
+                  maxWidth: maxWidth,
+                ),
+                child: SizedBox(
+                  width: maxWidth,
+                  child: Column(
+                    children: [
+                      _buildHeader(context, chatProvider),
+                      Expanded(
+                        child: chatProvider.hasSession
+                            ? _buildChatContent(chatProvider)
+                            : _buildEmptyState(),
+                      ),
+                      ChatInputField(
+                        onSend: (text) => chatProvider.sendMessage(text),
+                        isEnabled:
+                            chatProvider.canSendMessage &&
+                            chatProvider.isAiAvailable,
+                        remainingMessages: chatProvider.remainingMessages,
+                        isGuest: chatProvider.isGuest,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              ChatInputField(
-                onSend: (text) => chatProvider.sendMessage(text),
-                isEnabled: chatProvider.canSendMessage &&
-                    chatProvider.isAiAvailable,
-                remainingMessages: chatProvider.remainingMessages,
-                isGuest: chatProvider.isGuest,
-              ),
-            ],
+            ),
           ),
         );
       },
@@ -88,9 +102,7 @@ class _MiniChatPanelState extends State<MiniChatPanel> {
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
-          bottom: BorderSide(
-            color: AppColors.inputBorder.withOpacity(0.3),
-          ),
+          bottom: BorderSide(color: AppColors.inputBorder.withOpacity(0.3)),
         ),
       ),
       child: Row(
@@ -104,11 +116,7 @@ class _MiniChatPanelState extends State<MiniChatPanel> {
               ),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.psychology,
-              color: Colors.white,
-              size: 20,
-            ),
+            child: const Icon(Icons.psychology, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -128,7 +136,6 @@ class _MiniChatPanelState extends State<MiniChatPanel> {
               ],
             ),
           ),
-          // Кнопка "Развернуть"
           IconButton(
             icon: const Icon(Icons.open_in_full, size: 20),
             tooltip: 'Открыть полный экран',
@@ -137,13 +144,11 @@ class _MiniChatPanelState extends State<MiniChatPanel> {
               Navigator.pushNamed(context, '/ai-chat');
             },
           ),
-          // Новый диалог
           IconButton(
             icon: const Icon(Icons.refresh, size: 20),
             tooltip: 'Новый диалог',
             onPressed: () => _showNewChatConfirmation(context, chatProvider),
           ),
-          // Закрыть
           IconButton(
             icon: const Icon(Icons.close, size: 20),
             onPressed: widget.onClose,
@@ -183,9 +188,7 @@ class _MiniChatPanelState extends State<MiniChatPanel> {
           const SizedBox(height: 16),
           Text(
             'Начните диалог',
-            style: AppTextStyles.h3.copyWith(
-              color: AppColors.textSecondary,
-            ),
+            style: AppTextStyles.h3.copyWith(color: AppColors.textSecondary),
           ),
           const SizedBox(height: 8),
           Padding(
@@ -204,7 +207,9 @@ class _MiniChatPanelState extends State<MiniChatPanel> {
   }
 
   void _showNewChatConfirmation(
-      BuildContext context, ChatProvider chatProvider) {
+    BuildContext context,
+    ChatProvider chatProvider,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -227,5 +232,16 @@ class _MiniChatPanelState extends State<MiniChatPanel> {
         ],
       ),
     );
+  }
+}
+
+class MiniChatPanel extends StatelessWidget {
+  final VoidCallback onClose;
+
+  const MiniChatPanel({super.key, required this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChatContainer(onClose: onClose);
   }
 }

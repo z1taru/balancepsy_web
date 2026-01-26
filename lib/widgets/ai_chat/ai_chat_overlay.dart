@@ -4,16 +4,16 @@ import '../../providers/chat_provider.dart';
 import 'floating_ai_button.dart';
 import 'mini_chat.dart';
 
-class AiChatOverlay extends StatefulWidget {
+class ChatOverlayWidget extends StatefulWidget {
   final Widget child;
 
-  const AiChatOverlay({super.key, required this.child});
+  const ChatOverlayWidget({super.key, required this.child});
 
   @override
-  State<AiChatOverlay> createState() => _AiChatOverlayState();
+  State<ChatOverlayWidget> createState() => _ChatOverlayWidgetState();
 }
 
-class _AiChatOverlayState extends State<AiChatOverlay> {
+class _ChatOverlayWidgetState extends State<ChatOverlayWidget> {
   bool _isChatOpen = false;
 
   void _toggleChat() {
@@ -32,10 +32,7 @@ class _AiChatOverlayState extends State<AiChatOverlay> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Основной контент
         widget.child,
-
-        // Overlay с чатом
         if (_isChatOpen)
           Positioned.fill(
             child: GestureDetector(
@@ -45,28 +42,39 @@ class _AiChatOverlayState extends State<AiChatOverlay> {
                 child: Align(
                   alignment: Alignment.bottomCenter,
                   child: GestureDetector(
-                    onTap: () {}, // Предотвращаем закрытие при клике на панель
-                    child: MiniChatPanel(onClose: _closeChat),
+                    onTap: () {},
+                    child: ChatContainer(onClose: _closeChat),
                   ),
                 ),
               ),
             ),
           ),
-
-        // Плавающая кнопка
         Positioned(
           right: 20,
           bottom: 20,
           child: Consumer<ChatProvider>(
             builder: (context, chatProvider, _) {
-              return FloatingAiButton(
-                onPressed: _toggleChat,
-                unreadCount: 0, // TODO: подсчет непрочитанных
-              );
+              return FloatingAiButton(onPressed: _toggleChat, unreadCount: 0);
             },
           ),
         ),
       ],
     );
+  }
+}
+
+class AiChatOverlay extends StatefulWidget {
+  final Widget child;
+
+  const AiChatOverlay({super.key, required this.child});
+
+  @override
+  State<AiChatOverlay> createState() => _AiChatOverlayState();
+}
+
+class _AiChatOverlayState extends State<AiChatOverlay> {
+  @override
+  Widget build(BuildContext context) {
+    return ChatOverlayWidget(child: widget.child);
   }
 }
