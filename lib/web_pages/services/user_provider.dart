@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import './unified_auth_service.dart';
+import '../../providers/chat_provider.dart';
 
 class UserProvider with ChangeNotifier {
   final UnifiedAuthService _authService = UnifiedAuthService();
+  ChatProvider? _chatProvider;
 
   Map<String, dynamic>? _user;
   bool _isLoading = false;
@@ -26,6 +28,10 @@ class UserProvider with ChangeNotifier {
   Map<String, dynamic>? get psychologistProfile =>
       _user?['psychologistProfile'];
 
+  void attachChatProvider(ChatProvider provider) {
+    _chatProvider = provider;
+  }
+
   Future<void> initialize() async {
     await loadProfile();
   }
@@ -40,6 +46,11 @@ class UserProvider with ChangeNotifier {
 
       if (result['success'] == true) {
         _user = result['user'];
+        await _chatProvider?.onUserLoggedIn(
+          _user!['userId'].toString(),
+          _user!['role'],
+        );
+
         _isLoading = false;
         notifyListeners();
         return true;
@@ -136,6 +147,10 @@ class UserProvider with ChangeNotifier {
 
   Future<void> performLogout() async {
     await _authService.logout();
+
+    // ✅ ДОБАВИТЬ: Сбросить ChatProvider
+    await _chatProvider?.onUserLoggedOut();
+
     _user = null;
     notifyListeners();
   }

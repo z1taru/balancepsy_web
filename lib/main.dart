@@ -1,3 +1,4 @@
+import 'package:balance_psy/providers/chat_provider.dart';
 import 'package:balance_psy/web_pages/services/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +10,10 @@ void main() async {
 
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => UserProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+      ],
       child: const BalancePsyApp(),
     ),
   );

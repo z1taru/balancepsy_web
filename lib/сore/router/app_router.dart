@@ -23,6 +23,7 @@ import '../../web_pages/profile_patient/profile_patient.dart';
 import '../../web_pages/profile_patient/blog_patient.dart';
 import '../../web_pages/profile_patient/chat_patient.dart';
 import '../../web_pages/profile_patient/sessions_calendar.dart';
+import '../../web_pages/ai_chat/full_chat_screen.dart';
 
 class AppRouter {
   // Публичные роуты
@@ -51,6 +52,8 @@ class AppRouter {
   static const String psychoMessages = '/psycho/messages';
   static const String psychoReports = '/psycho/reports';
   static const String psychoProfile = '/psycho/profile';
+
+  static const String aiChat = '/ai-chat';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -126,6 +129,10 @@ class AppRouter {
       case psychoProfile:
         return NoAnimationMaterialPageRoute(
           builder: (_) => const PsychoProfilePage(),
+        );
+      case aiChat:
+        return NoAnimationMaterialPageRoute(
+          builder: (_) => const FullChatScreen(),
         );
 
       default:

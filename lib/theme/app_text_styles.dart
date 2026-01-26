@@ -309,6 +309,14 @@ class AppTextStyles {
     color: Color(0xFF6B6B6B),
     height: 1.2,
   );
+
+  static const TextStyle caption = TextStyle(
+    fontFamily: 'Manrope',
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textTertiary,
+    height: 1.3,
+  );
   
 // ========== ARTICLE ==========
   static const TextStyle articleTitle = TextStyle(
