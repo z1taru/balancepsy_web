@@ -1,56 +1,52 @@
-// lib/web_main.dart
+import 'package:balance_psy/web_pages/services/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'theme/app_colors.dart';
 import 'сore/router/app_router.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const BalancePsyWeb());
+
+  runApp(
+    MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => UserProvider())],
+      child: const BalancePsyApp(),
+    ),
+  );
 }
 
-class BalancePsyWeb extends StatelessWidget {
-  const BalancePsyWeb({super.key});
+class BalancePsyApp extends StatefulWidget {
+  const BalancePsyApp({super.key});
+
+  @override
+  State<BalancePsyApp> createState() => _BalancePsyAppState();
+}
+
+class _BalancePsyAppState extends State<BalancePsyApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Инициализируем UserProvider при запуске
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<UserProvider>(context, listen: false).initialize();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'BalancePsy - Онлайн психотерапия',
+      title: 'BalancePsy',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: AppColors.primary,
         scaffoldBackgroundColor: AppColors.backgroundLight,
         fontFamily: 'Manrope',
         useMaterial3: true,
-        colorScheme: const ColorScheme.light(
+        colorScheme: ColorScheme.light(
           primary: AppColors.primary,
-          secondary: AppColors.primaryLight,
-          background: AppColors.background,
+          secondary: AppColors.primary,
           surface: AppColors.cardBackground,
           error: AppColors.error,
-        ),
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(fontSize: 48, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-          displayMedium: TextStyle(fontSize: 36, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-          displaySmall: TextStyle(fontSize: 28, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-          bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: AppColors.textPrimary),
-          bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: AppColors.textSecondary),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            side: const BorderSide(color: AppColors.primary, width: 2),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
@@ -71,11 +67,14 @@ class BalancePsyWeb extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: AppColors.error),
           ),
-          contentPadding: const EdgeInsets.all(16),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.error, width: 2),
+          ),
         ),
       ),
-      onGenerateRoute: AppRouter.generateRoute,
       initialRoute: AppRouter.home,
+      onGenerateRoute: AppRouter.generateRoute,
     );
   }
 }

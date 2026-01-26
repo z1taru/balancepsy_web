@@ -1,5 +1,6 @@
 // lib/core/router/app_router.dart
 
+import 'package:balance_psy/web_pages/profile/profile.dart';
 import 'package:flutter/material.dart';
 import '../../web_pages/home/home_page.dart';
 import '../../web_pages/auth/login_page.dart';
@@ -8,20 +9,14 @@ import '../../web_pages/about/about_page.dart';
 import '../../web_pages/psychologists/psychologists_page.dart';
 import '../../web_pages/psychologists/psychologist_detail.dart';
 import '../../web_pages/blog/blog_page.dart';
-import '../../web_pages/profile_patient/blog_patient.dart';
 import '../../web_pages/blog/article_detail.dart';
 import '../../web_pages/services/services_page.dart';
 import '../../web_pages/contacts/contacts_page.dart';
-import '../../web_pages/profile_patient/home_patient.dart';
-import '../../web_pages/profile_patient/profile_patient.dart';
-import '../../web_pages/profile_patient/contacts_patient.dart';
-import '../../web_pages/profile_patient/chat_patient.dart';
 import '../../web_pages/psycho/psycho_dashboard.dart';
 import '../../web_pages/psycho/psycho_schedule.dart';
 import '../../web_pages/psycho/psycho_messages.dart';
 import '../../web_pages/psycho/psycho_reports.dart';
 import '../../web_pages/psycho/psycho_profile.dart';
-import '../../web_pages/profile_patient/sessions_calendar.dart';
 
 class AppRouter {
   static const String home = '/';
@@ -61,22 +56,12 @@ class AppRouter {
       case blog:
         return NoAnimationMaterialPageRoute(builder: (_) => const BlogPage());
       case patientArticles:
-        return NoAnimationMaterialPageRoute(builder: (_) => const BlogPatientPage());
-      case services:
         return NoAnimationMaterialPageRoute(builder: (_) => const ServicesPage());
       case contacts:
         return NoAnimationMaterialPageRoute(builder: (_) => const ContactsPage());
       case dashboard:
-        return NoAnimationMaterialPageRoute(builder: (_) => const HomePatientPage());
+        return NoAnimationMaterialPageRoute(builder: (_) => const ProfilePage());
       case profile:
-        return NoAnimationMaterialPageRoute(builder: (_) => const ProfilePatientPage());
-      case contactsPatient:
-        return NoAnimationMaterialPageRoute(builder: (_) => const ContactsPatientPage());
-      case chatPatient:
-        return NoAnimationMaterialPageRoute(builder: (_) => const ChatPatientPage());
-      case sessionsCalendar:
-        return NoAnimationMaterialPageRoute(builder: (_) => const SessionsCalendarPage());
-      case psychoDashboard:
         return NoAnimationMaterialPageRoute(builder: (_) => const PsychoDashboardPage());
       case psychoSchedule:
         return NoAnimationMaterialPageRoute(builder: (_) => const PsychoSchedulePage());

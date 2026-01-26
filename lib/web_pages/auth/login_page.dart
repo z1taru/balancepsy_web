@@ -1,10 +1,10 @@
-// lib/web_pages/auth/login_page.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/custom_button.dart';
 import '../../сore/router/app_router.dart';
-import '../../сore/services/auth_api_service.dart';
+import '../services/user_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,15 +14,13 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = AuthApiService();
-  
+  final _formKey = GlobalKey<FormState>();
+
   bool _obscurePassword = true;
   bool _rememberMe = false;
   bool _isLoading = false;
-  String? _errorMessage;
 
   @override
   void dispose() {
@@ -36,33 +34,32 @@ class _LoginPageState extends State<LoginPage> {
       _passwordController.text.length >= 6;
 
   Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    setState(() => _isLoading = true);
 
-    try {
-      final response = await _authService.login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    final success = await userProvider.login(
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
+
+    setState(() => _isLoading = false);
+
+    if (success && mounted) {
+      // Переход на главную страницу после успешного входа
+      Navigator.pushReplacementNamed(context, AppRouter.home);
+    } else if (mounted) {
+      // Показываем ошибку
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(userProvider.error ?? 'Ошибка входа'),
+          backgroundColor: AppColors.error,
+        ),
       );
-
-      if (response['success'] == true && mounted) {
-        // Успешный вход
-        Navigator.pushReplacementNamed(context, AppRouter.dashboard);
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
     }
   }
 
@@ -89,73 +86,44 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildMobileLayout() {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: _buildLoginForm(),
-        ),
-      ),
+      body: SafeArea(child: SingleChildScrollView(child: _buildLoginForm())),
     );
   }
 
   Widget _buildLoginForm() {
     return Container(
       padding: const EdgeInsets.all(60),
-      child: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 500),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildLogo(),
-                const SizedBox(height: 48),
-                Text('Вход в аккаунт', style: AppTextStyles.h1),
-                const SizedBox(height: 12),
-                Text(
-                  'Рады видеть вас снова!',
-                  style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 40),
-                
-                // Сообщение об ошибке
-                if (_errorMessage != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.error),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.error_outline, color: AppColors.error, size: 20),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            _errorMessage!,
-                            style: AppTextStyles.body2.copyWith(color: AppColors.error),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
-                
-                _buildEmailField(),
-                const SizedBox(height: 24),
-                _buildPasswordField(),
-                const SizedBox(height: 16),
-                _buildRememberAndForgot(),
-                const SizedBox(height: 32),
-                _buildLoginButton(),
-                const SizedBox(height: 32),
-                _buildRegisterLink(),
-              ],
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildLogo(),
+            const SizedBox(height: 48),
+            Text('Вход в аккаунт', style: AppTextStyles.h1),
+            const SizedBox(height: 12),
+            Text(
+              'Рады видеть вас снова!',
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
-          ),
+            const SizedBox(height: 40),
+            _buildEmailField(),
+            const SizedBox(height: 24),
+            _buildPasswordField(),
+            const SizedBox(height: 16),
+            _buildRememberAndForgot(),
+            const SizedBox(height: 32),
+            _buildLoginButton(),
+            const SizedBox(height: 24),
+            _buildDivider(),
+            const SizedBox(height: 24),
+            _buildSocialButtons(),
+            const SizedBox(height: 32),
+            _buildRegisterLink(),
+          ],
         ),
       ),
     );
@@ -171,7 +139,7 @@ class _LoginPageState extends State<LoginPage> {
             color: AppColors.primary,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.psychology, color: Colors.white, size: 28),
+          child: const Icon(Icons.favorite, color: Colors.white, size: 28),
         ),
         const SizedBox(width: 12),
         Text('Balance', style: AppTextStyles.logo.copyWith(fontSize: 28)),
@@ -196,7 +164,6 @@ class _LoginPageState extends State<LoginPage> {
           controller: _emailController,
           style: AppTextStyles.input,
           keyboardType: TextInputType.emailAddress,
-          enabled: !_isLoading,
           decoration: InputDecoration(
             hintText: 'example@email.com',
             hintStyle: AppTextStyles.inputHint,
@@ -230,7 +197,6 @@ class _LoginPageState extends State<LoginPage> {
           controller: _passwordController,
           style: AppTextStyles.input,
           obscureText: _obscurePassword,
-          enabled: !_isLoading,
           decoration: InputDecoration(
             hintText: 'Введите пароль',
             hintStyle: AppTextStyles.inputHint,
@@ -252,7 +218,7 @@ class _LoginPageState extends State<LoginPage> {
               return 'Введите пароль';
             }
             if (value.length < 6) {
-              return 'Пароль должен быть минимум 6 символов';
+              return 'Пароль должен быть не менее 6 символов';
             }
             return null;
           },
@@ -270,7 +236,7 @@ class _LoginPageState extends State<LoginPage> {
           children: [
             Checkbox(
               value: _rememberMe,
-              onChanged: _isLoading ? null : (value) =>
+              onChanged: (value) =>
                   setState(() => _rememberMe = value ?? false),
               activeColor: AppColors.primary,
             ),
@@ -278,11 +244,8 @@ class _LoginPageState extends State<LoginPage> {
           ],
         ),
         TextButton(
-          onPressed: _isLoading ? null : () {
-            // TODO: Forgot password flow
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Восстановление пароля в разработке')),
-            );
+          onPressed: () {
+            // TODO: Forgot password
           },
           child: Text(
             'Забыли пароль?',
@@ -297,28 +260,68 @@ class _LoginPageState extends State<LoginPage> {
     return SizedBox(
       width: double.infinity,
       height: 56,
-      child: ElevatedButton(
+      child: CustomButton(
+        text: _isLoading ? 'Вход...' : 'Войти',
         onPressed: (_canLogin && !_isLoading) ? _login : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
+        isPrimary: true,
+        isFullWidth: true,
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Row(
+      children: [
+        Expanded(child: Divider(color: AppColors.textTertiary)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'или',
+            style: AppTextStyles.body2.copyWith(color: AppColors.textTertiary),
           ),
         ),
-        child: _isLoading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
-              )
-            : Text(
-                'Войти',
-                style: AppTextStyles.button,
-              ),
+        Expanded(child: Divider(color: AppColors.textTertiary)),
+      ],
+    );
+  }
+
+  Widget _buildSocialButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildSocialButton('Google', Icons.g_mobiledata, () {}),
+        ),
+        const SizedBox(width: 16),
+        Expanded(child: _buildSocialButton('Facebook', Icons.facebook, () {})),
+      ],
+    );
+  }
+
+  Widget _buildSocialButton(
+    String label,
+    IconData icon,
+    VoidCallback onPressed,
+  ) {
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        side: const BorderSide(color: AppColors.inputBorder, width: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: AppColors.textPrimary),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: AppTextStyles.body1.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -333,7 +336,7 @@ class _LoginPageState extends State<LoginPage> {
             style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
           ),
           TextButton(
-            onPressed: _isLoading ? null : () => Navigator.pushNamed(context, AppRouter.register),
+            onPressed: () => Navigator.pushNamed(context, AppRouter.register),
             child: Text(
               'Зарегистрироваться',
               style: AppTextStyles.body1.copyWith(
