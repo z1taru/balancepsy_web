@@ -27,7 +27,8 @@ class HomePatientPage extends StatelessWidget {
         'date': '15 ноября 2024',
         'image': 'assets/images/article/calm.png',
         'color': const Color(0xFFFF6B9D),
-        'preview': 'Регулярная практика осознанности перестраивает мозг, снижая стресс и улучшая фокус.',
+        'preview':
+            'Регулярная практика осознанности перестраивает мозг, снижая стресс и улучшая фокус.',
         'content': '''
 # Что такое mindfulness?
 
@@ -67,7 +68,8 @@ Mindfulness — это осознанное пребывание в настоя
         'date': '12 ноя 2024',
         'image': 'assets/images/article/sad.png',
         'color': const Color(0xFF4A90E2),
-        'preview': 'Тревога — это не враг. Это сигнал. Учитесь его понимать и управлять.',
+        'preview':
+            'Тревога — это не враг. Это сигнал. Учитесь его понимать и управлять.',
         'content': '''
 # Тревога — это нормально
 
@@ -152,7 +154,8 @@ Mindfulness — это осознанное пребывание в настоя
         'date': '8 ноя 2024',
         'image': 'assets/images/article/dontAgro.png',
         'color': const Color(0xFFF5A623),
-        'preview': 'Избегание конфликтов разрушает отношения. Учитесь говорить открыто.',
+        'preview':
+            'Избегание конфликтов разрушает отношения. Учитесь говорить открыто.',
         'content': '''
 # Конфликт — это не плохо
 
@@ -220,10 +223,7 @@ Mindfulness — это осознанное пребывание в настоя
                           ),
                         ),
                         const SizedBox(width: 24),
-                        Expanded(
-                          flex: 2,
-                          child: _buildQuickActions(context),
-                        ),
+                        Expanded(flex: 2, child: _buildQuickActions(context)),
                       ],
                     ),
                     const SizedBox(height: 40),
@@ -264,11 +264,17 @@ Mindfulness — это осознанное пребывание в настоя
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
+                  Icon(
+                    Icons.calendar_today,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'Пятница, 1 ноября',
-                    style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
+                    style: AppTextStyles.body1.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -276,9 +282,19 @@ Mindfulness — это осознанное пребывание в настоя
           ),
           Row(
             children: [
-              _buildHeaderAction(context, Icons.notifications_outlined, 'Уведомления', _showNotifications),
+              _buildHeaderAction(
+                context,
+                Icons.notifications_outlined,
+                'Уведомления',
+                _showNotifications,
+              ),
               const SizedBox(width: 12),
-              _buildHeaderAction(context, Icons.help_outline, 'Помощь', _showHelp),
+              _buildHeaderAction(
+                context,
+                Icons.help_outline,
+                'Помощь',
+                _showHelp,
+              ),
             ],
           ),
         ],
@@ -286,7 +302,12 @@ Mindfulness — это осознанное пребывание в настоя
     );
   }
 
-  Widget _buildHeaderAction(BuildContext context, IconData icon, String label, Function(BuildContext) onTap) {
+  Widget _buildHeaderAction(
+    BuildContext context,
+    IconData icon,
+    String label,
+    Function(BuildContext) onTap,
+  ) {
     return Material(
       color: AppColors.primaryLight.withOpacity(0.1),
       borderRadius: BorderRadius.circular(12),
@@ -367,8 +388,13 @@ Mindfulness — это осознанное пребывание в настоя
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     elevation: 2,
                   ),
                   child: Text(
@@ -388,9 +414,16 @@ Mindfulness — это осознанное пребывание в настоя
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.15),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.3),
+                width: 2,
+              ),
             ),
-            child: const Icon(Icons.psychology_outlined, size: 48, color: Colors.white),
+            child: const Icon(
+              Icons.psychology_outlined,
+              size: 48,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
@@ -429,7 +462,11 @@ Mindfulness — это осознанное пребывание в настоя
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: AppColors.shadow.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: AppColors.shadow.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -437,17 +474,19 @@ Mindfulness — это осознанное пребывание в настоя
         children: [
           Text('Быстрые действия', style: AppTextStyles.h3),
           const SizedBox(height: 20),
-          ...actions.map((action) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildQuickActionItem(
-                  context,
-                  action['icon'] as IconData,
-                  action['title'] as String,
-                  action['subtitle'] as String,
-                  action['color'] as Color,
-                  action['onTap'] as Function,
-                ),
-              )),
+          ...actions.map(
+            (action) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildQuickActionItem(
+                context,
+                action['icon'] as IconData,
+                action['title'] as String,
+                action['subtitle'] as String,
+                action['color'] as Color,
+                action['onTap'] as Function,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -477,7 +516,10 @@ Mindfulness — это осознанное пребывание в настоя
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(width: 16),
@@ -485,13 +527,27 @@ Mindfulness — это осознанное пребывание в настоя
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
+                    Text(
+                      title,
+                      style: AppTextStyles.body1.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text(subtitle, style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary)),
+                    Text(
+                      subtitle,
+                      style: AppTextStyles.body2.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textSecondary.withOpacity(0.6)),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: AppColors.textSecondary.withOpacity(0.6),
+              ),
             ],
           ),
         ),
@@ -518,8 +574,22 @@ Mindfulness — это осознанное пребывание в настоя
   // === БЛИЖАЙШИЕ СЕССИИ ===
   Widget _buildUpcomingSession(BuildContext context) {
     final sessions = [
-      {'date': DateTime.now().add(const Duration(days: 1)), 'time': '15:30', 'psychologist': 'Diana', 'avatar': 'assets/images/avatar/diana.png', 'type': 'Видео-сессия', 'status': 'Подтверждено'},
-      {'date': DateTime.now().add(const Duration(days: 5)), 'time': '14:00', 'psychologist': 'Laura', 'avatar': 'assets/images/avatar/laura2.png', 'type': 'Аудио-сессия', 'status': 'Ожидает'},
+      {
+        'date': DateTime.now().add(const Duration(days: 1)),
+        'time': '15:30',
+        'psychologist': 'Diana',
+        'avatar': 'assets/images/avatar/diana.png',
+        'type': 'Видео-сессия',
+        'status': 'Подтверждено',
+      },
+      {
+        'date': DateTime.now().add(const Duration(days: 5)),
+        'time': '14:00',
+        'psychologist': 'Laura',
+        'avatar': 'assets/images/avatar/laura2.png',
+        'type': 'Аудио-сессия',
+        'status': 'Ожидает',
+      },
     ];
 
     return Container(
@@ -527,7 +597,13 @@ Mindfulness — это осознанное пребывание в настоя
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: AppColors.shadow.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,12 +615,21 @@ Mindfulness — это осознанное пребывание в настоя
               TextButton.icon(
                 onPressed: () => _showSessionsCalendar(context),
                 icon: const Icon(Icons.calendar_today, size: 16),
-                label: Text('Календарь', style: AppTextStyles.body2.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                label: Text(
+                  'Календарь',
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 20),
-          Text('Предстоящие', style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
+          Text(
+            'Предстоящие',
+            style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 12),
           ...sessions.map((session) => _buildSessionItem(session)),
           const SizedBox(height: 16),
@@ -556,9 +641,14 @@ Mindfulness — это осознанное пребывание в настоя
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-              child: Text('Запланировать новую сессию', style: AppTextStyles.button.copyWith(fontSize: 16)),
+              child: Text(
+                'Запланировать новую сессию',
+                style: AppTextStyles.button.copyWith(fontSize: 16),
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -571,11 +661,17 @@ Mindfulness — это осознанное пребывание в настоя
   Widget _buildCalendarSection(List<Map<String, dynamic>> sessions) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.backgroundLight, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundLight,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Ноябрь 2024', style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
+          Text(
+            'Ноябрь 2024',
+            style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 16),
           _buildCalendarGrid(sessions),
         ],
@@ -623,7 +719,10 @@ Mindfulness — это осознанное пребывание в настоя
     };
 
     final diaryEntries = <DateTime, List<String>>{
-      today.subtract(const Duration(days: 2)): ['Сегодня был отличный день!', 'Встретился с друзьями.'],
+      today.subtract(const Duration(days: 2)): [
+        'Сегодня был отличный день!',
+        'Встретился с друзьями.',
+      ],
       today: ['Чувствую усталость после работы.', 'Нужно отдохнуть.'],
       today.add(const Duration(days: 3)): ['Планирую поездку на выходные.'],
     };
@@ -631,16 +730,23 @@ Mindfulness — это осознанное пребывание в настоя
     return Column(
       children: [
         Row(
-          children: days.map((day) => Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(
-                day,
-                textAlign: TextAlign.center,
-                style: AppTextStyles.body2.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-              ),
-            ),
-          )).toList(),
+          children: days
+              .map(
+                (day) => Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      day,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.body2.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+              .toList(),
         ),
         GridView.builder(
           shrinkWrap: true,
@@ -666,21 +772,31 @@ Mindfulness — это осознанное пребывание в настоя
             }
 
             final date = DateTime(today.year, today.month, day);
-            final isToday = date.year == today.year && date.month == today.month && date.day == today.day;
+            final isToday =
+                date.year == today.year &&
+                date.month == today.month &&
+                date.day == today.day;
             final mood = moods[date];
             final hasDiary = diaryEntries.containsKey(date);
-            final hasSession = sessions.any((s) =>
-                (s['date'] as DateTime).day == day &&
-                (s['date'] as DateTime).month == today.month);
+            final hasSession = sessions.any(
+              (s) =>
+                  (s['date'] as DateTime).day == day &&
+                  (s['date'] as DateTime).month == today.month,
+            );
 
             return GestureDetector(
-              onTap: () => _showDayDetails(context, date, mood, diaryEntries[date]),
+              onTap: () =>
+                  _showDayDetails(context, date, mood, diaryEntries[date]),
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: isToday ? AppColors.primary.withOpacity(0.12) : Colors.transparent,
+                  color: isToday
+                      ? AppColors.primary.withOpacity(0.12)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
-                  border: isToday ? Border.all(color: AppColors.primary, width: 1.5) : null,
+                  border: isToday
+                      ? Border.all(color: AppColors.primary, width: 1.5)
+                      : null,
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -689,7 +805,9 @@ Mindfulness — это осознанное пребывание в настоя
                       day.toString(),
                       style: AppTextStyles.body2.copyWith(
                         fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
-                        color: isToday ? AppColors.primary : AppColors.textPrimary,
+                        color: isToday
+                            ? AppColors.primary
+                            : AppColors.textPrimary,
                         fontSize: 13,
                       ),
                     ),
@@ -703,7 +821,10 @@ Mindfulness — это осознанное пребывание в настоя
                           Container(
                             width: 7,
                             height: 7,
-                            decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                            decoration: const BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                         if (mood != null)
                           Container(
@@ -712,14 +833,26 @@ Mindfulness — это осознанное пребывание в настоя
                             decoration: BoxDecoration(
                               color: mood.color.withOpacity(0.15),
                               shape: BoxShape.circle,
-                              border: Border.all(color: mood.color.withOpacity(0.3), width: 1),
+                              border: Border.all(
+                                color: mood.color.withOpacity(0.3),
+                                width: 1,
+                              ),
                             ),
                             child: Center(
-                              child: Image.asset(mood.imagePath, width: 12, height: 12, fit: BoxFit.contain),
+                              child: Image.asset(
+                                mood.imagePath,
+                                width: 12,
+                                height: 12,
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           ),
                         if (hasDiary)
-                          const Icon(Icons.note_alt_outlined, size: 14, color: AppColors.primary),
+                          const Icon(
+                            Icons.note_alt_outlined,
+                            size: 14,
+                            color: AppColors.primary,
+                          ),
                       ],
                     ),
                   ],
@@ -732,7 +865,12 @@ Mindfulness — это осознанное пребывание в настоя
     );
   }
 
-  void _showDayDetails(BuildContext context, DateTime date, MoodModel? mood, List<String>? entries) {
+  void _showDayDetails(
+    BuildContext context,
+    DateTime date,
+    MoodModel? mood,
+    List<String>? entries,
+  ) {
     final formattedDate = _formatDate(date);
 
     showDialog(
@@ -765,39 +903,70 @@ Mindfulness — это осознанное пребывание в настоя
                                 color: mood.color.withOpacity(0.15),
                                 shape: BoxShape.circle,
                               ),
-                              child: Center(child: Image.asset(mood.imagePath, width: 32, height: 32)),
+                              child: Center(
+                                child: Image.asset(
+                                  mood.imagePath,
+                                  width: 32,
+                                  height: 32,
+                                ),
+                              ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(mood.name, style: AppTextStyles.body1.copyWith(color: mood.color, fontWeight: FontWeight.w600)),
-                                  Text(mood.description, style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary)),
+                                  Text(
+                                    mood.name,
+                                    style: AppTextStyles.body1.copyWith(
+                                      color: mood.color,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    mood.description,
+                                    style: AppTextStyles.body2.copyWith(
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
                           ],
                         )
-                      : Text('Не оценивалось', style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary)),
+                      : Text(
+                          'Не оценивалось',
+                          style: AppTextStyles.body2.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 16),
                 _buildDetailSection(
                   'Записи в дневнике',
                   entries != null && entries.isNotEmpty
                       ? Column(
-                          children: entries.map((e) => Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(12),
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: AppColors.backgroundLight,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(e, style: AppTextStyles.body2),
-                          )).toList(),
+                          children: entries
+                              .map(
+                                (e) => Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.all(12),
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.backgroundLight,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(e, style: AppTextStyles.body2),
+                                ),
+                              )
+                              .toList(),
                         )
-                      : Text('Нет записей', style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary)),
+                      : Text(
+                          'Нет записей',
+                          style: AppTextStyles.body2.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -806,7 +975,10 @@ Mindfulness — это осознанное пребывание в настоя
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Закрыть', style: AppTextStyles.body1.copyWith(color: AppColors.primary)),
+            child: Text(
+              'Закрыть',
+              style: AppTextStyles.body1.copyWith(color: AppColors.primary),
+            ),
           ),
         ],
       ),
@@ -817,7 +989,10 @@ Mindfulness — это осознанное пребывание в настоя
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
+        Text(
+          title,
+          style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         content,
       ],
@@ -832,26 +1007,54 @@ Mindfulness — это осознанное пребывание в настоя
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.inputBorder.withOpacity(0.3)),
-        boxShadow: [BoxShadow(color: AppColors.shadow.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          CircleAvatar(radius: 20, backgroundImage: AssetImage(session['avatar'])),
+          CircleAvatar(
+            radius: 20,
+            backgroundImage: AssetImage(session['avatar']),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(session['psychologist'], style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
+                Text(
+                  session['psychologist'],
+                  style: AppTextStyles.body1.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text('${_formatDate(session['date'] as DateTime)} • ${session['time']} • ${session['type']}', style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary)),
+                Text(
+                  '${_formatDate(session['date'] as DateTime)} • ${session['time']} • ${session['type']}',
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-            child: Text(session['status'], style: AppTextStyles.body3.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              session['status'],
+              style: AppTextStyles.body3.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -860,8 +1063,18 @@ Mindfulness — это осознанное пребывание в настоя
 
   String _formatDate(DateTime date) {
     const months = [
-      'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+      'января',
+      'февраля',
+      'марта',
+      'апреля',
+      'мая',
+      'июня',
+      'июля',
+      'августа',
+      'сентября',
+      'октября',
+      'ноября',
+      'декабря',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
@@ -890,12 +1103,24 @@ Mindfulness — это осознанное пребывание в настоя
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Отмена', style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary))),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Отмена',
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Сессия успешно запланирована'), duration: Duration(seconds: 2), behavior: SnackBarBehavior.floating),
+                const SnackBar(
+                  content: Text('Сессия успешно запланирована'),
+                  duration: Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+                ),
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
@@ -911,8 +1136,14 @@ Mindfulness — это осознанное пребывание в настоя
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: Icon(icon, color: AppColors.primary),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.inputBorder)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.inputBorder)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.inputBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.inputBorder),
+        ),
       ),
     );
   }
@@ -921,36 +1152,100 @@ Mindfulness — это осознанное пребывание в настоя
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Row(children: [Icon(Icons.notifications, color: AppColors.primary), const SizedBox(width: 12), Text('Уведомления', style: AppTextStyles.h2)]),
+        title: Row(
+          children: [
+            Icon(Icons.notifications, color: AppColors.primary),
+            const SizedBox(width: 12),
+            Text('Уведомления', style: AppTextStyles.h2),
+          ],
+        ),
         content: SizedBox(
           width: 400,
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildNotificationItem('Новая сессия', 'У вас запланирована сессия с психологом сегодня в 15:30', Icons.event_available, AppColors.primary),
+                _buildNotificationItem(
+                  'Новая сессия',
+                  'У вас запланирована сессия с психологом сегодня в 15:30',
+                  Icons.event_available,
+                  AppColors.primary,
+                ),
                 const SizedBox(height: 12),
-                _buildNotificationItem('Напоминание', 'Не забудьте заполнить дневник настроения', Icons.assignment, const Color(0xFFFF6B9D)),
+                _buildNotificationItem(
+                  'Напоминание',
+                  'Не забудьте заполнить дневник настроения',
+                  Icons.assignment,
+                  const Color(0xFFFF6B9D),
+                ),
                 const SizedBox(height: 12),
-                _buildNotificationItem('Новая статья', 'Доступна новая статья о техниках релаксации', Icons.article, const Color(0xFF4CAF50)),
+                _buildNotificationItem(
+                  'Новая статья',
+                  'Доступна новая статья о техниках релаксации',
+                  Icons.article,
+                  const Color(0xFF4CAF50),
+                ),
               ],
             ),
           ),
         ),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('Закрыть', style: AppTextStyles.body1.copyWith(color: AppColors.primary)))],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Закрыть',
+              style: AppTextStyles.body1.copyWith(color: AppColors.primary),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildNotificationItem(String title, String message, IconData icon, Color color) {
+  Widget _buildNotificationItem(
+    String title,
+    String message,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: color.withOpacity(0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withOpacity(0.1))),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.1)),
+      ),
       child: Row(
         children: [
-          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle), child: Icon(icon, size: 20, color: color)),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 20, color: color),
+          ),
           const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)), const SizedBox(height: 4), Text(message, style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary))])),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.body1.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  message,
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -960,7 +1255,13 @@ Mindfulness — это осознанное пребывание в настоя
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Row(children: [Icon(Icons.help_outline, color: AppColors.primary), const SizedBox(width: 12), Text('Помощь', style: AppTextStyles.h2)]),
+        title: Row(
+          children: [
+            Icon(Icons.help_outline, color: AppColors.primary),
+            const SizedBox(width: 12),
+            Text('Помощь', style: AppTextStyles.h2),
+          ],
+        ),
         content: SizedBox(
           width: 500,
           child: SingleChildScrollView(
@@ -970,16 +1271,34 @@ Mindfulness — это осознанное пребывание в настоя
               children: [
                 Text('Часто задаваемые вопросы:', style: AppTextStyles.h3),
                 const SizedBox(height: 16),
-                _buildHelpItem('Как записаться на сессию?', 'Перейдите в раздел "Мои сессии" и выберите удобное время'),
-                _buildHelpItem('Где найти дневник настроения?', 'Дневник доступен в разделе "Быстрые действия" на главной странице'),
-                _buildHelpItem('Как связаться с психологом?', 'Используйте чат в разделе "Мои сессии" для общения с вашим психологом'),
-                _buildHelpItem('Техническая поддержка', 'По вопросам работы приложения обращайтесь: support@balancepsy.ru'),
+                _buildHelpItem(
+                  'Как записаться на сессию?',
+                  'Перейдите в раздел "Мои сессии" и выберите удобное время',
+                ),
+                _buildHelpItem(
+                  'Где найти дневник настроения?',
+                  'Дневник доступен в разделе "Быстрые действия" на главной странице',
+                ),
+                _buildHelpItem(
+                  'Как связаться с психологом?',
+                  'Используйте чат в разделе "Мои сессии" для общения с вашим психологом',
+                ),
+                _buildHelpItem(
+                  'Техническая поддержка',
+                  'По вопросам работы приложения обращайтесь: support@balancepsy.ru',
+                ),
               ],
             ),
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Закрыть', style: AppTextStyles.body1.copyWith(color: AppColors.primary))),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Закрыть',
+              style: AppTextStyles.body1.copyWith(color: AppColors.primary),
+            ),
+          ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
@@ -999,9 +1318,15 @@ Mindfulness — это осознанное пребывание в настоя
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(question, style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
+          Text(
+            question,
+            style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 4),
-          Text(answer, style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary)),
+          Text(
+            answer,
+            style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
+          ),
         ],
       ),
     );
@@ -1019,21 +1344,52 @@ Mindfulness — это осознанное пребывание в настоя
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Выберите удобный способ связи:', style: AppTextStyles.body1),
+                Text(
+                  'Выберите удобный способ связи:',
+                  style: AppTextStyles.body1,
+                ),
                 const SizedBox(height: 16),
-                _buildContactMethod('Email', 'support@balancepsy.ru', Icons.email, context),
-                _buildContactMethod('Телефон', '+7 (999) 123-45-67', Icons.phone, context),
-                _buildContactMethod('Telegram', '@balancepsy_support', Icons.send, context),
+                _buildContactMethod(
+                  'Email',
+                  'support@balancepsy.ru',
+                  Icons.email,
+                  context,
+                ),
+                _buildContactMethod(
+                  'Телефон',
+                  '+7 (999) 123-45-67',
+                  Icons.phone,
+                  context,
+                ),
+                _buildContactMethod(
+                  'Telegram',
+                  '@balancepsy_support',
+                  Icons.send,
+                  context,
+                ),
               ],
             ),
           ),
         ),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('Закрыть', style: AppTextStyles.body1.copyWith(color: AppColors.primary)))],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Закрыть',
+              style: AppTextStyles.body1.copyWith(color: AppColors.primary),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildContactMethod(String method, String contact, IconData icon, BuildContext context) {
+  Widget _buildContactMethod(
+    String method,
+    String contact,
+    IconData icon,
+    BuildContext context,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
@@ -1048,7 +1404,25 @@ Mindfulness — это осознанное пребывание в настоя
               children: [
                 Icon(icon, color: AppColors.primary),
                 const SizedBox(width: 12),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(method, style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)), Text(contact, style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary))])),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        method,
+                        style: AppTextStyles.body1.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        contact,
+                        style: AppTextStyles.body2.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -1071,7 +1445,13 @@ Mindfulness — это осознанное пребывание в настоя
               onPressed: () {
                 AppRouter.navigateTo(context, AppRouter.patientArticles);
               },
-              child: Text('Смотреть все', style: AppTextStyles.body2.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
+              child: Text(
+                'Смотреть все',
+                style: AppTextStyles.body2.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         ),
@@ -1079,9 +1459,15 @@ Mindfulness — это осознанное пребывание в настоя
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, childAspectRatio: 0.8, mainAxisSpacing: 24, crossAxisSpacing: 24),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4,
+            childAspectRatio: 0.8,
+            mainAxisSpacing: 24,
+            crossAxisSpacing: 24,
+          ),
           itemCount: articles.length,
-          itemBuilder: (context, index) => _buildArticleCard(articles[index], context),
+          itemBuilder: (context, index) =>
+              _buildArticleCard(articles[index], context),
         ),
       ],
     );
@@ -1101,11 +1487,11 @@ Mindfulness — это осознанное пребывание в настоя
                     children: [
                       Container(
                         width: 280,
-                        child: PatientBar(currentRoute: AppRouter.patientArticles),
+                        child: PatientBar(
+                          currentRoute: AppRouter.patientArticles,
+                        ),
                       ),
-                      Expanded(
-                        child: ArticleReaderPage(article: article),
-                      ),
+                      Expanded(child: ArticleReaderPage(article: article)),
                     ],
                   ),
                 );
@@ -1117,15 +1503,31 @@ Mindfulness — это осознанное пребывание в настоя
         },
         borderRadius: BorderRadius.circular(20),
         child: Container(
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: AppColors.shadow.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 4))]),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.shadow.withOpacity(0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 height: 140,
                 decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                  image: DecorationImage(image: AssetImage(article['image']), fit: BoxFit.cover),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                  image: DecorationImage(
+                    image: AssetImage(article['image']),
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               Padding(
@@ -1134,14 +1536,49 @@ Mindfulness — это осознанное пребывание в настоя
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(color: (article['color'] as Color).withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
-                      child: Text(article['category'], style: AppTextStyles.body3.copyWith(color: article['color'], fontWeight: FontWeight.w600)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: (article['color'] as Color).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        article['category'],
+                        style: AppTextStyles.body3.copyWith(
+                          color: article['color'],
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    Text(article['title'], style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w700, height: 1.3), maxLines: 2, overflow: TextOverflow.ellipsis),
+                    Text(
+                      article['title'],
+                      style: AppTextStyles.body1.copyWith(
+                        fontWeight: FontWeight.w700,
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     const SizedBox(height: 8),
-                    Row(children: [Icon(Icons.access_time, size: 14, color: AppColors.textSecondary), const SizedBox(width: 6), Text(article['readTime'], style: AppTextStyles.body3.copyWith(color: AppColors.textSecondary))]),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          article['readTime'],
+                          style: AppTextStyles.body3.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -1209,7 +1646,16 @@ class _ArticleReaderPageState extends State<ArticleReaderPage> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SizedBox(height: 6, child: LinearProgressIndicator(value: _readingProgress, backgroundColor: AppColors.inputBackground, valueColor: AlwaysStoppedAnimation(widget.article['color'] as Color))),
+        SizedBox(
+          height: 6,
+          child: LinearProgressIndicator(
+            value: _readingProgress,
+            backgroundColor: AppColors.inputBackground,
+            valueColor: AlwaysStoppedAnimation(
+              widget.article['color'] as Color,
+            ),
+          ),
+        ),
         Expanded(
           child: SingleChildScrollView(
             controller: _scrollController,
@@ -1222,23 +1668,76 @@ class _ArticleReaderPageState extends State<ArticleReaderPage> {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(40),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: AppColors.shadow.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 4))]),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.shadow.withOpacity(0.08),
+                          blurRadius: 20,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), decoration: BoxDecoration(color: (widget.article['color'] as Color).withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Text(widget.article['category'] as String, style: AppTextStyles.body1.copyWith(color: widget.article['color'] as Color, fontWeight: FontWeight.w700, fontSize: 14))),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: (widget.article['color'] as Color)
+                                .withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            widget.article['category'] as String,
+                            style: AppTextStyles.body1.copyWith(
+                              color: widget.article['color'] as Color,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 20),
-                        Text(widget.article['title'] as String, style: AppTextStyles.h1.copyWith(fontWeight: FontWeight.w700, height: 1.2, fontSize: 38)),
+                        Text(
+                          widget.article['title'] as String,
+                          style: AppTextStyles.h1.copyWith(
+                            fontWeight: FontWeight.w700,
+                            height: 1.2,
+                            fontSize: 38,
+                          ),
+                        ),
                         const SizedBox(height: 20),
                         Row(
                           children: [
-                            Icon(Icons.access_time_outlined, size: 18, color: AppColors.textSecondary),
+                            Icon(
+                              Icons.access_time_outlined,
+                              size: 18,
+                              color: AppColors.textSecondary,
+                            ),
                             const SizedBox(width: 8),
-                            Text(widget.article['readTime'] as String, style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary)),
+                            Text(
+                              widget.article['readTime'] as String,
+                              style: AppTextStyles.body1.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
                             const SizedBox(width: 24),
-                            Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textSecondary),
+                            Icon(
+                              Icons.calendar_today_outlined,
+                              size: 18,
+                              color: AppColors.textSecondary,
+                            ),
                             const SizedBox(width: 8),
-                            Text(widget.article['date'] as String, style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary)),
+                            Text(
+                              widget.article['date'] as String,
+                              style: AppTextStyles.body1.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -1247,8 +1746,20 @@ class _ArticleReaderPageState extends State<ArticleReaderPage> {
                   const SizedBox(height: 32),
                   Container(
                     padding: const EdgeInsets.all(40),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: AppColors.shadow.withOpacity(0.06), blurRadius: 15, offset: const Offset(0, 4))]),
-                    child: _buildArticleContent(widget.article['content'] as String),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.shadow.withOpacity(0.06),
+                          blurRadius: 15,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: _buildArticleContent(
+                      widget.article['content'] as String,
+                    ),
                   ),
                   const SizedBox(height: 32),
                   Row(
@@ -1256,15 +1767,49 @@ class _ArticleReaderPageState extends State<ArticleReaderPage> {
                     children: [
                       ElevatedButton.icon(
                         onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: AppColors.inputBorder))),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: AppColors.inputBorder),
+                          ),
+                        ),
                         icon: const Icon(Icons.arrow_back, size: 18),
-                        label: Text('Назад', style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
+                        label: Text(
+                          'Назад',
+                          style: AppTextStyles.body1.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                       ElevatedButton.icon(
                         onPressed: () => _shareArticle(context),
-                        style: ElevatedButton.styleFrom(backgroundColor: widget.article['color'] as Color, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                        icon: const Icon(Icons.share, color: Colors.white, size: 18),
-                        label: Text('Поделиться', style: AppTextStyles.body1.copyWith(color: Colors.white, fontWeight: FontWeight.w600)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: widget.article['color'] as Color,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(
+                          Icons.share,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        label: Text(
+                          'Поделиться',
+                          style: AppTextStyles.body1.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -1284,28 +1829,98 @@ class _ArticleReaderPageState extends State<ArticleReaderPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: lines.map((line) {
         if (line.startsWith('# ')) {
-          return Padding(padding: const EdgeInsets.only(top: 28, bottom: 14), child: Text(line.substring(2), style: AppTextStyles.h1.copyWith(fontSize: 30, fontWeight: FontWeight.w700, color: AppColors.textPrimary)));
+          return Padding(
+            padding: const EdgeInsets.only(top: 28, bottom: 14),
+            child: Text(
+              line.substring(2),
+              style: AppTextStyles.h1.copyWith(
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          );
         } else if (line.startsWith('## ')) {
-          return Padding(padding: const EdgeInsets.only(top: 22, bottom: 10), child: Text(line.substring(3), style: AppTextStyles.h2.copyWith(fontSize: 22, fontWeight: FontWeight.w600, color: AppColors.textPrimary)));
+          return Padding(
+            padding: const EdgeInsets.only(top: 22, bottom: 10),
+            child: Text(
+              line.substring(3),
+              style: AppTextStyles.h2.copyWith(
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          );
         } else if (line.startsWith('### ')) {
-          return Padding(padding: const EdgeInsets.only(top: 18, bottom: 8), child: Text(line.substring(4), style: AppTextStyles.h3.copyWith(fontSize: 19, fontWeight: FontWeight.w600, color: AppColors.textPrimary)));
+          return Padding(
+            padding: const EdgeInsets.only(top: 18, bottom: 8),
+            child: Text(
+              line.substring(4),
+              style: AppTextStyles.h3.copyWith(
+                fontSize: 19,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          );
         } else if (line.startsWith('- ')) {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(padding: const EdgeInsets.only(top: 7, right: 10), child: Container(width: 5, height: 5, decoration: BoxDecoration(color: widget.article['color'] as Color, shape: BoxShape.circle))),
-                Expanded(child: Text(line.substring(2), style: AppTextStyles.body1.copyWith(fontSize: 15.5, height: 1.55, color: AppColors.textPrimary))),
+                Padding(
+                  padding: const EdgeInsets.only(top: 7, right: 10),
+                  child: Container(
+                    width: 5,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: widget.article['color'] as Color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    line.substring(2),
+                    style: AppTextStyles.body1.copyWith(
+                      fontSize: 15.5,
+                      height: 1.55,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
               ],
             ),
           );
         } else if (line.trim().isEmpty) {
           return const SizedBox(height: 14);
         } else if (line.startsWith('> ')) {
-          return Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(line.substring(2), style: AppTextStyles.body1.copyWith(fontSize: 16, height: 1.6, fontStyle: FontStyle.italic, color: AppColors.textSecondary)));
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              line.substring(2),
+              style: AppTextStyles.body1.copyWith(
+                fontSize: 16,
+                height: 1.6,
+                fontStyle: FontStyle.italic,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          );
         } else {
-          return Padding(padding: const EdgeInsets.symmetric(vertical: 7), child: Text(line, style: AppTextStyles.body1.copyWith(fontSize: 15.5, height: 1.55, color: AppColors.textPrimary)));
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 7),
+            child: Text(
+              line,
+              style: AppTextStyles.body1.copyWith(
+                fontSize: 15.5,
+                height: 1.55,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          );
         }
       }).toList(),
     );
@@ -1316,8 +1931,19 @@ class _ArticleReaderPageState extends State<ArticleReaderPage> {
       context: context,
       builder: (_) => AlertDialog(
         title: Text('Поделиться статьей', style: AppTextStyles.h2),
-        content: Text('Ссылка скопирована в буфер обмена!', style: AppTextStyles.body1),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('Закрыть', style: AppTextStyles.body1.copyWith(color: AppColors.primary)))],
+        content: Text(
+          'Ссылка скопирована в буфер обмена!',
+          style: AppTextStyles.body1,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Закрыть',
+              style: AppTextStyles.body1.copyWith(color: AppColors.primary),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1339,12 +1965,7 @@ class MoodAssessmentPage extends StatelessWidget {
           topRight: Radius.circular(24),
         ),
       ),
-      child: Center(
-        child: Text(
-          'Оценка настроения',
-          style: AppTextStyles.h2,
-        ),
-      ),
+      child: Center(child: Text('Оценка настроения', style: AppTextStyles.h2)),
     );
   }
 }
