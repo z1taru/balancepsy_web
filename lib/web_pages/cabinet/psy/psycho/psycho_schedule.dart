@@ -1,9 +1,9 @@
 // lib/web_pages/psycho/psycho_schedule.dart
 
+import 'package:balance_psy/widgets/unified_sidebar.dart';
 import 'package:flutter/material.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_text_styles.dart';
-import '../../../../widgets/psycho/psycho_sidebar.dart';
 
 class PsychoSchedulePage extends StatelessWidget {
   const PsychoSchedulePage({super.key});
@@ -14,7 +14,7 @@ class PsychoSchedulePage extends StatelessWidget {
       backgroundColor: const Color(0xFFF8F9FC),
       body: Row(
         children: [
-          PsychoSidebar(currentRoute: '/psycho/schedule'),
+          UnifiedSidebar(currentRoute: '/psycho/schedule'),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(32),

@@ -1,8 +1,8 @@
 // lib/web_pages/profile_patient/chat_patient.dart
 
+import 'package:balance_psy/widgets/unified_sidebar.dart';
 import 'package:flutter/material.dart';
 import '../../../../../widgets/page_wrapper.dart';
-import '../../../../../widgets/profile_patient/patient_bar.dart';
 import '../../../../../theme/app_text_styles.dart';
 import '../../../../../theme/app_colors.dart';
 import '../../../../../сore/router/app_router.dart';
@@ -120,7 +120,7 @@ class _ChatPatientPageState extends State<ChatPatientPage> {
           // Фиксированный сайдбар, который не скролится
           Container(
             width: 280,
-            child: PatientBar(currentRoute: AppRouter.chatPatient),
+            child: UnifiedSidebar(currentRoute: AppRouter.chatPatient),
           ),
           // Основной контент с возможностью скролла
           Expanded(

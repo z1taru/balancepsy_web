@@ -1,7 +1,7 @@
 // lib/web_pages/profile_patient/blog_patient.dart
 
+import 'package:balance_psy/widgets/unified_sidebar.dart';
 import 'package:flutter/material.dart';
-import '../../../../../widgets/profile_patient/patient_bar.dart';
 import '../../../../../theme/app_text_styles.dart';
 import '../../../../../theme/app_colors.dart';
 import '../../../../../сore/router/app_router.dart';
@@ -98,7 +98,7 @@ class _BlogPatientPageState extends State<BlogPatientPage> {
         children: [
           Container(
             width: 280,
-            child: PatientBar(currentRoute: AppRouter.patientArticles),
+            child: UnifiedSidebar(currentRoute: AppRouter.patientArticles),
           ),
           Expanded(
             child: _isLoading

@@ -1,6 +1,6 @@
 // lib/сore/router/app_router.dart
 
-import 'package:balance_psy/web_pages/profile/profile.dart';
+import 'package:balance_psy/web_pages/cabinet/general/unified_profile_page.dart';
 import 'package:balance_psy/web_pages/cabinet/user/profile_patient/psy_catalog.dart';
 import 'package:flutter/material.dart';
 import '../../web_pages/main/home/home_page.dart';
@@ -17,9 +17,7 @@ import '../../web_pages/cabinet/psy/psycho/psycho_home.dart';
 import '../../web_pages/cabinet/psy/psycho/psycho_schedule.dart';
 import '../../web_pages/cabinet/psy/psycho/psycho_messages.dart';
 import '../../web_pages/cabinet/psy/psycho/psycho_reports.dart';
-import '../../web_pages/cabinet/psy/psycho/psycho_profile.dart';
 import '../../web_pages/cabinet/user/profile_patient/home_patient.dart';
-import '../../web_pages/cabinet/user/profile_patient/profile_patient.dart';
 import '../../web_pages/cabinet/user/profile_patient/blog_patient.dart';
 import '../../web_pages/cabinet/user/profile_patient/chat_patient.dart';
 import '../../web_pages/cabinet/user/profile_patient/sessions_calendar.dart';
@@ -90,7 +88,7 @@ class AppRouter {
         );
       case profile:
         return NoAnimationMaterialPageRoute(
-          builder: (_) => const ProfilePatientPage(),
+          builder: (_) => const UnifiedProfilePage(),
         );
       case patientArticles:
         return NoAnimationMaterialPageRoute(
@@ -126,7 +124,7 @@ class AppRouter {
         );
       case psychoProfile:
         return NoAnimationMaterialPageRoute(
-          builder: (_) => const PsychoProfilePage(),
+          builder: (_) => const UnifiedProfilePage(),
         );
       case aiChat:
         return NoAnimationMaterialPageRoute(
