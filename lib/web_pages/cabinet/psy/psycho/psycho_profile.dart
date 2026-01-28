@@ -1,10 +1,10 @@
 // lib/web_pages/psycho/psycho_profile.dart
 
+import 'package:balance_psy/widgets/unified_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_text_styles.dart';
-import '../../../../widgets/psycho/psycho_sidebar.dart';
 import '../../../services/user_provider.dart';
 import '../../../../сore/router/app_router.dart';
 
@@ -39,7 +39,7 @@ class _PsychoProfilePageState extends State<PsychoProfilePage> {
       backgroundColor: const Color(0xFFF8F9FC),
       body: Row(
         children: [
-          PsychoSidebar(currentRoute: '/psycho/profile'),
+           UnifiedSidebar(currentRoute: '/psycho/profile'),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(32),

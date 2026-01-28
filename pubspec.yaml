@@ -20,6 +20,8 @@ dependencies:
 
   provider: ^6.1.1
 
+  intl: ^0.19.0
+
   dio: ^5.0.0
   flutter_secure_storage: ^8.0.0
   flutter_riverpod: ^2.3.0
@@ -27,9 +29,9 @@ dependencies:
   url_launcher: ^6.3.2
 
   http: ^1.2.0
-  
+
   shared_preferences: ^2.2.2
-  
+
   json_annotation: ^4.8.1
 
 dev_dependencies:
@@ -71,7 +73,7 @@ flutter:
     - assets/images/avatar/Galiya.png
     - assets/video/intro.mp4
     - assets/images/main_page/phone1.png
-    - assets/images/main_page/features.svg 
+    - assets/images/main_page/features.svg
     - assets/images/main_page/woman.svg
     - assets/images/main_page/features-2.png
     - assets/images/main_page/galiya1.png
@@ -89,7 +91,6 @@ flutter:
     - assets/menu_bar/home.png
     - assets/menu_bar/chat.png
     - assets/menu_bar/profile.png
-
 
   fonts:
     - family: Manrope

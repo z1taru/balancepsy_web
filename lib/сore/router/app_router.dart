@@ -13,7 +13,7 @@ import '../../web_pages/main/blog/blog_page.dart';
 import '../../web_pages/main/blog/article_detail.dart';
 import '../../web_pages/services/services_page.dart';
 import '../../web_pages/main/contacts/contacts_page.dart';
-import '../../web_pages/cabinet/psy/psycho/psycho_dashboard.dart';
+import '../../web_pages/cabinet/psy/psycho/psycho_home.dart';
 import '../../web_pages/cabinet/psy/psycho/psycho_schedule.dart';
 import '../../web_pages/cabinet/psy/psycho/psycho_messages.dart';
 import '../../web_pages/cabinet/psy/psycho/psycho_reports.dart';
@@ -111,9 +111,7 @@ class AppRouter {
 
       // Страницы психолога
       case psychoDashboard:
-        return NoAnimationMaterialPageRoute(
-          builder: (_) => const PsychoDashboardPage(),
-        );
+        return NoAnimationMaterialPageRoute(builder: (_) => const PsyHome());
       case psychoSchedule:
         return NoAnimationMaterialPageRoute(
           builder: (_) => const PsychoSchedulePage(),
