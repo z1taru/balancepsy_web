@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../widgets/page_wrapper.dart';
-import '../../theme/app_text_styles.dart';
-import '../../theme/app_colors.dart';
-import '../../сore/router/app_router.dart';
-import '../../widgets/custom_button.dart';
+import '../../../widgets/page_wrapper.dart';
+import '../../../theme/app_text_styles.dart';
+import '../../../theme/app_colors.dart';
+import '../../../сore/router/app_router.dart';
+import '../../../widgets/custom_button.dart';
 
 class ContactsPage extends StatefulWidget {
   const ContactsPage({super.key});

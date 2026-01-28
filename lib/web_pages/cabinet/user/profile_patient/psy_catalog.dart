@@ -1,10 +1,10 @@
 // lib/web_pages/profile_patient/psy_catalog.dart
 import 'package:flutter/material.dart';
-import '../../widgets/profile_patient/patient_bar.dart';
-import '../../web_pages/services/psychologist_service.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_text_styles.dart';
-import '../../сore/router/app_router.dart';
+import '../../../../widgets/profile_patient/patient_bar.dart';
+import '../../../services/psychologist_service.dart';
+import '../../../../theme/app_colors.dart';
+import '../../../../theme/app_text_styles.dart';
+import '../../../../сore/router/app_router.dart';
 
 class PsyCatalogPage extends StatefulWidget {
   const PsyCatalogPage({super.key});

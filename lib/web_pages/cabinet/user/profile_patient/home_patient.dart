@@ -1,14 +1,14 @@
 // lib/web_pages/profile_patient/home_patient.dart
 
 import 'package:flutter/material.dart';
-import '../../../widgets/profile_patient/patient_bar.dart';
-import '../../../theme/app_text_styles.dart';
-import '../../../theme/app_colors.dart';
-import '../../../сore/router/app_router.dart';
-import '../../../сore/services/profile_patient_service.dart';
-import '../../../web_pages/services/psychologist_service.dart';
+import '../../../../../widgets/profile_patient/patient_bar.dart';
+import '../../../../../theme/app_text_styles.dart';
+import '../../../../../theme/app_colors.dart';
+import '../../../../../сore/router/app_router.dart';
+import '../../../../../сore/services/profile_patient_service.dart';
+import '../../../../../web_pages/services/psychologist_service.dart';
 import 'package:provider/provider.dart';
-import '../../../web_pages/services/user_provider.dart';
+import '../../../../../web_pages/services/user_provider.dart';
 
 class HomePatientPage extends StatefulWidget {
   const HomePatientPage({super.key});

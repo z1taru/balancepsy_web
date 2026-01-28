@@ -1,9 +1,9 @@
 // lib/web_pages/psychologists/psychologist_detail.dart
 import 'package:flutter/material.dart';
-import '../../widgets/page_wrapper.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_text_styles.dart';
-import '../../сore/router/app_router.dart';
+import '../../../widgets/page_wrapper.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_text_styles.dart';
+import '../../../сore/router/app_router.dart';
 
 class PsychologistDetail extends StatefulWidget {
   final String id;

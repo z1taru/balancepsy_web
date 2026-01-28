@@ -2,11 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_text_styles.dart';
-import '../../widgets/psycho/psycho_sidebar.dart';
-import '../services/user_provider.dart';
-import '../../сore/router/app_router.dart';
+import '../../../../theme/app_colors.dart';
+import '../../../../theme/app_text_styles.dart';
+import '../../../../widgets/psycho/psycho_sidebar.dart';
+import '../../../services/user_provider.dart';
+import '../../../../сore/router/app_router.dart';
 
 class PsychoProfilePage extends StatefulWidget {
   const PsychoProfilePage({super.key});

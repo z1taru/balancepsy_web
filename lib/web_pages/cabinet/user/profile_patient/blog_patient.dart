@@ -1,11 +1,11 @@
 // lib/web_pages/profile_patient/blog_patient.dart
 
 import 'package:flutter/material.dart';
-import '../../../widgets/profile_patient/patient_bar.dart';
-import '../../../theme/app_text_styles.dart';
-import '../../../theme/app_colors.dart';
-import '../../../сore/router/app_router.dart';
-import '../../../сore/services/profile_patient_service.dart';
+import '../../../../../widgets/profile_patient/patient_bar.dart';
+import '../../../../../theme/app_text_styles.dart';
+import '../../../../../theme/app_colors.dart';
+import '../../../../../сore/router/app_router.dart';
+import '../../../../../сore/services/profile_patient_service.dart';
 
 class BlogPatientPage extends StatefulWidget {
   const BlogPatientPage({super.key});

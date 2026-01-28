@@ -1,28 +1,28 @@
 // lib/сore/router/app_router.dart
 
 import 'package:balance_psy/web_pages/profile/profile.dart';
-import 'package:balance_psy/web_pages/profile_patient/psy_catalog.dart';
+import 'package:balance_psy/web_pages/cabinet/user/profile_patient/psy_catalog.dart';
 import 'package:flutter/material.dart';
-import '../../web_pages/home/home_page.dart';
+import '../../web_pages/main/home/home_page.dart';
 import '../../web_pages/auth/login_page.dart';
 import '../../web_pages/auth/register/register_main.dart';
-import '../../web_pages/about/about_page.dart';
-import '../../web_pages/psychologists/psychologists_page.dart';
-import '../../web_pages/psychologists/psychologist_detail.dart';
-import '../../web_pages/blog/blog_page.dart';
-import '../../web_pages/blog/article_detail.dart';
+import '../../web_pages/main/about/about_page.dart';
+import '../../web_pages/main/psychologists/psychologists_page.dart';
+import '../../web_pages/main/psychologists/psychologist_detail.dart';
+import '../../web_pages/main/blog/blog_page.dart';
+import '../../web_pages/main/blog/article_detail.dart';
 import '../../web_pages/services/services_page.dart';
-import '../../web_pages/contacts/contacts_page.dart';
-import '../../web_pages/psycho/psycho_dashboard.dart';
-import '../../web_pages/psycho/psycho_schedule.dart';
-import '../../web_pages/psycho/psycho_messages.dart';
-import '../../web_pages/psycho/psycho_reports.dart';
-import '../../web_pages/psycho/psycho_profile.dart';
-import '../../web_pages/profile_patient/home_patient.dart';
-import '../../web_pages/profile_patient/profile_patient.dart';
-import '../../web_pages/profile_patient/blog_patient.dart';
-import '../../web_pages/profile_patient/chat_patient.dart';
-import '../../web_pages/profile_patient/sessions_calendar.dart';
+import '../../web_pages/main/contacts/contacts_page.dart';
+import '../../web_pages/cabinet/psy/psycho/psycho_dashboard.dart';
+import '../../web_pages/cabinet/psy/psycho/psycho_schedule.dart';
+import '../../web_pages/cabinet/psy/psycho/psycho_messages.dart';
+import '../../web_pages/cabinet/psy/psycho/psycho_reports.dart';
+import '../../web_pages/cabinet/psy/psycho/psycho_profile.dart';
+import '../../web_pages/cabinet/user/profile_patient/home_patient.dart';
+import '../../web_pages/cabinet/user/profile_patient/profile_patient.dart';
+import '../../web_pages/cabinet/user/profile_patient/blog_patient.dart';
+import '../../web_pages/cabinet/user/profile_patient/chat_patient.dart';
+import '../../web_pages/cabinet/user/profile_patient/sessions_calendar.dart';
 import '../../web_pages/ai_chat/full_chat_screen.dart';
 
 class AppRouter {

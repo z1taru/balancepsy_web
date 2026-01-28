@@ -1,11 +1,11 @@
 // lib/web_pages/profile_patient/chat_patient.dart
 
 import 'package:flutter/material.dart';
-import '../../../widgets/page_wrapper.dart';
-import '../../../widgets/profile_patient/patient_bar.dart';
-import '../../../theme/app_text_styles.dart';
-import '../../../theme/app_colors.dart';
-import '../../../сore/router/app_router.dart';
+import '../../../../../widgets/page_wrapper.dart';
+import '../../../../../widgets/profile_patient/patient_bar.dart';
+import '../../../../../theme/app_text_styles.dart';
+import '../../../../../theme/app_colors.dart';
+import '../../../../../сore/router/app_router.dart';
 
 class ChatPatientPage extends StatefulWidget {
   const ChatPatientPage({super.key});

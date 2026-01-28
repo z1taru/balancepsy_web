@@ -1,11 +1,10 @@
-// lib/web_pages/psychologists/psychologists_page.dart (с добавленной девушкой)
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart'; // Добавляем импорт для SVG
-import '../../widgets/page_wrapper.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_text_styles.dart';
-import '../../сore/router/app_router.dart';
-import '../../widgets/custom_button.dart';
+import '../../../widgets/page_wrapper.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_text_styles.dart';
+import '../../../сore/router/app_router.dart';
+import '../../../widgets/custom_button.dart';
 
 class PsychologistsPage extends StatefulWidget {
   const PsychologistsPage({super.key});

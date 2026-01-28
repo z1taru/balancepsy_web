@@ -1,9 +1,9 @@
 // lib/web_pages/psycho/psycho_reports.dart
 
 import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_text_styles.dart';
-import '../../widgets/psycho/psycho_sidebar.dart';
+import '../../../../theme/app_colors.dart';
+import '../../../../theme/app_text_styles.dart';
+import '../../../../widgets/psycho/psycho_sidebar.dart';
 
 class PsychoReportsPage extends StatelessWidget {
   const PsychoReportsPage({super.key});
