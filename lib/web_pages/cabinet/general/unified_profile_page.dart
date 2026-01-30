@@ -1,4 +1,4 @@
-// lib/web_pages/cabinet/unified_profile_page.dart
+// lib/web_pages/cabinet/general/unified_profile_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,8 +10,6 @@ import '../../../сore/services/profile_api_service.dart';
 import '../../../web_pages/services/user_provider.dart';
 import '../../../сore/router/app_router.dart';
 
-/// Унифицированная страница профиля для клиента и психолога
-/// Автоматически адаптируется под роль пользователя
 class UnifiedProfilePage extends StatefulWidget {
   const UnifiedProfilePage({super.key});
 
@@ -26,7 +24,6 @@ class _UnifiedProfilePageState extends State<UnifiedProfilePage> {
   bool _isLoading = true;
   Map<String, dynamic>? _profileData;
 
-  // Controllers for editing
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _bioController = TextEditingController();
@@ -51,20 +48,23 @@ class _UnifiedProfilePageState extends State<UnifiedProfilePage> {
     setState(() => _isLoading = true);
 
     try {
-      final profile = await _apiService.getProfile();
-      if (profile != null) {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      await userProvider.loadProfile();
+
+      if (userProvider.user != null) {
         setState(() {
-          _profileData = profile;
-          _nameController.text = profile['fullName'] ?? '';
-          _phoneController.text = profile['phone'] ?? '';
-          _selectedGender = profile['gender'] ?? 'MALE';
-          
-          // Для психолога
-          if (profile['psychologistProfile'] != null) {
-            _bioController.text = profile['psychologistProfile']['bio'] ?? '';
-            _isAvailable = profile['psychologistProfile']['isAvailable'] ?? true;
+          _profileData = userProvider.user;
+          _nameController.text = _profileData?['fullName'] ?? '';
+          _phoneController.text = _profileData?['phone'] ?? '';
+          _selectedGender = _profileData?['gender'] ?? 'MALE';
+
+          if (_profileData?['psychologistProfile'] != null) {
+            _bioController.text =
+                _profileData?['psychologistProfile']['bio'] ?? '';
+            _isAvailable =
+                _profileData?['psychologistProfile']['isAvailable'] ?? true;
           }
-          
+
           _isLoading = false;
         });
       }
@@ -76,19 +76,17 @@ class _UnifiedProfilePageState extends State<UnifiedProfilePage> {
 
   Future<void> _saveProfile() async {
     try {
-      final updated = await _apiService.updateProfile(
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+      final success = await userProvider.updateProfile(
         fullName: _nameController.text,
         phone: _phoneController.text,
         gender: _selectedGender,
       );
 
-      if (updated != null) {
-        // Обновляем UserProvider
-        final userProvider = Provider.of<UserProvider>(context, listen: false);
-        await userProvider.loadProfile();
-
+      if (success) {
         setState(() {
-          _profileData = updated;
+          _profileData = userProvider.user;
           _isEditing = false;
         });
 
@@ -192,6 +190,7 @@ class _UnifiedProfilePageState extends State<UnifiedProfilePage> {
             label: const Text('Редактировать'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
           )
@@ -201,11 +200,13 @@ class _UnifiedProfilePageState extends State<UnifiedProfilePage> {
               OutlinedButton(
                 onPressed: () {
                   setState(() => _isEditing = false);
-                  _loadProfile(); // Отменяем изменения
+                  _loadProfile();
                 },
                 style: OutlinedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
                 ),
                 child: const Text('Отмена'),
               ),
@@ -216,8 +217,11 @@ class _UnifiedProfilePageState extends State<UnifiedProfilePage> {
                 label: const Text('Сохранить'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.success,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
                 ),
               ),
             ],
@@ -257,10 +261,7 @@ class _UnifiedProfilePageState extends State<UnifiedProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  fullName,
-                  style: AppTextStyles.h2.copyWith(fontSize: 24),
-                ),
+                Text(fullName, style: AppTextStyles.h2.copyWith(fontSize: 24)),
                 const SizedBox(height: 8),
                 Text(
                   role,
@@ -375,8 +376,9 @@ class _UnifiedProfilePageState extends State<UnifiedProfilePage> {
                   _isAvailable
                       ? 'Вы доступны для новых записей'
                       : 'Вы недоступны для новых записей',
-                  style: AppTextStyles.body2
-                      .copyWith(color: AppColors.textSecondary),
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -479,8 +481,20 @@ class _UnifiedProfilePageState extends State<UnifiedProfilePage> {
           const SizedBox(height: 16),
           ProfileActionTile(
             icon: Icons.lock_outline,
-            title: 'Изменить пароль',
-            subtitle: 'Обновите пароль для вашей безопасности',
+            title: 'Мои Сессии',
+            subtitle: 'Просмотрите и управляйте своими сессиями',
+            onTap: _showChangePasswordDialog,
+          ),
+          ProfileActionTile(
+            icon: Icons.lock_outline,
+            title: 'Способы оплаты',
+            subtitle: 'Управляйте своими методами оплаты',
+            onTap: _showChangePasswordDialog,
+          ),
+          ProfileActionTile(
+            icon: Icons.lock_outline,
+            title: 'Настройки',
+            subtitle: 'Просмотрите настройки для вашей безопасности',
             onTap: _showChangePasswordDialog,
           ),
           ProfileActionTile(
@@ -534,7 +548,6 @@ class _UnifiedProfilePageState extends State<UnifiedProfilePage> {
   }
 
   void _handleAvatarUpload() {
-    // TODO: Implement avatar upload
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -593,12 +606,9 @@ class _UnifiedProfilePageState extends State<UnifiedProfilePage> {
           ),
           ElevatedButton(
             onPressed: () {
-              // TODO: Implement password change
               Navigator.pop(context);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: const Text('Сохранить'),
           ),
         ],

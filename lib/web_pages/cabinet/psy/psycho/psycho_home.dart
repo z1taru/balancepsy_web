@@ -1,4 +1,4 @@
-// lib/web_pages/cabinet/psy/psycho/psycho_dashboard_improved.dart
+// lib/web_pages/cabinet/psy/psycho/psycho_home.dart
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -12,12 +12,10 @@ class PsyHome extends StatefulWidget {
   const PsyHome({super.key});
 
   @override
-  State<PsyHome> createState() =>
-      _PsyHomeState();
+  State<PsyHome> createState() => _PsyHomeState();
 }
 
-class _PsyHomeState
-    extends State<PsyHome> {
+class _PsyHomeState extends State<PsyHome> {
   final PsychologistApiService _apiService = PsychologistApiService();
 
   bool _isLoading = true;
@@ -142,15 +140,14 @@ class _PsyHomeState
           children: [
             _buildHeaderButton(
               Icons.notifications_outlined,
-              () {
-                // TODO: Открыть уведомления
-              },
+              () {},
               badge: _newRequests.length + _unreadMessages.length,
             ),
             const SizedBox(width: 12),
-            _buildHeaderButton(Icons.settings_outlined, () {
-              Navigator.pushNamed(context, AppRouter.psychoProfile);
-            }),
+            _buildHeaderButton(
+              Icons.settings_outlined,
+              () => Navigator.pushNamed(context, AppRouter.profile),
+            ),
           ],
         ),
       ],
@@ -259,9 +256,7 @@ class _PsyHomeState
                 ),
               ),
               ElevatedButton(
-                onPressed: () {
-                  // TODO: Перейти к заявкам
-                },
+                onPressed: () {},
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.warning,
                   shape: RoundedRectangleBorder(
@@ -370,9 +365,8 @@ class _PsyHomeState
             children: [
               Text('Предстоящие сессии', style: AppTextStyles.h2),
               TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, AppRouter.psychoSchedule);
-                },
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRouter.psychoSchedule),
                 child: Text(
                   'Все',
                   style: AppTextStyles.body1.copyWith(
@@ -595,9 +589,8 @@ class _PsyHomeState
             children: [
               Text('Новые сообщения', style: AppTextStyles.h2),
               TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, AppRouter.psychoMessages);
-                },
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRouter.psychoMessages),
                 child: Text(
                   'Все',
                   style: AppTextStyles.body1.copyWith(
@@ -621,9 +614,7 @@ class _PsyHomeState
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          // TODO: Открыть чат
-        },
+        onTap: () {},
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -865,7 +856,6 @@ class _PsyHomeState
   Future<void> _handleStartSession(int sessionId) async {
     final started = await _apiService.startSession(sessionId);
     if (started) {
-      // TODO: Открыть чат сессии
       Navigator.pushNamed(context, AppRouter.psychoMessages);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,12 +1,113 @@
-// lib/web_pages/psycho/psycho_messages.dart
+// lib/web_pages/cabinet/psy/psycho/psycho_messages.dart
 
-import 'package:balance_psy/widgets/unified_sidebar.dart';
 import 'package:flutter/material.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_text_styles.dart';
+import '../../../../widgets/unified_sidebar.dart';
+import '../../../../сore/router/app_router.dart';
+import '../../../../сore/services/chat_service.dart';
 
-class PsychoMessagesPage extends StatelessWidget {
+class PsychoMessagesPage extends StatefulWidget {
   const PsychoMessagesPage({super.key});
+
+  @override
+  State<PsychoMessagesPage> createState() => _PsychoMessagesPageState();
+}
+
+class _PsychoMessagesPageState extends State<PsychoMessagesPage> {
+  final ChatService _chatService = ChatService();
+  final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  bool _isLoading = true;
+  Map<String, dynamic>? _selectedChat;
+  List<Map<String, dynamic>> _chats = [];
+  List<Map<String, dynamic>> _messages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadChats();
+  }
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadChats() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final chats = await _chatService.getUserChats();
+      setState(() {
+        _chats = chats;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('❌ Error loading chats: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadMessages(Map<String, dynamic> chat) async {
+    try {
+      final messages = await _chatService.getChatMessages(chat['id']);
+      setState(() {
+        _messages = messages;
+        _selectedChat = chat;
+      });
+      _scrollToBottom();
+
+      // Отметить как прочитанные
+      await _chatService.markMessagesAsRead(chat['id']);
+    } catch (e) {
+      print('❌ Error loading messages: $e');
+    }
+  }
+
+  Future<void> _sendMessage() async {
+    if (_messageController.text.trim().isEmpty || _selectedChat == null) return;
+
+    final messageText = _messageController.text.trim();
+    _messageController.clear();
+
+    try {
+      final newMessage = await _chatService.sendMessage(
+        chatRoomId: _selectedChat!['id'],
+        text: messageText,
+        messageType: 'text',
+      );
+
+      setState(() {
+        _messages.add(newMessage);
+      });
+
+      _scrollToBottom();
+    } catch (e) {
+      print('❌ Error sending message: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Не удалось отправить сообщение: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,112 +115,131 @@ class PsychoMessagesPage extends StatelessWidget {
       backgroundColor: const Color(0xFFF8F9FC),
       body: Row(
         children: [
-          UnifiedSidebar(currentRoute: '/psycho/messages'),
+          UnifiedSidebar(currentRoute: AppRouter.psychoMessages),
           Expanded(
-            child: Column(
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: Row(
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  )
+                : Row(
                     children: [
-                      _buildClientsList(),
-                      _buildChatArea(),
+                      _buildChatsList(),
+                      Expanded(
+                        child: _selectedChat != null
+                            ? _buildChatArea()
+                            : _buildEmptyState(),
+                      ),
                     ],
                   ),
-                ),
-              ],
-            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.inputBorder.withOpacity(0.3))),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text('Чаты', style: AppTextStyles.h1.copyWith(fontSize: 28)),
-          Text('Мои клиенты', style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildClientsList() {
+  Widget _buildChatsList() {
     return Container(
       width: 400,
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(right: BorderSide(color: AppColors.inputBorder.withOpacity(0.3))),
+        border: Border(
+          right: BorderSide(color: AppColors.inputBorder.withOpacity(0.3)),
+        ),
       ),
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Поиск клиентов...',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: AppColors.inputBackground,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
+          _buildChatsHeader(),
           Expanded(
-            child: ListView(
-              children: [
-                _buildClientItem(
-                  'Альдияр Байдилла',
-                  'Вы: Добро пожаловать на сессию!',
-                  '15:30',
-                  'assets/images/avatar/aldiyar.png',
-                  true,
-                  1,
-                ),
-                _buildClientItem(
-                  'Рамина Канатовна',
-                  'Рамина: Спасибо за консультацию',
-                  '14:15',
-                  'assets/images/avatar/ramina.png',
-                  false,
-                  0,
-                ),
-                _buildClientItem(
-                  'Ажар Алимбет',
-                  'Вы: Напомните о следующей сессии',
-                  '12:45',
-                  'assets/images/avatar/azhar.png',
-                  true,
-                  0,
-                ),
-              ],
-            ),
+            child: _chats.isEmpty
+                ? _buildEmptyChatsState()
+                : ListView.builder(
+                    itemCount: _chats.length,
+                    itemBuilder: (context, index) {
+                      final chat = _chats[index];
+                      return _buildChatItem(chat);
+                    },
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildClientItem(String name, String lastMessage, String time, String avatar, bool isOnline, int unreadCount) {
+  Widget _buildChatsHeader() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: AppColors.inputBorder.withOpacity(0.3)),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Чаты', style: AppTextStyles.h2.copyWith(fontSize: 20)),
+          const SizedBox(height: 12),
+          TextField(
+            decoration: InputDecoration(
+              hintText: 'Поиск клиентов...',
+              prefixIcon: const Icon(Icons.search),
+              filled: true,
+              fillColor: AppColors.inputBackground,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+            onChanged: (value) {
+              // TODO: Implement search
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyChatsState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.chat_bubble_outline,
+            size: 64,
+            color: AppColors.textTertiary.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Нет активных чатов',
+            style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChatItem(Map<String, dynamic> chat) {
+    final isSelected = _selectedChat?['id'] == chat['id'];
+    final partnerName = chat['partnerName'] ?? 'Клиент';
+    final partnerImage = chat['partnerImage'];
+    final lastMessage = chat['lastMessage'] ?? '';
+    final lastMessageTime = chat['lastMessageTime'];
+    final unreadCount = chat['unreadCount'] ?? 0;
+    final isOnline = chat['isPartnerOnline'] ?? false;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {},
+        onTap: () => _loadMessages(chat),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: AppColors.inputBorder.withOpacity(0.1))),
+            color: isSelected
+                ? AppColors.primary.withOpacity(0.05)
+                : Colors.transparent,
+            border: Border(
+              bottom: BorderSide(color: AppColors.inputBorder.withOpacity(0.1)),
+            ),
           ),
           child: Row(
             children: [
@@ -127,10 +247,12 @@ class PsychoMessagesPage extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundImage: AssetImage(avatar),
-                    onBackgroundImageError: (_, __) {
-                      // Placeholder если изображение не загрузилось
-                    },
+                    backgroundImage: partnerImage != null
+                        ? NetworkImage(partnerImage)
+                        : null,
+                    child: partnerImage == null
+                        ? const Icon(Icons.person, size: 28)
+                        : null,
                   ),
                   if (isOnline)
                     Positioned(
@@ -153,40 +275,63 @@ class PsychoMessagesPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(name, style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            partnerName,
+                            style: AppTextStyles.body1.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (lastMessageTime != null)
+                          Text(
+                            _formatTime(lastMessageTime),
+                            style: AppTextStyles.body3.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                      ],
+                    ),
                     const SizedBox(height: 4),
-                    Text(
-                      lastMessage,
-                      style: AppTextStyles.body3.copyWith(color: AppColors.textSecondary),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            lastMessage,
+                            style: AppTextStyles.body3.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (unreadCount > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              unreadCount.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(time, style: AppTextStyles.body3.copyWith(color: AppColors.textSecondary)),
-                  if (unreadCount > 0) ...[
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        unreadCount.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
               ),
             ],
           ),
@@ -196,84 +341,156 @@ class PsychoMessagesPage extends StatelessWidget {
   }
 
   Widget _buildChatArea() {
-    return Expanded(
-      child: Column(
-        children: [
-          _buildChatHeader(),
-          Expanded(child: _buildMessagesList()),
-          _buildMessageInput(),
-        ],
-      ),
+    return Column(
+      children: [
+        _buildChatHeader(),
+        Expanded(
+          child: Container(
+            color: AppColors.backgroundLight,
+            child: _messages.isEmpty
+                ? _buildEmptyMessagesState()
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      return _buildMessageBubble(_messages[index]);
+                    },
+                  ),
+          ),
+        ),
+        _buildMessageInput(),
+      ],
     );
   }
 
   Widget _buildChatHeader() {
+    final partnerName = _selectedChat!['partnerName'] ?? 'Клиент';
+    final partnerImage = _selectedChat!['partnerImage'];
+    final isOnline = _selectedChat!['isPartnerOnline'] ?? false;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.inputBorder.withOpacity(0.3))),
+        border: Border(
+          bottom: BorderSide(color: AppColors.inputBorder.withOpacity(0.3)),
+        ),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundImage: const AssetImage('assets/images/avatar/aldiyar.png'),
-            onBackgroundImageError: (_, __) {
-              // Placeholder если изображение не загрузилось
-            },
+            backgroundImage: partnerImage != null
+                ? NetworkImage(partnerImage)
+                : null,
+            child: partnerImage == null ? const Icon(Icons.person) : null,
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Альдияр Байдилла', style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
-              Row(
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: const BoxDecoration(
-                      color: AppColors.success,
-                      shape: BoxShape.circle,
-                    ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  partnerName,
+                  style: AppTextStyles.body1.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(width: 6),
-                  Text('онлайн', style: AppTextStyles.body3.copyWith(color: AppColors.success)),
-                ],
-              ),
-            ],
+                ),
+                Row(
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: isOnline
+                            ? AppColors.success
+                            : AppColors.textTertiary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      isOnline ? 'онлайн' : 'не в сети',
+                      style: AppTextStyles.body3.copyWith(
+                        color: isOnline
+                            ? AppColors.success
+                            : AppColors.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.videocam_outlined),
+            onPressed: () async {
+              try {
+                final zvondaUrl = await _chatService.getZvondaUrl(
+                  _selectedChat!['id'],
+                );
+                // TODO: Open video call
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Ссылка на видео: $zvondaUrl')),
+                );
+              } catch (e) {
+                print('❌ Error getting Zvonda URL: $e');
+              }
+            },
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.primary.withOpacity(0.1),
+              foregroundColor: AppColors.primary,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMessagesList() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _buildMessage('Альдияр Байдилла', 'Добрый день! Готов к нашей сессии.', '15:25', false),
-        _buildMessage('Вы', 'Добро пожаловать, Альдияр! Как ваше настроение сегодня?', '15:26', true),
-        _buildMessage('Альдияр Байдилла', 'Спасибо, настроение хорошее. Хочу обсудить свою тревожность.', '15:27', false),
-      ],
+  Widget _buildEmptyMessagesState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.chat_outlined,
+            size: 64,
+            color: AppColors.textTertiary.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Нет сообщений',
+            style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildMessage(String sender, String text, String time, bool isMe) {
+  Widget _buildMessageBubble(Map<String, dynamic> message) {
+    final isMe = message['isMe'] ?? false;
+    final text = message['text'] ?? '';
+    final createdAt = message['createdAt'];
+    final senderImage = message['senderImage'];
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Row(
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           if (!isMe) ...[
             CircleAvatar(
               radius: 16,
-              backgroundImage: const AssetImage('assets/images/avatar/aldiyar.png'),
-              onBackgroundImageError: (_, __) {
-                // Placeholder если изображение не загрузилось
-              },
+              backgroundImage: senderImage != null
+                  ? NetworkImage(senderImage)
+                  : null,
+              child: senderImage == null
+                  ? const Icon(Icons.person, size: 16)
+                  : null,
             ),
             const SizedBox(width: 8),
           ],
@@ -283,14 +500,15 @@ class PsychoMessagesPage extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isMe ? AppColors.primary : Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: !isMe ? Border.all(color: AppColors.inputBorder.withOpacity(0.3)) : null,
-                boxShadow: !isMe ? [
-                  BoxShadow(
-                    color: AppColors.shadow.withOpacity(0.06),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ] : null,
+                boxShadow: !isMe
+                    ? [
+                        BoxShadow(
+                          color: AppColors.shadow.withOpacity(0.06),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,13 +519,17 @@ class PsychoMessagesPage extends StatelessWidget {
                       color: isMe ? Colors.white : AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    time,
-                    style: AppTextStyles.body3.copyWith(
-                      color: isMe ? Colors.white.withOpacity(0.7) : AppColors.textSecondary,
+                  if (createdAt != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatTime(createdAt),
+                      style: AppTextStyles.body3.copyWith(
+                        color: isMe
+                            ? Colors.white.withOpacity(0.7)
+                            : AppColors.textSecondary,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -322,12 +544,15 @@ class PsychoMessagesPage extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: AppColors.inputBorder.withOpacity(0.3))),
+        border: Border(
+          top: BorderSide(color: AppColors.inputBorder.withOpacity(0.3)),
+        ),
       ),
       child: Row(
         children: [
           Expanded(
             child: TextField(
+              controller: _messageController,
               decoration: InputDecoration(
                 hintText: 'Напишите сообщение...',
                 filled: true,
@@ -336,24 +561,94 @@ class PsychoMessagesPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
               ),
               maxLines: null,
+              onSubmitted: (_) => _sendMessage(),
             ),
           ),
           const SizedBox(width: 12),
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.primary,
               shape: BoxShape.circle,
             ),
             child: IconButton(
-              onPressed: () {},
+              onPressed: _sendMessage,
               icon: const Icon(Icons.send, color: Colors.white),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      color: AppColors.backgroundLight,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.chat_bubble_outline,
+                size: 48,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text('Выберите чат', style: AppTextStyles.h2),
+            const SizedBox(height: 12),
+            Text(
+              'Начните общение с вашим клиентом',
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatTime(dynamic dateTime) {
+    if (dateTime == null) return '';
+
+    try {
+      DateTime dt;
+      if (dateTime is String) {
+        dt = DateTime.parse(dateTime);
+      } else if (dateTime is DateTime) {
+        dt = dateTime;
+      } else {
+        return '';
+      }
+
+      final now = DateTime.now();
+      final difference = now.difference(dt);
+
+      if (difference.inDays == 0) {
+        return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      } else if (difference.inDays == 1) {
+        return 'Вчера';
+      } else if (difference.inDays < 7) {
+        return '${difference.inDays} дн.';
+      } else {
+        return '${dt.day}.${dt.month}';
+      }
+    } catch (e) {
+      return '';
+    }
   }
 }
