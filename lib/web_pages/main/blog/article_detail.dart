@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import '../../../widgets/page_wrapper.dart';
 import '../../../theme/app_text_styles.dart';
-import '../../../сore/router/app_router.dart';
+import '../../../core/router/app_router.dart';
 
 class ArticleDetail extends StatelessWidget {
   final String id;

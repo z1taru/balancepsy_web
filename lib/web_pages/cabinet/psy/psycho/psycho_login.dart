@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_text_styles.dart';
 import '../../../../widgets/custom_button.dart';
-import '../../../../сore/router/app_router.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../services/user_provider.dart';
 
 class PsychoLoginPage extends StatefulWidget {

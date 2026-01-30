@@ -1,9 +1,9 @@
 // lib/services/psychologist_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../сore/router/app_router.dart';
-import '../../сore/storage/token_storage.dart';
-import '../../сore/config/api_config.dart';
+import '../../core/router/app_router.dart';
+import '../../core/storage/token_storage.dart';
+import '../../core/config/api_config.dart';
 
 class PsychologistService {
   final TokenStorage _storage = TokenStorage();

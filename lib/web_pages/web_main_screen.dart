@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/custom_button.dart';
-import '../../сore/router/app_router.dart';
+import '../core/router/app_router.dart';
 import '../../widgets/page_wrapper.dart';
 
 /// Entry point для веб-версии Balance Psy

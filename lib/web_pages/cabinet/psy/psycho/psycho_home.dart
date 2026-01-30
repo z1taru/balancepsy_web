@@ -2,11 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_text_styles.dart';
 import '../../../../widgets/unified_sidebar.dart';
-import '../../../../сore/services/psychologist_api_service.dart';
-import '../../../../сore/router/app_router.dart';
+import '../../../../core/services/psychologist_api_service.dart';
+import '../../../../core/router/app_router.dart';
 
 class PsyHome extends StatefulWidget {
   const PsyHome({super.key});
@@ -19,38 +20,99 @@ class _PsyHomeState extends State<PsyHome> {
   final PsychologistApiService _apiService = PsychologistApiService();
 
   bool _isLoading = true;
+  bool _localeInitialized = false;
   List<Map<String, dynamic>> _upcomingSessions = [];
   List<Map<String, dynamic>> _newRequests = [];
   List<Map<String, dynamic>> _unreadMessages = [];
   Map<String, dynamic>? _statistics;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _loadDashboardData();
+    _initializeLocaleAndLoadData();
+  }
+
+  Future<void> _initializeLocaleAndLoadData() async {
+    // ✅ Инициализируем locale для DateFormat
+    if (!_localeInitialized) {
+      try {
+        await initializeDateFormatting('ru', null);
+        _localeInitialized = true;
+        print('✅ Locale initialized');
+      } catch (e) {
+        print('⚠️ Locale init failed: $e');
+      }
+    }
+
+    await _loadDashboardData();
   }
 
   Future<void> _loadDashboardData() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
     try {
-      final results = await Future.wait([
-        _apiService.getUpcomingSessions(),
-        _apiService.getNewRequests(),
-        _apiService.getUnreadMessages(),
-        _apiService.getStatistics(),
-      ]);
+      // ✅ Загружаем данные с обработкой ошибок для каждого endpoint
+      List<Map<String, dynamic>> sessions = [];
+      List<Map<String, dynamic>> requests = [];
+      List<Map<String, dynamic>> messages = [];
+      Map<String, dynamic>? stats;
+
+      // Предстоящие сессии
+      try {
+        sessions = await _apiService.getUpcomingSessions();
+        print('✅ Loaded ${sessions.length} sessions');
+      } catch (e) {
+        print('⚠️ Sessions not available: $e');
+        // Игнорируем, endpoint может быть не реализован
+      }
+
+      // Новые заявки
+      try {
+        requests = await _apiService.getNewRequests();
+        print('✅ Loaded ${requests.length} requests');
+      } catch (e) {
+        print('⚠️ Requests not available: $e');
+      }
+
+      // Непрочитанные сообщения
+      try {
+        messages = await _apiService.getUnreadMessages();
+        print('✅ Loaded ${messages.length} messages');
+      } catch (e) {
+        print('⚠️ Messages not available: $e');
+      }
+
+      // Статистика
+      try {
+        stats = await _apiService.getStatistics();
+        print('✅ Statistics loaded');
+      } catch (e) {
+        print('⚠️ Statistics not available: $e');
+        // Используем моковую статистику
+        stats = {
+          'sessionStats': {'totalCompletedSessions': 0},
+          'clientStats': {'activeClients': 0},
+          'ratingStats': {'averageRating': 0.0},
+        };
+      }
 
       setState(() {
-        _upcomingSessions = results[0] as List<Map<String, dynamic>>;
-        _newRequests = results[1] as List<Map<String, dynamic>>;
-        _unreadMessages = results[2] as List<Map<String, dynamic>>;
-        _statistics = results[3] as Map<String, dynamic>?;
+        _upcomingSessions = sessions;
+        _newRequests = requests;
+        _unreadMessages = messages;
+        _statistics = stats;
         _isLoading = false;
       });
     } catch (e) {
-      print('❌ Error loading dashboard: $e');
-      setState(() => _isLoading = false);
+      print('❌ Critical error loading dashboard: $e');
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Не удалось загрузить данные. Попробуйте позже.';
+      });
     }
   }
 
@@ -64,6 +126,8 @@ class _PsyHomeState extends State<PsyHome> {
           Expanded(
             child: _isLoading
                 ? _buildLoadingState()
+                : _errorMessage != null
+                ? _buildErrorState()
                 : RefreshIndicator(
                     onRefresh: _loadDashboardData,
                     child: SingleChildScrollView(
@@ -99,13 +163,73 @@ class _PsyHomeState extends State<PsyHome> {
 
   Widget _buildLoadingState() {
     return const Center(
-      child: CircularProgressIndicator(color: AppColors.primary),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(color: AppColors.primary),
+          SizedBox(height: 16),
+          Text('Загрузка...'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: AppColors.error.withOpacity(0.5),
+            ),
+            const SizedBox(height: 16),
+            Text('Ошибка загрузки', style: AppTextStyles.h2),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage ?? 'Неизвестная ошибка',
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _loadDashboardData,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Попробовать снова'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildHeader() {
     final now = DateTime.now();
-    final dateFormat = DateFormat('d MMMM, EEEE', 'ru');
+
+    // ✅ Безопасное форматирование даты
+    String formattedDate;
+    try {
+      if (_localeInitialized) {
+        final dateFormat = DateFormat('d MMMM, EEEE', 'ru');
+        formattedDate = dateFormat.format(now);
+      } else {
+        formattedDate = DateFormat('dd.MM.yyyy').format(now);
+      }
+    } catch (e) {
+      formattedDate = '${now.day}.${now.month}.${now.year}';
+    }
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -127,7 +251,7 @@ class _PsyHomeState extends State<PsyHome> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  dateFormat.format(now),
+                  formattedDate,
                   style: AppTextStyles.body1.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -140,7 +264,11 @@ class _PsyHomeState extends State<PsyHome> {
           children: [
             _buildHeaderButton(
               Icons.notifications_outlined,
-              () {},
+              () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Уведомления - в разработке')),
+                );
+              },
               badge: _newRequests.length + _unreadMessages.length,
             ),
             const SizedBox(width: 12),
@@ -256,7 +384,9 @@ class _PsyHomeState extends State<PsyHome> {
                 ),
               ),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRouter.psychoSchedule);
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.warning,
                   shape: RoundedRectangleBorder(
@@ -288,12 +418,8 @@ class _PsyHomeState extends State<PsyHome> {
         children: [
           CircleAvatar(
             radius: 28,
-            backgroundImage: request['clientAvatar'] != null
-                ? NetworkImage(request['clientAvatar'])
-                : null,
-            child: request['clientAvatar'] == null
-                ? const Icon(Icons.person, size: 28)
-                : null,
+            backgroundColor: AppColors.primary.withOpacity(0.1),
+            child: const Icon(Icons.person, color: AppColors.primary),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -384,7 +510,9 @@ class _PsyHomeState extends State<PsyHome> {
               Icons.event_available,
             )
           else
-            ...(_upcomingSessions.map((session) => _buildSessionCard(session))),
+            ...(_upcomingSessions
+                .take(3)
+                .map((session) => _buildSessionCard(session))),
         ],
       ),
     );
@@ -401,31 +529,10 @@ class _PsyHomeState extends State<PsyHome> {
       ),
       child: Row(
         children: [
-          Stack(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundImage: session['clientAvatar'] != null
-                    ? NetworkImage(session['clientAvatar'])
-                    : null,
-                child: session['clientAvatar'] == null
-                    ? const Icon(Icons.person, size: 30)
-                    : null,
-              ),
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: AppColors.success,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                ),
-              ),
-            ],
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: AppColors.primary.withOpacity(0.1),
+            child: const Icon(Icons.person, color: AppColors.primary, size: 30),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -614,44 +721,19 @@ class _PsyHomeState extends State<PsyHome> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {},
+        onTap: () {
+          Navigator.pushNamed(context, AppRouter.psychoMessages);
+        },
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.all(16),
           margin: const EdgeInsets.only(bottom: 12),
           child: Row(
             children: [
-              Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundImage: message['senderAvatar'] != null
-                        ? NetworkImage(message['senderAvatar'])
-                        : null,
-                    child: message['senderAvatar'] == null
-                        ? const Icon(Icons.person, size: 28)
-                        : null,
-                  ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        message['unreadCount']?.toString() ?? '1',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: AppColors.primary.withOpacity(0.1),
+                child: const Icon(Icons.person, color: AppColors.primary),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -666,7 +748,7 @@ class _PsyHomeState extends State<PsyHome> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      message['lastMessage'] ?? '',
+                      message['lastMessage'] ?? 'Новое сообщение',
                       style: AppTextStyles.body3.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -795,8 +877,12 @@ class _PsyHomeState extends State<PsyHome> {
     if (date == null || time == null) return 'Не указано';
     try {
       final dateTime = DateTime.parse('$date $time');
-      final format = DateFormat('d MMM, HH:mm', 'ru');
-      return format.format(dateTime);
+      if (_localeInitialized) {
+        final format = DateFormat('d MMM, HH:mm', 'ru');
+        return format.format(dateTime);
+      } else {
+        return '${dateTime.day}.${dateTime.month}, ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+      }
     } catch (e) {
       return '$date, $time';
     }
@@ -814,56 +900,68 @@ class _PsyHomeState extends State<PsyHome> {
   }
 
   Future<void> _handleConfirmRequest(int requestId) async {
-    final confirmed = await _apiService.confirmAppointment(requestId);
-    if (confirmed) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Запись подтверждена'),
-          backgroundColor: AppColors.success,
-        ),
-      );
-      _loadDashboardData();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Не удалось подтвердить запись'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+    try {
+      final confirmed = await _apiService.confirmAppointment(requestId);
+      if (confirmed && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Запись подтверждена'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        _loadDashboardData();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 
   Future<void> _handleRejectRequest(int requestId) async {
-    final rejected = await _apiService.rejectAppointment(requestId, null);
-    if (rejected) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Запись отклонена'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-      _loadDashboardData();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Не удалось отклонить запись'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+    try {
+      final rejected = await _apiService.rejectAppointment(requestId, null);
+      if (rejected && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Запись отклонена'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        _loadDashboardData();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 
   Future<void> _handleStartSession(int sessionId) async {
-    final started = await _apiService.startSession(sessionId);
-    if (started) {
-      Navigator.pushNamed(context, AppRouter.psychoMessages);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Не удалось начать сессию'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+    try {
+      final started = await _apiService.startSession(sessionId);
+      if (started && mounted) {
+        Navigator.pushNamed(context, AppRouter.psychoMessages);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 }

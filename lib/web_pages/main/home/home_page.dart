@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../widgets/page_wrapper.dart';
-import '../../../сore/router/app_router.dart';
+import '../../../core/router/app_router.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

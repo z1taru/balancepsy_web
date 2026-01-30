@@ -3,7 +3,7 @@ import 'package:balance_psy/web_pages/services/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'theme/app_colors.dart';
-import 'сore/router/app_router.dart';
+import 'core/router/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

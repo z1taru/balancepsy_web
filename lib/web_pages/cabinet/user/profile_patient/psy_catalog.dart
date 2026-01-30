@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../services/psychologist_service.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_text_styles.dart';
-import '../../../../сore/router/app_router.dart';
+import '../../../../core/router/app_router.dart';
 
 class PsyCatalogPage extends StatefulWidget {
   const PsyCatalogPage({super.key});

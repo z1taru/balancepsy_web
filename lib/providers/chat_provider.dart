@@ -2,9 +2,9 @@
 import 'package:flutter/material.dart';
 import '../models/chat_message.dart';
 import '../models/chat_session.dart';
-import '../сore/services/ai_chat_service.dart';
-import '../сore/services/chat_storage_service.dart';
-import '../сore/storage/token_storage.dart';
+import '../core/services/ai_chat_service.dart';
+import '../core/services/chat_storage_service.dart';
+import '../core/storage/token_storage.dart';
 
 class ChatProvider with ChangeNotifier {
   final AiChatService _aiService = AiChatService();
