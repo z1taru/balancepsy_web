@@ -22,6 +22,57 @@ import '../../web_pages/cabinet/user/profile_patient/blog_patient.dart';
 import '../../web_pages/cabinet/user/profile_patient/chat_patient.dart';
 import '../../web_pages/cabinet/user/profile_patient/sessions_calendar.dart';
 import '../../web_pages/ai_chat/full_chat_screen.dart';
+import '../../web_pages/cabinet/user/profile_patient/booking_page.dart';
+
+// Вспомогательные классы определяем ДО AppRouter
+class NoAnimationMaterialPageRoute<T> extends MaterialPageRoute<T> {
+  NoAnimationMaterialPageRoute({
+    required super.builder,
+    super.settings,
+    super.maintainState = true,
+  });
+
+  @override
+  Duration get transitionDuration => Duration.zero;
+}
+
+class NotFoundPage extends StatelessWidget {
+  const NotFoundPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 80, color: Colors.grey),
+            const SizedBox(height: 20),
+            const Text(
+              '404',
+              style: TextStyle(
+                fontSize: 72,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Страница не найдена', style: TextStyle(fontSize: 24)),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () => Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRouter.home,
+                (route) => false,
+              ),
+              child: const Text('На главную'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class AppRouter {
   // Публичные роуты
@@ -146,6 +197,18 @@ class AppRouter {
             builder: (_) => ArticleDetail(id: id),
           );
         }
+        if (settings.name?.startsWith('/booking/') == true) {
+          final id = int.tryParse(settings.name!.split('/').last);
+          final args = settings.arguments as Map<String, dynamic>?;
+          if (id != null && args != null) {
+            return NoAnimationMaterialPageRoute(
+              builder: (_) => BookingPage(
+                psychologistId: id,
+                psychologistName: args['name'] ?? 'Психолог',
+              ),
+            );
+          }
+        }
         return NoAnimationMaterialPageRoute(
           builder: (_) => const NotFoundPage(),
         );
@@ -223,54 +286,5 @@ class AppRouter {
       default:
         return home;
     }
-  }
-}
-
-class NoAnimationMaterialPageRoute<T> extends MaterialPageRoute<T> {
-  NoAnimationMaterialPageRoute({
-    required super.builder,
-    super.settings,
-    super.maintainState = true,
-  });
-
-  @override
-  Duration get transitionDuration => Duration.zero;
-}
-
-class NotFoundPage extends StatelessWidget {
-  const NotFoundPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 80, color: Colors.grey),
-            const SizedBox(height: 20),
-            const Text(
-              '404',
-              style: TextStyle(
-                fontSize: 72,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text('Страница не найдена', style: TextStyle(fontSize: 24)),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                context,
-                AppRouter.home,
-                (route) => false,
-              ),
-              child: const Text('На главную'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

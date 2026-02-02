@@ -1,67 +1,53 @@
+// lib/core/config/api_config.dart
 class ApiConfig {
-  // ========================================
-  // ENVIRONMENT CONFIGURATION
-  // ========================================
-  // Set to false to use production backend
-  // Set to true to use local backend
   static const bool useLocalBackend = true;
 
-  // Base URL
-  static String get baseUrl => useLocalBackend 
+  static String get baseUrl => useLocalBackend
       ? 'http://localhost:8080/api'
       : 'https://api.balance-psy.kz/api';
 
-  // Timeout
   static const Duration connectionTimeout = Duration(seconds: 30);
 
-  // ========================================
-  // AUTH ENDPOINTS
-  // ========================================
+  // AUTH
   static String get login => '$baseUrl/auth/login';
   static String get register => '$baseUrl/auth/register/client';
-  static String get registerPsychologist => '$baseUrl/auth/register/psychologist';
+  static String get registerPsychologist =>
+      '$baseUrl/auth/register/psychologist';
   static String get me => '$baseUrl/auth/me';
   static String get forgotPassword => '$baseUrl/auth/forgot-password';
   static String get resetPassword => '$baseUrl/auth/reset-password';
-
-  // Email verification
   static String get sendCode => '$baseUrl/auth/send-code';
   static String get verifyCode => '$baseUrl/auth/verify-code';
 
-  // ========================================
-  // PROFILE ENDPOINTS
-  // ========================================
+  // PROFILE
   static String get profile => '$baseUrl/profile/me';
   static String get updateProfile => '$baseUrl/profile/me';
   static String get uploadAvatar => '$baseUrl/profile/me/avatar';
   static String get deleteAvatar => '$baseUrl/profile/me/avatar';
   static String get updateAvailability => '$baseUrl/profile/me/availability';
 
-  // ========================================
-  // USER ENDPOINTS
-  // ========================================
+  // USERS
   static String get users => '$baseUrl/users/me';
   static String get changePassword => '$baseUrl/users/me/password';
   static String get deleteAccount => '$baseUrl/users/me';
   static String get searchUsers => '$baseUrl/users/search';
 
-  // ========================================
-  // PSYCHOLOGISTS ENDPOINTS
-  // ========================================
+  // PSYCHOLOGISTS
   static String get psychologists => '$baseUrl/psychologists';
-
   static String psychologistById(int id) => '$baseUrl/psychologists/$id';
   static String psychologistSchedule(int id) =>
       '$baseUrl/psychologists/$id/schedule';
 
-  // ========================================
-  // APPOINTMENTS ENDPOINTS
-  // ========================================
+  // SCHEDULE (psychologist)
+  static String get mySchedule => '$baseUrl/psychologists/me/schedule';
+  static String deleteScheduleSlot(int id) =>
+      '$baseUrl/psychologists/me/schedule/$id';
+
+  // APPOINTMENTS
   static String get appointments => '$baseUrl/appointments';
   static String get myAppointments => '$baseUrl/appointments/me';
   static String get psychologistAppointments =>
       '$baseUrl/appointments/psychologist/me';
-
   static String confirmAppointment(int id) =>
       '$baseUrl/appointments/$id/confirm';
   static String rejectAppointment(int id) => '$baseUrl/appointments/$id/reject';
@@ -72,44 +58,32 @@ class ApiConfig {
   static String noShowAppointment(int id) =>
       '$baseUrl/appointments/$id/no-show';
 
-  // ========================================
-  // ARTICLES ENDPOINTS
-  // ========================================
+  // ARTICLES
   static String get articles => '$baseUrl/articles';
-
   static String articleBySlug(String slug) => '$baseUrl/articles/slug/$slug';
   static String articleById(int id) => '$baseUrl/articles/$id';
 
-  // ========================================
-  // REVIEWS ENDPOINTS
-  // ========================================
+  // REVIEWS
   static String get reviews => '$baseUrl/reviews';
   static String get myReviews => '$baseUrl/reviews/my';
-
   static String psychologistReviews(int psychologistId) =>
       '$baseUrl/reviews/psychologist/$psychologistId';
   static String reviewById(int id) => '$baseUrl/reviews/$id';
   static String canReviewAppointment(int appointmentId) =>
       '$baseUrl/reviews/appointment/$appointmentId/can-review';
 
-  // ========================================
-  // DIAGNOSTICS ENDPOINTS
-  // ========================================
+  // DIAGNOSTICS
   static String get diagnosticTests => '$baseUrl/diagnostics/tests';
   static String get submitDiagnostic => '$baseUrl/diagnostics/sessions/submit';
-
   static String diagnosticTest(String testCode) =>
       '$baseUrl/diagnostics/tests/$testCode';
   static String diagnosticSession(int sessionId) =>
       '$baseUrl/diagnostics/sessions/$sessionId';
   static String get myDiagnosticSessions => '$baseUrl/diagnostics/sessions/my';
 
-  // ========================================
-  // SURVEYS ENDPOINTS
-  // ========================================
+  // SURVEYS
   static String get surveys => '$baseUrl/surveys';
   static String get mySurveySessions => '$baseUrl/surveys/my/sessions';
-
   static String surveyById(int id) => '$baseUrl/surveys/$id';
   static String submitSurveyResponse(int surveyId) =>
       '$baseUrl/surveys/$surveyId/responses';
@@ -120,16 +94,12 @@ class ApiConfig {
   static String exportSurvey(int surveyId) =>
       '$baseUrl/surveys/$surveyId/export';
 
-  // ========================================
-  // INTRO ENDPOINTS
-  // ========================================
+  // INTRO
   static String get introContent => '$baseUrl/intro/content';
   static String get completeIntro => '$baseUrl/intro/complete';
   static String get introStatus => '$baseUrl/intro/status';
 
-  // ========================================
   // HEADERS
-  // ========================================
   static Map<String, String> get headers => {
     'Content-Type': 'application/json; charset=UTF-8',
     'Accept': 'application/json',

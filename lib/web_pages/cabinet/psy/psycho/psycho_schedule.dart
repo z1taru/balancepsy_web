@@ -1,12 +1,171 @@
-// lib/web_pages/psycho/psycho_schedule.dart
+// lib/web_pages/cabinet/psy/psycho/psycho_schedule.dart
 
-import 'package:balance_psy/widgets/unified_sidebar.dart';
 import 'package:flutter/material.dart';
+import '../../../../widgets/unified_sidebar.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_text_styles.dart';
+import '../../../../core/services/schedule_service.dart';
+import '../../../../core/services/psychologist_api_service.dart';
+import '../../../../models/schedule_slot.dart';
 
-class PsychoSchedulePage extends StatelessWidget {
+class PsychoSchedulePage extends StatefulWidget {
   const PsychoSchedulePage({super.key});
+
+  @override
+  State<PsychoSchedulePage> createState() => _PsychoSchedulePageState();
+}
+
+class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
+  final ScheduleService _scheduleService = ScheduleService();
+  final PsychologistApiService _appointmentService = PsychologistApiService();
+
+  List<ScheduleSlot> _scheduleSlots = [];
+  List<Map<String, dynamic>> _todayAppointments = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final slots = await _scheduleService.getMySchedule();
+      final appointments = await _appointmentService.getUpcomingSessions();
+
+      setState(() {
+        _scheduleSlots = slots;
+        _todayAppointments = appointments;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('❌ Error loading data: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _showAddSlotDialog() async {
+    int? selectedDay;
+    TimeOfDay? startTime;
+    TimeOfDay? endTime;
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Добавить слот', style: AppTextStyles.h3),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<int>(
+                decoration: InputDecoration(
+                  labelText: 'День недели',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                value: selectedDay,
+                items: List.generate(7, (i) {
+                  const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+                  return DropdownMenuItem(value: i + 1, child: Text(days[i]));
+                }),
+                onChanged: (v) => setDialogState(() => selectedDay = v),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () async {
+                        final picked = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (picked != null) {
+                          setDialogState(() => startTime = picked);
+                        }
+                      },
+                      child: Text(
+                        startTime != null
+                            ? '${startTime!.hour.toString().padLeft(2, '0')}:${startTime!.minute.toString().padLeft(2, '0')}'
+                            : 'Начало',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () async {
+                        final picked = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (picked != null) {
+                          setDialogState(() => endTime = picked);
+                        }
+                      },
+                      child: Text(
+                        endTime != null
+                            ? '${endTime!.hour.toString().padLeft(2, '0')}:${endTime!.minute.toString().padLeft(2, '0')}'
+                            : 'Конец',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('Отмена', style: AppTextStyles.body1),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (selectedDay == null ||
+                    startTime == null ||
+                    endTime == null) {
+                  return;
+                }
+
+                try {
+                  await _scheduleService.createScheduleSlot(
+                    dayOfWeek: selectedDay!,
+                    startTime:
+                        '${startTime!.hour.toString().padLeft(2, '0')}:${startTime!.minute.toString().padLeft(2, '0')}',
+                    endTime:
+                        '${endTime!.hour.toString().padLeft(2, '0')}:${endTime!.minute.toString().padLeft(2, '0')}',
+                  );
+
+                  Navigator.pop(ctx);
+                  _loadData();
+
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Слот создан')),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+              ),
+              child: Text('Добавить', style: AppTextStyles.button),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,21 +173,23 @@ class PsychoSchedulePage extends StatelessWidget {
       backgroundColor: const Color(0xFFF8F9FC),
       body: Row(
         children: [
-          UnifiedSidebar(currentRoute: '/psycho/schedule'),
+          const UnifiedSidebar(currentRoute: '/psycho/schedule'),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 32),
-                  _buildCalendarSection(),
-                  const SizedBox(height: 24),
-                  _buildTodaySessions(),
-                ],
-              ),
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(),
+                        const SizedBox(height: 32),
+                        _buildScheduleSection(),
+                        const SizedBox(height: 24),
+                        _buildTodaySessions(),
+                      ],
+                    ),
+                  ),
           ),
         ],
       ),
@@ -47,22 +208,18 @@ class PsychoSchedulePage extends StatelessWidget {
               style: AppTextStyles.h1.copyWith(fontSize: 28),
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
-                const SizedBox(width: 8),
-                Text(
-                  'Октябрь 2025',
-                  style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
-                ),
-              ],
+            Text(
+              'Управляйте доступным временем',
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
           ],
         ),
         ElevatedButton.icon(
-          onPressed: () {},
+          onPressed: _showAddSlotDialog,
           icon: const Icon(Icons.add, size: 20),
-          label: const Text('Добавить сессию'),
+          label: const Text('Добавить слот'),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -72,7 +229,42 @@ class PsychoSchedulePage extends StatelessWidget {
     );
   }
 
-  Widget _buildCalendarSection() {
+  Widget _buildScheduleSection() {
+    if (_scheduleSlots.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(40),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.calendar_month,
+                size: 64,
+                color: AppColors.textTertiary,
+              ),
+              const SizedBox(height: 16),
+              Text('Расписание не настроено', style: AppTextStyles.h3),
+              const SizedBox(height: 8),
+              Text(
+                'Добавьте слоты для записи клиентов',
+                style: AppTextStyles.body2.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final groupedSlots = <int, List<ScheduleSlot>>{};
+    for (var slot in _scheduleSlots) {
+      groupedSlots.putIfAbsent(slot.dayOfWeek, () => []).add(slot);
+    }
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -89,83 +281,90 @@ class PsychoSchedulePage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Календарь', style: AppTextStyles.h2),
+          Text('Недельное расписание', style: AppTextStyles.h2),
           const SizedBox(height: 24),
-          _buildCalendarGrid(),
+          ...groupedSlots.entries.map((entry) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildDaySlots(entry.key, entry.value),
+            );
+          }),
         ],
       ),
     );
   }
 
-  Widget _buildCalendarGrid() {
-    final days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-    final dates = ['7', '8', '9', '10', '11', '12', '13'];
+  Widget _buildDaySlots(int dayOfWeek, List<ScheduleSlot> slots) {
+    const days = [
+      'Понедельник',
+      'Вторник',
+      'Среда',
+      'Четверг',
+      'Пятница',
+      'Суббота',
+      'Воскресенье',
+    ];
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Дни недели
-        Row(
-          children: days.map((day) => Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: AppColors.inputBorder.withOpacity(0.3))),
-              ),
-              child: Text(
-                day,
-                textAlign: TextAlign.center,
-                style: AppTextStyles.body2.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ),
-          )).toList(),
+        Text(
+          days[dayOfWeek - 1],
+          style: AppTextStyles.h3.copyWith(fontSize: 18),
         ),
-        // Даты
-        Row(
-          children: dates.asMap().entries.map((entry) {
-            final index = entry.key;
-            final date = entry.value;
-            final isToday = date == '9'; // Текущий день
-            final hasSession = date == '9' || date == '11'; // Дни с сессиями
-
-            return Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  color: isToday ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
-                  border: Border(
-                    bottom: BorderSide(color: AppColors.inputBorder.withOpacity(0.1)),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      date,
-                      style: AppTextStyles.body1.copyWith(
-                        color: isToday ? AppColors.primary : AppColors.textPrimary,
-                        fontWeight: isToday ? FontWeight.w600 : FontWeight.w400,
-                      ),
-                    ),
-                    if (hasSession) ...[
-                      const SizedBox(height: 4),
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: slots.map((slot) => _buildSlotChip(slot)).toList(),
         ),
       ],
+    );
+  }
+
+  Widget _buildSlotChip(ScheduleSlot slot) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.access_time, size: 16, color: AppColors.primary),
+          const SizedBox(width: 8),
+          Text(
+            '${slot.startTime} - ${slot.endTime}',
+            style: AppTextStyles.body2.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () async {
+              try {
+                await _scheduleService.deleteScheduleSlot(slot.id);
+                _loadData();
+                if (mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Слот удалён')));
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
+                }
+              }
+            },
+            child: Icon(Icons.close, size: 16, color: AppColors.error),
+          ),
+        ],
+      ),
     );
   }
 
@@ -186,64 +385,34 @@ class PsychoSchedulePage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Сегодняшние приёмы', style: AppTextStyles.h2),
-              TextButton(
-                onPressed: () {},
-                child: Text(
-                  'Все →',
-                  style: AppTextStyles.body1.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
+          Text('Записи', style: AppTextStyles.h2),
           const SizedBox(height: 24),
-          _buildSessionItem(
-            'Альдияр Байдилла',
-            'Сегодня, 15:30',
-            'Тревожность',
-            'assets/images/avatar/aldiyar.png',
-            'ожидается',
-          ),
-          const SizedBox(height: 16),
-          _buildSessionItem(
-            'Рамина Канатовна',
-            'Сегодня, 17:00',
-            'Влюбленность',
-            'assets/images/avatar/ramina.png',
-            'подтверждена',
-          ),
-          const SizedBox(height: 16),
-          _buildSessionItem(
-            'Ажар Алимбет',
-            'Сегодня, 20:30',
-            'Самооценка',
-            'assets/images/avatar/azhar.png',
-            'отменена',
-          ),
+          _todayAppointments.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Text(
+                      'Записей нет',
+                      style: AppTextStyles.body1.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                )
+              : Column(
+                  children: _todayAppointments.map((apt) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: _buildAppointmentCard(apt),
+                    );
+                  }).toList(),
+                ),
         ],
       ),
     );
   }
 
-  Widget _buildSessionItem(String name, String time, String topic, String avatar, String status) {
-    Color statusColor;
-    switch (status) {
-      case 'ожидается':
-        statusColor = Colors.orange;
-      case 'подтверждена':
-        statusColor = AppColors.success;
-      case 'отменена':
-        statusColor = Colors.red;
-      default:
-        statusColor = AppColors.textSecondary;
-    }
-
+  Widget _buildAppointmentCard(Map<String, dynamic> apt) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -255,39 +424,35 @@ class PsychoSchedulePage extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundImage: AssetImage(avatar),
-            onBackgroundImageError: (_, __) {},
+            backgroundColor: AppColors.primary.withOpacity(0.1),
+            child: Icon(Icons.person, color: AppColors.primary),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Text(topic, style: AppTextStyles.body2),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(Icons.access_time, size: 14, color: AppColors.textSecondary),
-                    const SizedBox(width: 4),
-                    Text(time, style: AppTextStyles.body3.copyWith(color: AppColors.textSecondary)),
-                  ],
+                Text(
+                  apt['clientName'] ?? 'Клиент',
+                  style: AppTextStyles.body1.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
+                const SizedBox(height: 4),
+                Text(apt['format'] ?? '', style: AppTextStyles.body2),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
+              color: AppColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: statusColor.withOpacity(0.3)),
             ),
             child: Text(
-              status,
+              apt['status'] ?? '',
               style: AppTextStyles.body3.copyWith(
-                color: statusColor,
+                color: AppColors.primary,
                 fontWeight: FontWeight.w600,
               ),
             ),

@@ -1,9 +1,13 @@
-// lib/web_pages/psychologists/psychologist_detail.dart
+// lib/web_pages/main/psychologists/psychologist_detail.dart
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../widgets/page_wrapper.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../core/router/app_router.dart';
+import '../../../web_pages/services/user_provider.dart';
+import '../../services/psychologist_service.dart';
 
 class PsychologistDetail extends StatefulWidget {
   final String id;
@@ -16,8 +20,11 @@ class PsychologistDetail extends StatefulWidget {
 class _PsychologistDetailState extends State<PsychologistDetail>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
-  late Map<String, dynamic> _psychologist;
+  final PsychologistService _psychologistService = PsychologistService();
+
+  Map<String, dynamic>? _psychologist;
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -32,111 +39,212 @@ class _PsychologistDetailState extends State<PsychologistDetail>
     super.dispose();
   }
 
-  void _loadPsychologist() {
-    final psychologists = {
-      '1': {
-        'name': 'Галия Аубакирова',
-        'photo': 'assets/images/main_page/galiya1.png',
-        'specialization': 'Когнитивно-поведенческая терапия',
-        'experience': '8 лет',
-        'rating': 4.9,
-        'reviews': 127,
-        'price': '15 000',
-        'education': 'КазНУ им. Аль-Фараби, психология',
-        'certificates': ['КПТ-терапевт', 'Гештальт-терапия', 'Trauma-focused CBT'],
-        'helps': ['Тревожность', 'Депрессия', 'Панические атаки', 'ОКР', 'Фобии'],
-        'description': 'Помогаю справиться с тревожностью, депрессией и паническими атаками. Работаю в подходе когнитивно-поведенческой терапии. За годы практики помогла более 200 клиентам обрести внутренний баланс и научиться управлять своими эмоциями.',
-        'languages': ['Русский', 'Казахский', 'Английский'],
-        'sessionDuration': '50 минут',
-        'about': 'Я практикующий психолог с 8-летним опытом работы. Окончила КазНУ им. Аль-Фараби по специальности "Клиническая психология". Прошла дополнительное обучение по когнитивно-поведенческой терапии в Институте КПТ (Москва). \n\nМоя основная специализация - работа с тревожными расстройствами, депрессией и паническими атаками. Использую научно обоснованные методы, доказавшие свою эффективность.\n\nВерю, что каждый человек способен изменить свою жизнь к лучшему, если получит правильную поддержку и инструменты для работы над собой.',
-        'approach': 'В своей работе я использую когнитивно-поведенческую терапию (КПТ) - один из наиболее изученных и эффективных методов психотерапии. КПТ помогает:\n\n• Распознать негативные мысли и убеждения\n• Изменить деструктивные паттерны поведения\n• Разработать здоровые стратегии совладания\n• Достичь устойчивых изменений\n\nТакже интегрирую элементы гештальт-терапии для работы с незавершенными ситуациями и эмоциями.',
-        'format': 'Консультации проходят онлайн в удобное для вас время. Для сессий использую защищенную платформу с видеосвязью.\n\nПервая встреча - это знакомство, где мы:\n• Обсудим ваш запрос\n• Определим цели терапии\n• Составим план работы\n• Ответим на все ваши вопросы\n\nРегулярность встреч обсуждается индивидуально, обычно рекомендую еженедельные сессии.',
-        'reviewsList': [
-          {
-            'name': 'Анна К.',
-            'rating': 5,
-            'date': '2 недели назад',
-            'text': 'Галия помогла мне справиться с паническими атаками, которые мучили меня несколько лет. После 3 месяцев работы я снова чувствую себя полноценным человеком. Очень благодарна!'
-          },
-          {
-            'name': 'Дмитрий М.',
-            'rating': 5,
-            'date': '1 месяц назад',
-            'text': 'Профессиональный подход, четкие рекомендации. Галия не просто слушает, а дает конкретные инструменты для работы над собой.'
-          },
-          {
-            'name': 'Елена С.',
-            'rating': 4,
-            'date': '2 месяца назад',
-            'text': 'Хороший специалист, помогла разобраться с причинами моей тревожности. Работаем уже 2 месяца, вижу прогресс.'
-          },
-        ],
-      },
-      '2': {
-        'name': 'Яна Прозорова',
-        'photo': 'assets/images/main_page/yana1.png',
-        'specialization': 'Семейная и парная терапия',
-        'experience': '10 лет',
-        'rating': 5.0,
-        'reviews': 203,
-        'price': '18 000',
-        'education': 'МГУ им. Ломоносова, клиническая психология',
-        'certificates': ['Семейный психолог', 'Эмоционально-фокусированная терапия', 'Системная терапия'],
-        'helps': ['Отношения', 'Семейные конфликты', 'Развод', 'Измена', 'Коммуникация'],
-        'description': 'Специализируюсь на работе с парами и семьями. Помогаю восстановить близость и найти взаимопонимание в отношениях.',
-        'languages': ['Русский', 'Английский'],
-        'sessionDuration': '60 минут',
-        'about': 'Имею 10-летний опыт работы с парами и семьями. Окончила МГУ им. Ломоносова, защитила кандидатскую диссертацию по семейной психологии.\n\nПомогаю парам преодолеть кризисы, восстановить доверие и близость. Работаю как с супружескими парами, так и с партнерами на разных стадиях отношений.',
-        'approach': 'Использую эмоционально-фокусированную терапию (ЭФТ) и системный подход. Эти методы признаны наиболее эффективными для работы с парами.\n\nВ процессе терапии мы:\n• Выявляем негативные паттерны взаимодействия\n• Учимся безопасно выражать свои потребности\n• Восстанавливаем эмоциональную связь\n• Развиваем навыки конструктивной коммуникации',
-        'format': 'Работаю как с парами, так и индивидуально. Сессии длятся 60 минут. Рекомендую еженедельные встречи на начальном этапе.\n\nПервая консультация - это возможность понять, подходим ли мы друг другу и какой будет план работы.',
-        'reviewsList': [
-          {
-            'name': 'Марина и Андрей',
-            'rating': 5,
-            'date': '1 неделя назад',
-            'text': 'Яна спасла наш брак! После 10 лет совместной жизни мы были на грани развода. Благодаря терапии мы снова стали близки и научились слышать друг друга.'
-          },
-          {
-            'name': 'Ольга Р.',
-            'rating': 5,
-            'date': '3 недели назад',
-            'text': 'Очень деликатный и профессиональный подход. Яна создает безопасное пространство для обоих партнеров.'
-          },
-        ],
-      },
-      '3': {
-        'name': 'Лаура Болдина',
-        'photo': 'assets/images/main_page/laura1.png',
-        'specialization': 'Психотерапия самооценки',
-        'experience': '7 лет',
-        'rating': 4.8,
-        'reviews': 95,
-        'price': '14 000',
-        'education': 'НИУ ВШЭ, психология личности',
-        'certificates': ['Позитивная психотерапия', 'Арт-терапия', 'Экзистенциальная терапия'],
-        'helps': ['Самооценка', 'Уверенность в себе', 'Самопознание', 'Кризис идентичности'],
-        'description': 'Работаю с вопросами самооценки, помогаю обрести уверенность и найти себя.',
-        'languages': ['Русский', 'Казахский'],
-        'sessionDuration': '50 минут',
-        'about': 'Я психолог с 7-летним опытом, специализируюсь на вопросах самооценки и самопознания. Помогаю людям обрести уверенность в себе и найти свой путь.\n\nИспользую интегративный подход, сочетая позитивную психотерапию, арт-терапию и экзистенциальные методы.',
-        'approach': 'Мой подход основан на убеждении, что внутри каждого человека есть ресурсы для роста и развития. Моя задача - помочь вам их обнаружить и активировать.\n\nВ работе использую:\n• Позитивную психотерапию\n• Арт-терапевтические техники\n• Практики осознанности\n• Работу с внутренним критиком',
-        'format': 'Консультации проходят онлайн, длительность 50 минут. Иногда использую творческие задания и практики между сессиями.\n\nПервая встреча бесплатная - это возможность познакомиться и понять, подходим ли мы друг другу.',
-        'reviewsList': [
-          {
-            'name': 'Айгуль Т.',
-            'rating': 5,
-            'date': '2 недели назад',
-            'text': 'Лаура помогла мне поверить в себя. Теперь я не боюсь проявлять себя и отстаивать свои границы.'
-          },
-        ],
-      },
-    };
+  Future<void> _loadPsychologist() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
 
-    _psychologist = psychologists[widget.id] ?? psychologists['1']!;
+    try {
+      final psychologistId = int.tryParse(widget.id);
+      if (psychologistId == null) {
+        throw Exception('Неверный ID психолога');
+      }
+
+      final data = await _psychologistService.getPsychologistById(
+        psychologistId,
+      );
+
+      setState(() {
+        _psychologist = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('❌ Error loading psychologist: $e');
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _handleBooking() {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    // Проверка авторизации
+    if (!userProvider.isAuthenticated) {
+      _showLoginDialog();
+      return;
+    }
+
+    // Проверка роли - психолог не может записаться сам к себе
+    if (userProvider.userRole == 'PSYCHOLOGIST') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Психологи не могут записываться на консультации'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    // Переход на страницу записи
+    Navigator.pushNamed(
+      context,
+      '/booking/${widget.id}',
+      arguments: {'name': _psychologist?['fullName'] ?? 'Психолог'},
+    );
+  }
+
+  void _showLoginDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.lock_outline,
+                color: AppColors.primary,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                'Требуется авторизация',
+                style: AppTextStyles.h3.copyWith(fontSize: 22),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Для записи на консультацию необходимо войти в аккаунт или создать новый.',
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.textSecondary,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.verified_user,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Это займет всего минуту!',
+                      style: AppTextStyles.body2.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Отмена',
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushNamed(context, AppRouter.login);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text('Войти', style: AppTextStyles.button),
+          ),
+          const SizedBox(width: 8),
+          OutlinedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushNamed(context, AppRouter.register);
+            },
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: AppColors.primary, width: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Регистрация',
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (_error != null || _psychologist == null) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: AppColors.error),
+              const SizedBox(height: 16),
+              Text('Ошибка загрузки', style: AppTextStyles.h2),
+              const SizedBox(height: 8),
+              Text(_error ?? 'Психолог не найден', style: AppTextStyles.body1),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                ),
+                child: Text('Назад', style: AppTextStyles.button),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
     final isTablet = width >= 768 && width < 1024;
@@ -158,20 +266,38 @@ class _PsychologistDetailState extends State<PsychologistDetail>
   }
 
   Widget _buildHeader(bool isMobile, bool isTablet) {
+    final avatarUrl = _psychologist?['avatarUrl'];
+    final fullName = _psychologist?['fullName'] ?? 'Психолог';
+    final specialization = _psychologist?['specialization'] ?? '';
+
     return Container(
       height: isMobile ? 320 : 450,
       decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage(_psychologist['photo']),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(
-            Colors.black.withOpacity(0.3),
-            BlendMode.darken,
-          ),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary.withOpacity(0.8),
+            AppColors.primaryDark.withOpacity(0.9),
+          ],
         ),
       ),
       child: Stack(
         children: [
+          // Фоновое изображение (если есть)
+          if (avatarUrl != null && avatarUrl.isNotEmpty)
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.2,
+                child: Image.network(
+                  avatarUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const SizedBox(),
+                ),
+              ),
+            ),
+
+          // Кнопка назад
           Positioned(
             top: 40,
             left: isMobile ? 20 : 80,
@@ -183,16 +309,49 @@ class _PsychologistDetailState extends State<PsychologistDetail>
                   color: Colors.white.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 28),
+                child: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
               ),
             ),
           ),
+
+          // Контент
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Аватар
+                Container(
+                  width: isMobile ? 100 : 120,
+                  height: isMobile ? 100 : 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: avatarUrl != null && avatarUrl.isNotEmpty
+                        ? Image.network(
+                            avatarUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                _buildAvatarPlaceholder(),
+                          )
+                        : _buildAvatarPlaceholder(),
+                  ),
+                ),
+                const SizedBox(height: 24),
                 Text(
-                  _psychologist['name'],
+                  fullName,
                   style: AppTextStyles.h1.copyWith(
                     fontSize: isMobile ? 32 : 48,
                     color: Colors.white,
@@ -202,7 +361,7 @@ class _PsychologistDetailState extends State<PsychologistDetail>
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  _psychologist['specialization'],
+                  specialization,
                   style: AppTextStyles.body1.copyWith(
                     fontSize: isMobile ? 18 : 24,
                     color: Colors.white,
@@ -217,7 +376,27 @@ class _PsychologistDetailState extends State<PsychologistDetail>
     );
   }
 
+  Widget _buildAvatarPlaceholder() {
+    return Container(
+      color: Colors.white,
+      child: Center(
+        child: Icon(
+          Icons.person,
+          size: 60,
+          color: AppColors.primary.withOpacity(0.5),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMainInfo(bool isMobile, bool isTablet) {
+    final bio = _psychologist?['bio'] ?? 'Нет описания';
+    final rating = (_psychologist?['rating'] ?? 0.0).toDouble();
+    final reviewsCount = _psychologist?['reviewsCount'] ?? 0;
+    final experienceYears = _psychologist?['experienceYears'] ?? 0;
+    final totalSessions = _psychologist?['totalSessions'] ?? 0;
+    final isAvailable = _psychologist?['isAvailable'] ?? false;
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
@@ -226,7 +405,7 @@ class _PsychologistDetailState extends State<PsychologistDetail>
       child: Column(
         children: [
           Text(
-            _psychologist['description'],
+            bio,
             style: AppTextStyles.body1.copyWith(
               fontSize: isMobile ? 16 : 18,
               color: AppColors.textSecondary,
@@ -242,27 +421,28 @@ class _PsychologistDetailState extends State<PsychologistDetail>
             children: [
               _buildInfoCard(
                 Icons.star_rounded,
-                '${_psychologist['rating']}',
-                '${_psychologist['reviews']} отзывов',
+                rating.toStringAsFixed(1),
+                '$reviewsCount отзывов',
                 isMobile,
               ),
               _buildInfoCard(
                 Icons.work_history_rounded,
-                _psychologist['experience'],
-                'Практики',
+                '$experienceYears лет',
+                'Опыт работы',
                 isMobile,
               ),
               _buildInfoCard(
-                Icons.language_rounded,
-                '${_psychologist['languages'].length}',
-                'Языков',
+                Icons.people_rounded,
+                '$totalSessions',
+                'Сессий проведено',
                 isMobile,
               ),
               _buildInfoCard(
-                Icons.timer_rounded,
-                _psychologist['sessionDuration'],
-                'На сессию',
+                isAvailable ? Icons.check_circle : Icons.cancel,
+                isAvailable ? 'Доступен' : 'Недоступен',
+                'Статус',
                 isMobile,
+                color: isAvailable ? AppColors.success : AppColors.error,
               ),
             ],
           ),
@@ -271,7 +451,13 @@ class _PsychologistDetailState extends State<PsychologistDetail>
     );
   }
 
-  Widget _buildInfoCard(IconData icon, String value, String label, bool isMobile) {
+  Widget _buildInfoCard(
+    IconData icon,
+    String value,
+    String label,
+    bool isMobile, {
+    Color? color,
+  }) {
     return Container(
       width: isMobile ? 140 : 160,
       padding: const EdgeInsets.all(20),
@@ -279,27 +465,26 @@ class _PsychologistDetailState extends State<PsychologistDetail>
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(
-            color: AppColors.shadow.withOpacity(0.1),
-            blurRadius: 8,
-          ),
+          BoxShadow(color: AppColors.shadow.withOpacity(0.1), blurRadius: 8),
         ],
       ),
       child: Column(
         children: [
-          Icon(icon, size: 32, color: AppColors.primary),
+          Icon(icon, size: 32, color: color ?? AppColors.primary),
           const SizedBox(height: 12),
           Text(
             value,
             style: AppTextStyles.h3.copyWith(
               fontSize: 24,
-              color: AppColors.primary,
+              color: color ?? AppColors.primary,
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           Text(
             label,
             style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -311,12 +496,17 @@ class _PsychologistDetailState extends State<PsychologistDetail>
       color: Colors.white,
       child: TabBar(
         controller: _tabController,
-        padding: EdgeInsets.symmetric(horizontal: isMobile ? 20 : (isTablet ? 40 : 80)),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
+        ),
         labelColor: AppColors.primary,
         unselectedLabelColor: AppColors.textSecondary,
         indicatorColor: AppColors.primary,
         indicatorWeight: 3,
-        labelStyle: AppTextStyles.body1.copyWith(fontWeight: FontWeight.bold, fontSize: 16),
+        labelStyle: AppTextStyles.body1.copyWith(
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
         unselectedLabelStyle: AppTextStyles.body1.copyWith(fontSize: 16),
         tabs: const [
           Tab(text: 'О специалисте'),
@@ -335,7 +525,7 @@ class _PsychologistDetailState extends State<PsychologistDetail>
         vertical: 40,
       ),
       child: SizedBox(
-        height: 600, // Добавил фиксированную высоту для лучшей пропорциональности
+        height: 600,
         child: TabBarView(
           controller: _tabController,
           children: [
@@ -349,113 +539,72 @@ class _PsychologistDetailState extends State<PsychologistDetail>
   }
 
   Widget _buildAboutTab(bool isMobile) {
+    final approaches = _psychologist?['approaches'] as List<dynamic>? ?? [];
+    final workFormat = _psychologist?['workFormat'] ?? 'Онлайн консультации';
+
     return ListView(
       children: [
-        _buildSectionTitle('О себе'),
-        const SizedBox(height: 16),
-        Text(
-          _psychologist['about'],
-          style: AppTextStyles.body1.copyWith(
-            color: AppColors.textSecondary,
-            height: 1.6,
-            fontSize: isMobile ? 16 : 18,
-          ),
-        ),
-        const SizedBox(height: 32),
         _buildSectionTitle('Подход в работе'),
         const SizedBox(height: 16),
-        Text(
-          _psychologist['approach'],
-          style: AppTextStyles.body1.copyWith(
-            color: AppColors.textSecondary,
-            height: 1.6,
-            fontSize: isMobile ? 16 : 18,
+        if (approaches.isNotEmpty)
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: approaches.map((approach) {
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Text(
+                  approach.toString(),
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
+            }).toList(),
           ),
-        ),
         const SizedBox(height: 32),
         _buildSectionTitle('Формат работы'),
         const SizedBox(height: 16),
         Text(
-          _psychologist['format'],
+          workFormat,
           style: AppTextStyles.body1.copyWith(
             color: AppColors.textSecondary,
             height: 1.6,
             fontSize: isMobile ? 16 : 18,
           ),
-        ),
-        const SizedBox(height: 32),
-        _buildSectionTitle('С чем работаю'),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: (_psychologist['helps'] as List<String>).map((help) {
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Text(
-                help,
-                style: AppTextStyles.body2.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 32),
-        _buildSectionTitle('Языки консультаций'),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: (_psychologist['languages'] as List<String>).map((lang) {
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: AppColors.inputBorder.withOpacity(0.5)),
-              ),
-              child: Text(
-                lang,
-                style: AppTextStyles.body2.copyWith(fontWeight: FontWeight.w500),
-              ),
-            );
-          }).toList(),
         ),
       ],
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: AppTextStyles.h3.copyWith(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
-
   Widget _buildEducationTab(bool isMobile) {
+    final education = _psychologist?['education'] ?? 'Информация отсутствует';
+    final certificates = _psychologist?['certificates'] as List<dynamic>? ?? [];
+
     return ListView(
       children: [
         _buildSectionTitle('Образование'),
         const SizedBox(height: 16),
-        _buildEducationCard(_psychologist['education'], isMobile),
-        const SizedBox(height: 32),
-        _buildSectionTitle('Сертификаты и квалификации'),
-        const SizedBox(height: 16),
-        ...(_psychologist['certificates'] as List<String>).map(
-          (cert) => Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: _buildCertificateCard(cert, isMobile),
+        _buildEducationCard(education, isMobile),
+        if (certificates.isNotEmpty) ...[
+          const SizedBox(height: 32),
+          _buildSectionTitle('Сертификаты'),
+          const SizedBox(height: 16),
+          ...certificates.map(
+            (cert) => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildCertificateCard(cert.toString(), isMobile),
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -477,7 +626,11 @@ class _PsychologistDetailState extends State<PsychologistDetail>
               color: AppColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Icon(Icons.school_rounded, color: AppColors.primary, size: 32),
+            child: const Icon(
+              Icons.school_rounded,
+              color: AppColors.primary,
+              size: 32,
+            ),
           ),
           const SizedBox(width: 20),
           Expanded(
@@ -504,7 +657,11 @@ class _PsychologistDetailState extends State<PsychologistDetail>
       ),
       child: Row(
         children: [
-          const Icon(Icons.verified_rounded, color: AppColors.primary, size: 28),
+          const Icon(
+            Icons.verified_rounded,
+            color: AppColors.primary,
+            size: 28,
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
@@ -518,8 +675,9 @@ class _PsychologistDetailState extends State<PsychologistDetail>
   }
 
   Widget _buildReviewsTab(bool isMobile) {
-    final reviews = _psychologist['reviewsList'] as List<Map<String, dynamic>>;
-    
+    final rating = (_psychologist?['rating'] ?? 0.0).toDouble();
+    final reviewsCount = _psychologist?['reviewsCount'] ?? 0;
+
     return ListView(
       children: [
         Container(
@@ -531,7 +689,7 @@ class _PsychologistDetailState extends State<PsychologistDetail>
           child: Column(
             children: [
               Text(
-                '${_psychologist['rating']}',
+                rating.toStringAsFixed(1),
                 style: AppTextStyles.h1.copyWith(
                   fontSize: 48,
                   color: AppColors.primary,
@@ -543,7 +701,7 @@ class _PsychologistDetailState extends State<PsychologistDetail>
                 children: List.generate(
                   5,
                   (i) => Icon(
-                    i < _psychologist['rating'].floor()
+                    i < rating.floor()
                         ? Icons.star_rounded
                         : Icons.star_border_rounded,
                     color: AppColors.warning,
@@ -553,7 +711,7 @@ class _PsychologistDetailState extends State<PsychologistDetail>
               ),
               const SizedBox(height: 12),
               Text(
-                '${_psychologist['reviews']} реальных отзывов',
+                '$reviewsCount отзывов',
                 style: AppTextStyles.body1.copyWith(
                   color: AppColors.textSecondary,
                   fontSize: 16,
@@ -563,69 +721,30 @@ class _PsychologistDetailState extends State<PsychologistDetail>
           ),
         ),
         const SizedBox(height: 32),
-        ...reviews.map((review) => Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: _buildReviewCard(review, isMobile),
-            )),
+        Center(
+          child: Text(
+            'Отзывы появятся после первых консультаций',
+            style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildReviewCard(Map<String, dynamic> review, bool isMobile) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundLight,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.inputBorder.withOpacity(0.5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                review['name'],
-                style: AppTextStyles.body1.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-              Text(
-                review['date'],
-                style: AppTextStyles.body2.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: List.generate(
-              5,
-              (i) => Icon(
-                i < review['rating'] ? Icons.star_rounded : Icons.star_border_rounded,
-                color: AppColors.warning,
-                size: 20,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            review['text'],
-            style: AppTextStyles.body1.copyWith(
-              color: AppColors.textSecondary,
-              height: 1.6,
-              fontSize: isMobile ? 16 : 18,
-            ),
-          ),
-        ],
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: AppTextStyles.h3.copyWith(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
       ),
     );
   }
 
   Widget _buildBookingSection(bool isMobile, bool isTablet) {
+    final hourlyRate = (_psychologist?['hourlyRate'] ?? 0).toInt();
+    final isAvailable = _psychologist?['isAvailable'] ?? false;
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
@@ -653,7 +772,7 @@ class _PsychologistDetailState extends State<PsychologistDetail>
           ),
           const SizedBox(height: 24),
           Text(
-            'Запишитесь на первую консультацию и сделайте шаг к лучшей версии себя. ${_psychologist['name']} поможет вам в этом.',
+            'Запишитесь на первую консультацию и сделайте шаг к лучшей версии себя.',
             style: AppTextStyles.body1.copyWith(
               fontSize: isMobile ? 16 : 18,
               color: AppColors.textSecondary,
@@ -662,41 +781,75 @@ class _PsychologistDetailState extends State<PsychologistDetail>
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'от ${_psychologist['price']} ₸ / ${_psychologist['sessionDuration']}',
-                style: AppTextStyles.h3.copyWith(
-                  fontSize: 24,
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
+          if (hourlyRate > 0)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'от $hourlyRate ₸',
+                  style: AppTextStyles.h3.copyWith(
+                    fontSize: 24,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
-          ),
+                Text(
+                  ' / час',
+                  style: AppTextStyles.body1.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           const SizedBox(height: 32),
           SizedBox(
             width: isMobile ? double.infinity : 320,
             height: 56,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: isAvailable ? _handleBooking : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                disabledBackgroundColor: AppColors.textTertiary,
+                disabledForegroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 elevation: 0,
               ),
-              child: Text(
-                'Записаться на консультацию',
-                style: AppTextStyles.body1.copyWith(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    isAvailable ? Icons.calendar_month : Icons.lock_outline,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    isAvailable ? 'Записаться на консультацию' : 'Недоступен',
+                    style: AppTextStyles.body1.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
+          if (!isAvailable) ...[
+            const SizedBox(height: 16),
+            Text(
+              'Психолог временно не принимает новых клиентов',
+              style: AppTextStyles.body2.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
         ],
       ),
     );
