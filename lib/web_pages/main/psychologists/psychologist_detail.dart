@@ -743,7 +743,7 @@ class _PsychologistDetailState extends State<PsychologistDetail>
 
   Widget _buildBookingSection(bool isMobile, bool isTablet) {
     final hourlyRate = (_psychologist?['hourlyRate'] ?? 0).toInt();
-    final isAvailable = _psychologist?['isAvailable'] ?? false;
+    final isAvailable = _psychologist?['isAvailable'] ?? true;
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -830,7 +830,7 @@ class _PsychologistDetailState extends State<PsychologistDetail>
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    isAvailable ? 'Записаться на консультацию' : 'Недоступен',
+                    isAvailable ? 'Записаться на консультацию' : 'Недоступно',
                     style: AppTextStyles.body1.copyWith(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

@@ -101,7 +101,7 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
 
         // Фильтр по доступности
         if (_showOnlyAvailable) {
-          final isAvailable = psychologist['isAvailable'] ?? false;
+          final isAvailable = psychologist['isAvailable'] ?? true;
           if (!isAvailable) {
             return false;
           }
@@ -425,7 +425,7 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
   }
 
   Widget _buildPsychologistCard(Map<String, dynamic> psychologist) {
-    final bool isAvailable = psychologist['isAvailable'] ?? false;
+    final bool isAvailable = psychologist['isAvailable'] ?? true;
     final String? avatarUrl = psychologist['avatarUrl'];
     final String fullName = psychologist['fullName'] ?? 'Неизвестно';
     final String specialization = psychologist['specialization'] ?? '';
@@ -617,7 +617,7 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
                           ),
                         ),
                         child: Text(
-                          isAvailable ? 'Записаться' : 'Недоступен',
+                          isAvailable ? 'Записаться' : 'Недоступно',
                           style: AppTextStyles.button,
                         ),
                       ),

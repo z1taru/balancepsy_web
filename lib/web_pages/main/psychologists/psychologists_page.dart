@@ -32,170 +32,14 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
   ];
 
   final List<String> _experiences = ['Любой', '1-3 года', '3-5 лет', '5+ лет'];
-  final List<String> _prices = ['Любая', 'до 10 000 ₸', '10-15 000 ₸', '15 000+ ₸'];
-
-  final List<Map<String, dynamic>> _psychologists = [
-    {
-      'id': '1',
-      'name': 'Галия Аубакирова',
-      'photo': 'assets/images/main_page/galiya1.png',
-      'specialization': 'Когнитивно-поведенческая терапия',
-      'experience': '8 лет',
-      'experienceNum': 8,
-      'rating': 4.9,
-      'reviews': 127,
-      'price': '15 000',
-      'priceNum': 15000,
-      'education': 'КазНУ им. Аль-Фараби, психология',
-      'certificates': ['КПТ-терапевт', 'Гештальт-терапия'],
-      'helps': ['Тревожность', 'Депрессия', 'Панические атаки', 'ОКР', 'Фобии'],
-      'description': 'Помогаю справиться с тревожностью, депрессией и паническими атаками. Работаю в подходе когнитивно-поведенческой терапии.',
-      'languages': ['Русский', 'Казахский', 'Английский'],
-      'sessionDuration': '50 минут',
-      'tags': ['Топ-специалист', 'Эксперт КПТ'],
-      'available': true,
-    },
-    {
-      'id': '2',
-      'name': 'Яна Прозорова',
-      'photo': 'assets/images/main_page/yana1.png',
-      'specialization': 'Семейная и парная терапия',
-      'experience': '10 лет',
-      'experienceNum': 10,
-      'rating': 5.0,
-      'reviews': 203,
-      'price': '18 000',
-      'priceNum': 18000,
-      'education': 'МГУ им. Ломоносова, клиническая психология',
-      'certificates': ['Семейный психолог', 'Эмоционально-фокусированная терапия'],
-      'helps': ['Отношения', 'Семейные конфликты', 'Развод', 'Измена', 'Коммуникация'],
-      'description': 'Специализируюсь на работе с парами и семьями. Помогаю восстановить близость и найти взаимопонимание.',
-      'languages': ['Русский', 'Английский'],
-      'sessionDuration': '60 минут',
-      'tags': ['Семейный психолог', 'ЭФТ эксперт'],
-      'available': true,
-    },
-    {
-      'id': '3',
-      'name': 'Лаура Болдина',
-      'photo': 'assets/images/main_page/laura1.png',
-      'specialization': 'Психотерапия самооценки',
-      'experience': '7 лет',
-      'experienceNum': 7,
-      'rating': 4.8,
-      'reviews': 95,
-      'price': '14 000',
-      'priceNum': 14000,
-      'education': 'НИУ ВШЭ, психология личности',
-      'certificates': ['Позитивная психотерапия', 'Арт-терапия'],
-      'helps': ['Самооценка', 'Уверенность в себе', 'Самопознание', 'Кризис идентичности'],
-      'description': 'Работаю с вопросами самооценки, помогаю обрести уверенность и найти себя.',
-      'languages': ['Русский', 'Казахский'],
-      'sessionDuration': '50 минут',
-      'tags': ['Эксперт по самооценке'],
-      'available': true,
-    },
-    {
-      'id': '4',
-      'name': 'Алдияр Нурланов',
-      'photo': 'assets/images/avatar/aldiyar.png',
-      'specialization': 'Стресс-менеджмент',
-      'experience': '6 лет',
-      'experienceNum': 6,
-      'rating': 4.7,
-      'reviews': 78,
-      'price': '13 000',
-      'priceNum': 13000,
-      'education': 'КБТУ, организационная психология',
-      'certificates': ['Коуч ICC', 'Mindfulness-практик'],
-      'helps': ['Стресс', 'Выгорание', 'Карьера', 'Work-life баланс'],
-      'description': 'Специализируюсь на работе со стрессом и профессиональным выгоранием.',
-      'languages': ['Русский', 'Казахский', 'Английский'],
-      'sessionDuration': '50 минут',
-      'tags': ['Стресс-коуч', 'Mindfulness'],
-      'available': true,
-    },
-    {
-      'id': '5',
-      'name': 'Диана Жумабаева',
-      'photo': 'assets/images/avatar/diana.png',
-      'specialization': 'Детская психология',
-      'experience': '9 лет',
-      'experienceNum': 9,
-      'rating': 4.9,
-      'reviews': 156,
-      'price': '16 000',
-      'priceNum': 16000,
-      'education': 'КазНПУ им. Абая, педагогическая психология',
-      'certificates': ['Детский психолог', 'Игровая терапия'],
-      'helps': ['Детские страхи', 'Поведение', 'Развитие', 'Подростки'],
-      'description': 'Работаю с детьми и подростками. Помогаю справиться со страхами и эмоциональным состоянием.',
-      'languages': ['Русский', 'Казахский'],
-      'sessionDuration': '45 минут',
-      'tags': ['Детский психолог', 'Игровая терапия'],
-      'available': true,
-    },
-    {
-      'id': '6',
-      'name': 'Айгерим Сарсенова',
-      'photo': 'assets/images/avatar/aigerim.png',
-      'specialization': 'Гештальт-терапия',
-      'experience': '5 лет',
-      'experienceNum': 5,
-      'rating': 4.6,
-      'reviews': 64,
-      'price': '12 000',
-      'priceNum': 12000,
-      'education': 'ЕНУ им. Гумилева, клиническая психология',
-      'certificates': ['Гештальт-терапевт', 'Телесно-ориентированная терапия'],
-      'helps': ['Эмоции', 'Самопознание', 'Отношения', 'Личные границы'],
-      'description': 'Помогаю понять свои эмоции и потребности, выстроить здоровые отношения.',
-      'languages': ['Русский', 'Казахский', 'Турецкий'],
-      'sessionDuration': '50 минут',
-      'tags': ['Гештальт-терапевт'],
-      'available': false,
-    },
-    {
-      'id': '7',
-      'name': 'Арман Касымов',
-      'photo': 'assets/images/psychologists/arman.png',
-      'specialization': 'Тревога и панические атаки',
-      'experience': '4 года',
-      'experienceNum': 4,
-      'rating': 4.5,
-      'reviews': 42,
-      'price': '11 000',
-      'priceNum': 11000,
-      'education': 'КазНУ им. Аль-Фараби, клиническая психология',
-      'certificates': ['КПТ-терапевт', 'EMDR-практик'],
-      'helps': ['Тревожность', 'Панические атаки', 'Фобии', 'Посттравматическое расстройство'],
-      'description': 'Специализируюсь на работе с тревогой, паническими атаками и травмой.',
-      'languages': ['Русский', 'Казахский'],
-      'sessionDuration': '50 минут',
-      'tags': ['EMDR', 'Тревога'],
-      'available': true,
-    },
-    {
-      'id': '8',
-      'name': 'Сауле Исмаилова',
-      'photo': 'assets/images/psychologists/saule.png',
-      'specialization': 'Эмоциональный интеллект',
-      'experience': '12 лет',
-      'experienceNum': 12,
-      'rating': 4.9,
-      'reviews': 189,
-      'price': '20 000',
-      'priceNum': 20000,
-      'education': 'МГУ им. Ломоносова, психология',
-      'certificates': ['EQ-коуч', 'Нейропсихолог'],
-      'helps': ['Эмоциональный интеллект', 'Саморегуляция', 'Эмпатия', 'Коммуникация'],
-      'description': 'Помогаю развить эмоциональный интеллект и навыки саморегуляции.',
-      'languages': ['Русский', 'Казахский', 'Английский'],
-      'sessionDuration': '60 минут',
-      'tags': ['Топ-специалист', 'EQ эксперт'],
-      'available': true,
-    },
+  final List<String> _prices = [
+    'Любая',
+    'до 10 000 ₸',
+    '10-15 000 ₸',
+    '15 000+ ₸',
   ];
+
+  final List<Map<String, dynamic>> _psychologists = [];
 
   List<Map<String, dynamic>> get _filteredPsychologists {
     List<Map<String, dynamic>> result = List.from(_psychologists);
@@ -221,7 +65,8 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
       result = result.where((p) {
         final price = p['priceNum'] as int;
         if (_selectedPrice == 'до 10 000 ₸') return price <= 10000;
-        if (_selectedPrice == '10-15 000 ₸') return price > 10000 && price <= 15000;
+        if (_selectedPrice == '10-15 000 ₸')
+          return price > 10000 && price <= 15000;
         if (_selectedPrice == '15 000+ ₸') return price > 15000;
         return true;
       }).toList();
@@ -247,15 +92,14 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
     return PageWrapper(
       currentRoute: AppRouter.psychologists,
       child: Column(
-              children: [
-                _buildHeroSection(isMobile, isTablet),
-                _buildStatsSection(isMobile, isTablet),
-                _buildFiltersSection(isMobile, isTablet),
-                _buildPsychologistsGrid(isMobile, isTablet),
-                _buildCTASection(isMobile, isTablet),
-              ],
-            ),
-
+        children: [
+          _buildHeroSection(isMobile, isTablet),
+          _buildStatsSection(isMobile, isTablet),
+          _buildFiltersSection(isMobile, isTablet),
+          _buildPsychologistsGrid(isMobile, isTablet),
+          _buildCTASection(isMobile, isTablet),
+        ],
+      ),
     );
   }
 
@@ -362,10 +206,26 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
               runSpacing: 24,
               alignment: WrapAlignment.center,
               children: [
-                _buildHeroFeature('🎯', 'Индивидуальный подбор', 'под ваш запрос и цели'),
-                _buildHeroFeature('⭐', 'Только проверенные', 'специалисты с опытом 3+ лет'),
-                _buildHeroFeature('💼', 'Лицензии и сертификаты', 'подтвержденная квалификация'),
-                _buildHeroFeature('💬', 'Бесплатная поддержка', 'помощь с выбором психолога'),
+                _buildHeroFeature(
+                  '🎯',
+                  'Индивидуальный подбор',
+                  'под ваш запрос и цели',
+                ),
+                _buildHeroFeature(
+                  '⭐',
+                  'Только проверенные',
+                  'специалисты с опытом 3+ лет',
+                ),
+                _buildHeroFeature(
+                  '💼',
+                  'Лицензии и сертификаты',
+                  'подтвержденная квалификация',
+                ),
+                _buildHeroFeature(
+                  '💬',
+                  'Бесплатная поддержка',
+                  'помощь с выбором психолога',
+                ),
               ],
             ),
         ],
@@ -567,7 +427,9 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                     label: Text(spec),
                     selected: isSelected,
                     onSelected: (selected) {
-                      setState(() => _selectedSpecialization = selected ? spec : 'Все');
+                      setState(
+                        () => _selectedSpecialization = selected ? spec : 'Все',
+                      );
                     },
                     backgroundColor: Colors.white,
                     selectedColor: AppColors.primary,
@@ -578,7 +440,9 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                       side: BorderSide(
-                        color: isSelected ? AppColors.primary : AppColors.inputBorder,
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.inputBorder,
                       ),
                     ),
                     checkmarkColor: Colors.white,
@@ -613,18 +477,26 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                             label: Text(exp),
                             selected: isSelected,
                             onSelected: (selected) {
-                              setState(() => _selectedExperience = selected ? exp : 'Любой');
+                              setState(
+                                () => _selectedExperience = selected
+                                    ? exp
+                                    : 'Любой',
+                              );
                             },
                             backgroundColor: Colors.white,
                             selectedColor: AppColors.primary,
                             labelStyle: AppTextStyles.body1.copyWith(
-                              color: isSelected ? Colors.white : AppColors.textPrimary,
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppColors.textPrimary,
                               fontWeight: FontWeight.w500,
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                               side: BorderSide(
-                                color: isSelected ? AppColors.primary : AppColors.inputBorder,
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : AppColors.inputBorder,
                               ),
                             ),
                             checkmarkColor: Colors.white,
@@ -655,18 +527,25 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                             label: Text(price),
                             selected: isSelected,
                             onSelected: (selected) {
-                              setState(() => _selectedPrice = selected ? price : 'Любая');
+                              setState(
+                                () =>
+                                    _selectedPrice = selected ? price : 'Любая',
+                              );
                             },
                             backgroundColor: Colors.white,
                             selectedColor: AppColors.primary,
                             labelStyle: AppTextStyles.body1.copyWith(
-                              color: isSelected ? Colors.white : AppColors.textPrimary,
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppColors.textPrimary,
                               fontWeight: FontWeight.w500,
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                               side: BorderSide(
-                                color: isSelected ? AppColors.primary : AppColors.inputBorder,
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : AppColors.inputBorder,
                               ),
                             ),
                             checkmarkColor: Colors.white,
@@ -702,18 +581,26 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                           label: Text(exp),
                           selected: isSelected,
                           onSelected: (selected) {
-                            setState(() => _selectedExperience = selected ? exp : 'Любой');
+                            setState(
+                              () => _selectedExperience = selected
+                                  ? exp
+                                  : 'Любой',
+                            );
                           },
                           backgroundColor: Colors.white,
                           selectedColor: AppColors.primary,
                           labelStyle: AppTextStyles.body1.copyWith(
-                            color: isSelected ? Colors.white : AppColors.textPrimary,
+                            color: isSelected
+                                ? Colors.white
+                                : AppColors.textPrimary,
                             fontWeight: FontWeight.w500,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                             side: BorderSide(
-                              color: isSelected ? AppColors.primary : AppColors.inputBorder,
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.inputBorder,
                             ),
                           ),
                           checkmarkColor: Colors.white,
@@ -743,18 +630,24 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                           label: Text(price),
                           selected: isSelected,
                           onSelected: (selected) {
-                            setState(() => _selectedPrice = selected ? price : 'Любая');
+                            setState(
+                              () => _selectedPrice = selected ? price : 'Любая',
+                            );
                           },
                           backgroundColor: Colors.white,
                           selectedColor: AppColors.primary,
                           labelStyle: AppTextStyles.body1.copyWith(
-                            color: isSelected ? Colors.white : AppColors.textPrimary,
+                            color: isSelected
+                                ? Colors.white
+                                : AppColors.textPrimary,
                             fontWeight: FontWeight.w500,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                             side: BorderSide(
-                              color: isSelected ? AppColors.primary : AppColors.inputBorder,
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.inputBorder,
                             ),
                           ),
                           checkmarkColor: Colors.white,
@@ -803,7 +696,10 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
               ),
               if (!isMobile)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -829,14 +725,13 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                     crossAxisSpacing: isMobile ? 0 : 24,
                     mainAxisSpacing: isMobile ? 24 : 32,
                     childAspectRatio: isMobile ? 1.3 : 0.85,
-                    mainAxisExtent: isMobile ? null : 520, // Фиксированная высота для десктопа
+                    mainAxisExtent: isMobile
+                        ? null
+                        : 520, // Фиксированная высота для десктопа
                   ),
                   itemCount: filtered.length,
                   itemBuilder: (context, index) {
-                    return _buildPsychologistCard(
-                      filtered[index],
-                      isMobile,
-                    );
+                    return _buildPsychologistCard(filtered[index], isMobile);
                   },
                 ),
         ],
@@ -846,7 +741,9 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
 
   String _getCorrectWord(int count) {
     if (count % 10 == 1 && count % 100 != 11) return 'психолог';
-    if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) {
+    if (count % 10 >= 2 &&
+        count % 10 <= 4 &&
+        (count % 100 < 10 || count % 100 >= 20)) {
       return 'психолога';
     }
     return 'психологов';
@@ -899,9 +796,12 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
     );
   }
 
-  Widget _buildPsychologistCard(Map<String, dynamic> psychologist, bool isMobile) {
+  Widget _buildPsychologistCard(
+    Map<String, dynamic> psychologist,
+    bool isMobile,
+  ) {
     final isAvailable = psychologist['available'] as bool;
-    
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -923,7 +823,9 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
             child: Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
                   child: Image.asset(
                     psychologist['photo'],
                     width: double.infinity,
@@ -952,7 +854,10 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                     children: [
                       if (!isAvailable)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.error.withOpacity(0.9),
                             borderRadius: BorderRadius.circular(30),
@@ -968,7 +873,10 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                         ),
                       ...(psychologist['tags'] as List<String>).map((tag) {
                         return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.9),
                             borderRadius: BorderRadius.circular(30),
@@ -991,7 +899,10 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                   top: 16,
                   right: 16,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(30),
@@ -999,7 +910,11 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.star_rounded, color: AppColors.warning, size: 16),
+                        Icon(
+                          Icons.star_rounded,
+                          color: AppColors.warning,
+                          size: 16,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '${psychologist['rating']}',
@@ -1078,8 +993,11 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.work_history_outlined,
-                                      size: 16, color: AppColors.textSecondary),
+                                  Icon(
+                                    Icons.work_history_outlined,
+                                    size: 16,
+                                    color: AppColors.textSecondary,
+                                  ),
                                   const SizedBox(width: 6),
                                   Text(
                                     psychologist['experience'],
@@ -1093,8 +1011,11 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  Icon(Icons.message_outlined,
-                                      size: 16, color: AppColors.textSecondary),
+                                  Icon(
+                                    Icons.message_outlined,
+                                    size: 16,
+                                    color: AppColors.textSecondary,
+                                  ),
                                   const SizedBox(width: 6),
                                   Text(
                                     '${psychologist['reviews']} отзывов',
@@ -1145,7 +1066,9 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                               : null,
                           isPrimary: isAvailable,
                           isFullWidth: true,
-                          icon: isAvailable ? Icons.arrow_forward_rounded : null,
+                          icon: isAvailable
+                              ? Icons.arrow_forward_rounded
+                              : null,
                         ),
                       ),
                     ],
