@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'theme/app_colors.dart';
 import 'core/router/app_router.dart';
-import 'widgets/web_layout.dart'; // ← Импорт WebLayout
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -81,10 +80,10 @@ class _BalancePsyAppState extends State<BalancePsyApp> {
       initialRoute: AppRouter.home,
       onGenerateRoute: AppRouter.generateRoute,
 
-      // ✅ КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: применяем WebLayout глобально
-      builder: (context, child) {
-        return WebLayout(child: child ?? const SizedBox.shrink());
-      },
+      // ❌ НЕ применяем builder — страницы сами управляют layout
+      // Каждая секция решает:
+      // - Background (width: double.infinity) — на весь экран
+      // - Content (WebLayout.content) — ограничен 1120px
     );
   }
 }

@@ -1,25 +1,43 @@
 import 'package:flutter/material.dart';
 
-class WebLayout extends StatelessWidget {
-  final Widget child;
+/// Helper для создания full-width layout с контентом в 1120px
+///
+/// Использование:
+/// ```dart
+/// Container(
+///   width: double.infinity, // фон на весь экран
+///   color: Colors.blue,
+///   child: WebLayout.content(
+///     padding: EdgeInsets.all(80),
+///     child: YourContent(),
+///   ),
+/// )
+/// ```
+class WebLayout {
+  /// Оборачивает контент в Container с maxWidth: 1120px
+  /// и центрирует его
+  static Widget content({required Widget child, EdgeInsetsGeometry? padding}) {
+    return Builder(
+      builder: (context) {
+        final width = MediaQuery.of(context).size.width;
 
-  const WebLayout({super.key, required this.child});
+        // На мобильных не ограничиваем
+        if (width < 768) {
+          return padding != null
+              ? Padding(padding: padding, child: child)
+              : child;
+        }
 
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-
-    // На мобильных не ограничиваем ширину
-    if (width < 768) {
-      return child;
-    }
-
-    // На десктопе применяем maxWidth: 1120
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1120),
-        child: child,
-      ),
+        // На десктопе ограничиваем 1120px и центрируем
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1120),
+            child: padding != null
+                ? Padding(padding: padding, child: child)
+                : child,
+          ),
+        );
+      },
     );
   }
 }

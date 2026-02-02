@@ -4,6 +4,7 @@ import '../../../widgets/page_wrapper.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../core/router/app_router.dart';
+import '../../../widgets/web_layout.dart';
 import '../../../widgets/custom_button.dart';
 
 class PsychologistsPage extends StatefulWidget {
@@ -107,10 +108,7 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
     final isDesktop = !isMobile && !isTablet;
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
-        vertical: isMobile ? 60 : 80,
-      ),
+      width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -121,114 +119,120 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
           ],
         ),
       ),
-      child: Column(
-        children: [
-          if (isDesktop)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  flex: 6,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeroTag(),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Наши психологи — ваши проводники к балансу',
-                        style: AppTextStyles.h1.copyWith(
-                          fontSize: 48,
-                          fontWeight: FontWeight.w800,
-                          height: 1.1,
+      child: WebLayout.content(
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
+          vertical: isMobile ? 60 : 80,
+        ),
+        child: Column(
+          children: [
+            if (isDesktop)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    flex: 6,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeroTag(),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Наши психологи — ваши проводники к балансу',
+                          style: AppTextStyles.h1.copyWith(
+                            fontSize: 48,
+                            fontWeight: FontWeight.w800,
+                            height: 1.1,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Каждый специалист проходит строгий отбор, имеет высшее образование, сертификаты и регулярно повышает квалификацию. Мы подберем психолога именно под ваш запрос.',
-                        style: AppTextStyles.body1.copyWith(
-                          fontSize: 20,
-                          color: AppColors.textSecondary,
-                          height: 1.6,
+                        const SizedBox(height: 24),
+                        Text(
+                          'Каждый специалист проходит строгий отбор, имеет высшее образование, сертификаты и регулярно повышает квалификацию. Мы подберем психолога именно под ваш запрос.',
+                          style: AppTextStyles.body1.copyWith(
+                            fontSize: 20,
+                            color: AppColors.textSecondary,
+                            height: 1.6,
+                          ),
                         ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    flex: 5,
+                    child: SizedBox(
+                      height: 600,
+                      child: SvgPicture.asset(
+                        'assets/images/main_page/woman.svg',
+                        fit: BoxFit.contain,
+                        alignment: Alignment.centerRight,
                       ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  flex: 5,
-                  child: SizedBox(
-                    height: 600,
-                    child: SvgPicture.asset(
-                      'assets/images/main_page/woman.svg',
-                      fit: BoxFit.contain,
-                      alignment: Alignment.centerRight,
                     ),
                   ),
-                ),
-              ],
-            )
-          else
-            Column(
-              children: [
-                _buildHeroTag(),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: Text(
-                    'Наши психологи — ваши проводники к балансу',
-                    style: AppTextStyles.h1.copyWith(
-                      fontSize: isMobile ? 32 : 48,
-                      fontWeight: FontWeight.w800,
-                      height: 1.1,
+                ],
+              )
+            else
+              Column(
+                children: [
+                  _buildHeroTag(),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      'Наши психологи — ваши проводники к балансу',
+                      style: AppTextStyles.h1.copyWith(
+                        fontSize: isMobile ? 32 : 48,
+                        fontWeight: FontWeight.w800,
+                        height: 1.1,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: Text(
-                    'Каждый специалист проходит строгий отбор, имеет высшее образование, сертификаты и регулярно повышает квалификацию. Мы подберем психолога именно под ваш запрос.',
-                    style: AppTextStyles.body1.copyWith(
-                      fontSize: isMobile ? 18 : 20,
-                      color: AppColors.textSecondary,
-                      height: 1.6,
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      'Каждый специалист проходит строгий отбор, имеет высшее образование, сертификаты и регулярно повышает квалификацию. Мы подберем психолога именно под ваш запрос.',
+                      style: AppTextStyles.body1.copyWith(
+                        fontSize: isMobile ? 18 : 20,
+                        color: AppColors.textSecondary,
+                        height: 1.6,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                ),
-              ],
-            ),
-          const SizedBox(height: 60),
-          if (!isMobile)
-            Wrap(
-              spacing: 24,
-              runSpacing: 24,
-              alignment: WrapAlignment.center,
-              children: [
-                _buildHeroFeature(
-                  '🎯',
-                  'Индивидуальный подбор',
-                  'под ваш запрос и цели',
-                ),
-                _buildHeroFeature(
-                  '⭐',
-                  'Только проверенные',
-                  'специалисты с опытом 3+ лет',
-                ),
-                _buildHeroFeature(
-                  '💼',
-                  'Лицензии и сертификаты',
-                  'подтвержденная квалификация',
-                ),
-                _buildHeroFeature(
-                  '💬',
-                  'Бесплатная поддержка',
-                  'помощь с выбором психолога',
-                ),
-              ],
-            ),
-        ],
+                ],
+              ),
+            const SizedBox(height: 60),
+            if (!isMobile)
+              Wrap(
+                spacing: 24,
+                runSpacing: 24,
+                alignment: WrapAlignment.center,
+                children: [
+                  _buildHeroFeature(
+                    '🎯',
+                    'Индивидуальный подбор',
+                    'под ваш запрос и цели',
+                  ),
+                  _buildHeroFeature(
+                    '⭐',
+                    'Только проверенные',
+                    'специалисты с опытом 3+ лет',
+                  ),
+                  _buildHeroFeature(
+                    '💼',
+                    'Лицензии и сертификаты',
+                    'подтвержденная квалификация',
+                  ),
+                  _buildHeroFeature(
+                    '💬',
+                    'Бесплатная поддержка',
+                    'помощь с выбором психолога',
+                  ),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -295,25 +299,28 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
 
   Widget _buildStatsSection(bool isMobile, bool isTablet) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
-        vertical: 40,
-      ),
+      width: double.infinity,
       color: Colors.white,
-      child: Wrap(
-        spacing: isMobile ? 20 : 40,
-        runSpacing: 20,
-        alignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          _buildStatItem('${_psychologists.length}', 'Психологов в команде'),
-          Container(width: 1, height: 40, color: AppColors.inputBorder),
-          _buildStatItem('1500+', 'Консультаций в месяц'),
-          Container(width: 1, height: 40, color: AppColors.inputBorder),
-          _buildStatItem('4.8', 'Средний рейтинг'),
-          Container(width: 1, height: 40, color: AppColors.inputBorder),
-          _buildStatItem('98%', 'Довольных клиентов'),
-        ],
+      child: WebLayout.content(
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
+          vertical: 40,
+        ),
+        child: Wrap(
+          spacing: isMobile ? 20 : 40,
+          runSpacing: 20,
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            _buildStatItem('${_psychologists.length}', 'Психологов в команде'),
+            Container(width: 1, height: 40, color: AppColors.inputBorder),
+            _buildStatItem('1500+', 'Консультаций в месяц'),
+            Container(width: 1, height: 40, color: AppColors.inputBorder),
+            _buildStatItem('4.8', 'Средний рейтинг'),
+            Container(width: 1, height: 40, color: AppColors.inputBorder),
+            _buildStatItem('98%', 'Довольных клиентов'),
+          ],
+        ),
       ),
     );
   }
@@ -348,117 +355,230 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
 
   Widget _buildFiltersSection(bool isMobile, bool isTablet) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
-        vertical: 40,
-      ),
+      width: double.infinity,
       color: AppColors.backgroundLight,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Найдите своего психолога',
-                      style: AppTextStyles.h2.copyWith(
-                        fontSize: isMobile ? 28 : 36,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Отфильтруйте специалистов по нужным критериям',
-                      style: AppTextStyles.body1.copyWith(
-                        color: AppColors.textSecondary,
-                        fontSize: isMobile ? 16 : 18,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (!isMobile)
-                Padding(
-                  padding: const EdgeInsets.only(left: 20),
-                  child: TextButton(
-                    onPressed: _resetFilters,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.refresh, size: 18, color: AppColors.primary),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Сбросить фильтры',
-                          style: AppTextStyles.body1.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          // Специализации
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Специализация',
-                style: AppTextStyles.body1.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: _specializations.map((spec) {
-                  final isSelected = spec == _selectedSpecialization;
-                  return FilterChip(
-                    label: Text(spec),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(
-                        () => _selectedSpecialization = selected ? spec : 'Все',
-                      );
-                    },
-                    backgroundColor: Colors.white,
-                    selectedColor: AppColors.primary,
-                    labelStyle: AppTextStyles.body1.copyWith(
-                      color: isSelected ? Colors.white : AppColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      side: BorderSide(
-                        color: isSelected
-                            ? AppColors.primary
-                            : AppColors.inputBorder,
-                      ),
-                    ),
-                    checkmarkColor: Colors.white,
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          // Опыт и цена
-          if (!isMobile)
+      child: WebLayout.content(
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
+          vertical: 40,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Найдите своего психолога',
+                        style: AppTextStyles.h2.copyWith(
+                          fontSize: isMobile ? 28 : 36,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Отфильтруйте специалистов по нужным критериям',
+                        style: AppTextStyles.body1.copyWith(
+                          color: AppColors.textSecondary,
+                          fontSize: isMobile ? 16 : 18,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (!isMobile)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: TextButton(
+                      onPressed: _resetFilters,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.refresh,
+                            size: 18,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Сбросить фильтры',
+                            style: AppTextStyles.body1.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            // Специализации
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Специализация',
+                  style: AppTextStyles.body1.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: _specializations.map((spec) {
+                    final isSelected = spec == _selectedSpecialization;
+                    return FilterChip(
+                      label: Text(spec),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(
+                          () =>
+                              _selectedSpecialization = selected ? spec : 'Все',
+                        );
+                      },
+                      backgroundColor: Colors.white,
+                      selectedColor: AppColors.primary,
+                      labelStyle: AppTextStyles.body1.copyWith(
+                        color: isSelected
+                            ? Colors.white
+                            : AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        side: BorderSide(
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.inputBorder,
+                        ),
+                      ),
+                      checkmarkColor: Colors.white,
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            // Опыт и цена
+            if (!isMobile)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Опыт работы',
+                          style: AppTextStyles.body1.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 12,
+                          children: _experiences.map((exp) {
+                            final isSelected = exp == _selectedExperience;
+                            return FilterChip(
+                              label: Text(exp),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(
+                                  () => _selectedExperience = selected
+                                      ? exp
+                                      : 'Любой',
+                                );
+                              },
+                              backgroundColor: Colors.white,
+                              selectedColor: AppColors.primary,
+                              labelStyle: AppTextStyles.body1.copyWith(
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppColors.textPrimary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : AppColors.inputBorder,
+                                ),
+                              ),
+                              checkmarkColor: Colors.white,
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 40),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Цена за сессию',
+                          style: AppTextStyles.body1.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 12,
+                          children: _prices.map((price) {
+                            final isSelected = price == _selectedPrice;
+                            return FilterChip(
+                              label: Text(price),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(
+                                  () => _selectedPrice = selected
+                                      ? price
+                                      : 'Любая',
+                                );
+                              },
+                              backgroundColor: Colors.white,
+                              selectedColor: AppColors.primary,
+                              labelStyle: AppTextStyles.body1.copyWith(
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppColors.textPrimary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : AppColors.inputBorder,
+                                ),
+                              ),
+                              checkmarkColor: Colors.white,
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -471,6 +591,7 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 12,
+                        runSpacing: 12,
                         children: _experiences.map((exp) {
                           final isSelected = exp == _selectedExperience;
                           return FilterChip(
@@ -505,10 +626,8 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 40),
-                Expanded(
-                  child: Column(
+                  const SizedBox(height: 24),
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -521,6 +640,7 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 12,
+                        runSpacing: 12,
                         children: _prices.map((price) {
                           final isSelected = price == _selectedPrice;
                           return FilterChip(
@@ -554,122 +674,21 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                       ),
                     ],
                   ),
-                ),
-              ],
-            )
-          else
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Опыт работы',
-                      style: AppTextStyles.body1.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: _experiences.map((exp) {
-                        final isSelected = exp == _selectedExperience;
-                        return FilterChip(
-                          label: Text(exp),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setState(
-                              () => _selectedExperience = selected
-                                  ? exp
-                                  : 'Любой',
-                            );
-                          },
-                          backgroundColor: Colors.white,
-                          selectedColor: AppColors.primary,
-                          labelStyle: AppTextStyles.body1.copyWith(
-                            color: isSelected
-                                ? Colors.white
-                                : AppColors.textPrimary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            side: BorderSide(
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.inputBorder,
-                            ),
-                          ),
-                          checkmarkColor: Colors.white,
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Цена за сессию',
-                      style: AppTextStyles.body1.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: _prices.map((price) {
-                        final isSelected = price == _selectedPrice;
-                        return FilterChip(
-                          label: Text(price),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setState(
-                              () => _selectedPrice = selected ? price : 'Любая',
-                            );
-                          },
-                          backgroundColor: Colors.white,
-                          selectedColor: AppColors.primary,
-                          labelStyle: AppTextStyles.body1.copyWith(
-                            color: isSelected
-                                ? Colors.white
-                                : AppColors.textPrimary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            side: BorderSide(
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.inputBorder,
-                            ),
-                          ),
-                          checkmarkColor: Colors.white,
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          const SizedBox(height: 32),
-          if (isMobile)
-            Center(
-              child: CustomButton(
-                text: 'Сбросить фильтры',
-                onPressed: _resetFilters,
-                isPrimary: false,
-                isFullWidth: false,
-                icon: Icons.refresh,
+                ],
               ),
-            ),
-        ],
+            const SizedBox(height: 32),
+            if (isMobile)
+              Center(
+                child: CustomButton(
+                  text: 'Сбросить фильтры',
+                  onPressed: _resetFilters,
+                  isPrimary: false,
+                  isFullWidth: false,
+                  icon: Icons.refresh,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -678,63 +697,66 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
     final filtered = _filteredPsychologists;
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
-        vertical: isMobile ? 40 : 60,
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${filtered.length} ${_getCorrectWord(filtered.length)}',
-                style: AppTextStyles.h2.copyWith(
-                  fontSize: isMobile ? 28 : 36,
-                  fontWeight: FontWeight.w700,
+      width: double.infinity,
+      child: WebLayout.content(
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
+          vertical: isMobile ? 40 : 60,
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${filtered.length} ${_getCorrectWord(filtered.length)}',
+                  style: AppTextStyles.h2.copyWith(
+                    fontSize: isMobile ? 28 : 36,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              if (!isMobile)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${filtered.length} из ${_psychologists.length}',
-                    style: AppTextStyles.body1.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
+                if (!isMobile)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${filtered.length} из ${_psychologists.length}',
+                      style: AppTextStyles.body1.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          filtered.isEmpty
-              ? _buildEmptyState(isMobile)
-              : GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: isMobile ? 1 : (isTablet ? 2 : 3),
-                    crossAxisSpacing: isMobile ? 0 : 24,
-                    mainAxisSpacing: isMobile ? 24 : 32,
-                    childAspectRatio: isMobile ? 1.3 : 0.85,
-                    mainAxisExtent: isMobile
-                        ? null
-                        : 520, // Фиксированная высота для десктопа
+              ],
+            ),
+            const SizedBox(height: 32),
+            filtered.isEmpty
+                ? _buildEmptyState(isMobile)
+                : GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: isMobile ? 1 : (isTablet ? 2 : 3),
+                      crossAxisSpacing: isMobile ? 0 : 24,
+                      mainAxisSpacing: isMobile ? 24 : 32,
+                      childAspectRatio: isMobile ? 1.3 : 0.85,
+                      mainAxisExtent: isMobile
+                          ? null
+                          : 520, // Фиксированная высота для десктопа
+                    ),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      return _buildPsychologistCard(filtered[index], isMobile);
+                    },
                   ),
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    return _buildPsychologistCard(filtered[index], isMobile);
-                  },
-                ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1084,10 +1106,7 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
 
   Widget _buildCTASection(bool isMobile, bool isTablet) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
-        vertical: isMobile ? 60 : 80,
-      ),
+      width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -1098,77 +1117,83 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
           ],
         ),
       ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.shadow.withOpacity(0.1),
-                  blurRadius: 32,
-                  offset: const Offset(0, 12),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: Text(
-                    'Нужна помощь с выбором?',
-                    style: AppTextStyles.h2.copyWith(
-                      fontSize: isMobile ? 28 : 36,
-                      fontWeight: FontWeight.w700,
+      child: WebLayout.content(
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
+          vertical: isMobile ? 60 : 80,
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.shadow.withOpacity(0.1),
+                    blurRadius: 32,
+                    offset: const Offset(0, 12),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      'Нужна помощь с выбором?',
+                      style: AppTextStyles.h2.copyWith(
+                        fontSize: isMobile ? 28 : 36,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: Text(
-                    'Наши консультанты помогут подобрать психолога именно под ваш запрос, цели и бюджет. Мы учтем все нюансы и предложим лучших специалистов.',
-                    style: AppTextStyles.body1.copyWith(
-                      fontSize: isMobile ? 16 : 18,
-                      color: AppColors.textSecondary,
-                      height: 1.6,
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      'Наши консультанты помогут подобрать психолога именно под ваш запрос, цели и бюджет. Мы учтем все нюансы и предложим лучших специалистов.',
+                      style: AppTextStyles.body1.copyWith(
+                        fontSize: isMobile ? 16 : 18,
+                        color: AppColors.textSecondary,
+                        height: 1.6,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                ),
-                const SizedBox(height: 32),
-                Wrap(
-                  spacing: isMobile ? 16 : 24,
-                  runSpacing: 16,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    _buildBenefitItem('✓ Бесплатная консультация по подбору'),
-                    _buildBenefitItem('✓ Подбор по 5+ параметрам'),
-                    _buildBenefitItem('✓ Помощь в записи на первую сессию'),
-                    _buildBenefitItem('✓ Поддержка на всех этапах'),
-                  ],
-                ),
-                const SizedBox(height: 40),
-                SizedBox(
-                  width: isMobile ? double.infinity : 280,
-                  height: 56,
-                  child: CustomButton(
-                    text: 'Подобрать психолога',
-                    onPressed: () {
-                      Navigator.pushNamed(context, AppRouter.contacts);
-                    },
-                    isPrimary: true,
-                    isFullWidth: true,
-                    icon: Icons.psychology_outlined,
+                  const SizedBox(height: 32),
+                  Wrap(
+                    spacing: isMobile ? 16 : 24,
+                    runSpacing: 16,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      _buildBenefitItem('✓ Бесплатная консультация по подбору'),
+                      _buildBenefitItem('✓ Подбор по 5+ параметрам'),
+                      _buildBenefitItem('✓ Помощь в записи на первую сессию'),
+                      _buildBenefitItem('✓ Поддержка на всех этапах'),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 40),
+                  SizedBox(
+                    width: isMobile ? double.infinity : 280,
+                    height: 56,
+                    child: CustomButton(
+                      text: 'Подобрать психолога',
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRouter.contacts);
+                      },
+                      isPrimary: true,
+                      isFullWidth: true,
+                      icon: Icons.psychology_outlined,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -117,6 +117,8 @@ class Header extends StatelessWidget {
                 const SizedBox(width: 8),
                 _buildNavItem(context, 'Психологи', AppRouter.psychologists),
                 const SizedBox(width: 8),
+                _buildNavItem(context, 'Блог', AppRouter.blog),
+                const SizedBox(width: 8),
                 _buildNavItem(context, 'О сервисе', AppRouter.about),
                 const SizedBox(width: 8),
                 _buildNavItem(context, 'Контакты', AppRouter.contacts),
@@ -232,8 +234,6 @@ class Header extends StatelessWidget {
     BuildContext context,
     UserProvider userProvider,
   ) {
-    
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
