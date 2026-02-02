@@ -36,7 +36,7 @@ class HomePage extends StatelessWidget {
       decoration: const BoxDecoration(color: Color(0xFFF5F7FA)),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1300),
+          constraints: const BoxConstraints(maxWidth: 1120),
           child: isMobile
               ? Column(
                   children: [

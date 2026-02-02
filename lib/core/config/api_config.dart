@@ -1,8 +1,15 @@
-// lib/сore/config/api_config.dart
-
 class ApiConfig {
+  // ========================================
+  // ENVIRONMENT CONFIGURATION
+  // ========================================
+  // Set to false to use production backend
+  // Set to true to use local backend
+  static const bool useLocalBackend = true;
+
   // Base URL
-  static const String baseUrl = 'http://localhost:8080/api';
+  static String get baseUrl => useLocalBackend 
+      ? 'http://localhost:8080/api'
+      : 'https://api.balance-psy.kz/api';
 
   // Timeout
   static const Duration connectionTimeout = Duration(seconds: 30);
@@ -10,39 +17,38 @@ class ApiConfig {
   // ========================================
   // AUTH ENDPOINTS
   // ========================================
-  static const String login = '$baseUrl/auth/login';
-  static const String register = '$baseUrl/auth/register/client';
-  static const String registerPsychologist =
-      '$baseUrl/auth/register/psychologist';
-  static const String me = '$baseUrl/auth/me';
-  static const String forgotPassword = '$baseUrl/auth/forgot-password';
-  static const String resetPassword = '$baseUrl/auth/reset-password';
+  static String get login => '$baseUrl/auth/login';
+  static String get register => '$baseUrl/auth/register/client';
+  static String get registerPsychologist => '$baseUrl/auth/register/psychologist';
+  static String get me => '$baseUrl/auth/me';
+  static String get forgotPassword => '$baseUrl/auth/forgot-password';
+  static String get resetPassword => '$baseUrl/auth/reset-password';
 
   // Email verification
-  static const String sendCode = '$baseUrl/auth/send-code';
-  static const String verifyCode = '$baseUrl/auth/verify-code';
+  static String get sendCode => '$baseUrl/auth/send-code';
+  static String get verifyCode => '$baseUrl/auth/verify-code';
 
   // ========================================
   // PROFILE ENDPOINTS
   // ========================================
-  static const String profile = '$baseUrl/profile/me';
-  static const String updateProfile = '$baseUrl/profile/me';
-  static const String uploadAvatar = '$baseUrl/profile/me/avatar';
-  static const String deleteAvatar = '$baseUrl/profile/me/avatar';
-  static const String updateAvailability = '$baseUrl/profile/me/availability';
+  static String get profile => '$baseUrl/profile/me';
+  static String get updateProfile => '$baseUrl/profile/me';
+  static String get uploadAvatar => '$baseUrl/profile/me/avatar';
+  static String get deleteAvatar => '$baseUrl/profile/me/avatar';
+  static String get updateAvailability => '$baseUrl/profile/me/availability';
 
   // ========================================
   // USER ENDPOINTS
   // ========================================
-  static const String users = '$baseUrl/users/me';
-  static const String changePassword = '$baseUrl/users/me/password';
-  static const String deleteAccount = '$baseUrl/users/me';
-  static const String searchUsers = '$baseUrl/users/search';
+  static String get users => '$baseUrl/users/me';
+  static String get changePassword => '$baseUrl/users/me/password';
+  static String get deleteAccount => '$baseUrl/users/me';
+  static String get searchUsers => '$baseUrl/users/search';
 
   // ========================================
   // PSYCHOLOGISTS ENDPOINTS
   // ========================================
-  static const String psychologists = '$baseUrl/psychologists';
+  static String get psychologists => '$baseUrl/psychologists';
 
   static String psychologistById(int id) => '$baseUrl/psychologists/$id';
   static String psychologistSchedule(int id) =>
@@ -51,9 +57,9 @@ class ApiConfig {
   // ========================================
   // APPOINTMENTS ENDPOINTS
   // ========================================
-  static const String appointments = '$baseUrl/appointments';
-  static const String myAppointments = '$baseUrl/appointments/me';
-  static const String psychologistAppointments =
+  static String get appointments => '$baseUrl/appointments';
+  static String get myAppointments => '$baseUrl/appointments/me';
+  static String get psychologistAppointments =>
       '$baseUrl/appointments/psychologist/me';
 
   static String confirmAppointment(int id) =>
@@ -69,7 +75,7 @@ class ApiConfig {
   // ========================================
   // ARTICLES ENDPOINTS
   // ========================================
-  static const String articles = '$baseUrl/articles';
+  static String get articles => '$baseUrl/articles';
 
   static String articleBySlug(String slug) => '$baseUrl/articles/slug/$slug';
   static String articleById(int id) => '$baseUrl/articles/$id';
@@ -77,8 +83,8 @@ class ApiConfig {
   // ========================================
   // REVIEWS ENDPOINTS
   // ========================================
-  static const String reviews = '$baseUrl/reviews';
-  static const String myReviews = '$baseUrl/reviews/my';
+  static String get reviews => '$baseUrl/reviews';
+  static String get myReviews => '$baseUrl/reviews/my';
 
   static String psychologistReviews(int psychologistId) =>
       '$baseUrl/reviews/psychologist/$psychologistId';
@@ -89,20 +95,20 @@ class ApiConfig {
   // ========================================
   // DIAGNOSTICS ENDPOINTS
   // ========================================
-  static const String diagnosticTests = '$baseUrl/diagnostics/tests';
-  static const String submitDiagnostic = '$baseUrl/diagnostics/sessions/submit';
+  static String get diagnosticTests => '$baseUrl/diagnostics/tests';
+  static String get submitDiagnostic => '$baseUrl/diagnostics/sessions/submit';
 
   static String diagnosticTest(String testCode) =>
       '$baseUrl/diagnostics/tests/$testCode';
   static String diagnosticSession(int sessionId) =>
       '$baseUrl/diagnostics/sessions/$sessionId';
-  static String myDiagnosticSessions = '$baseUrl/diagnostics/sessions/my';
+  static String get myDiagnosticSessions => '$baseUrl/diagnostics/sessions/my';
 
   // ========================================
   // SURVEYS ENDPOINTS
   // ========================================
-  static const String surveys = '$baseUrl/surveys';
-  static const String mySurveySessions = '$baseUrl/surveys/my/sessions';
+  static String get surveys => '$baseUrl/surveys';
+  static String get mySurveySessions => '$baseUrl/surveys/my/sessions';
 
   static String surveyById(int id) => '$baseUrl/surveys/$id';
   static String submitSurveyResponse(int surveyId) =>
@@ -117,9 +123,9 @@ class ApiConfig {
   // ========================================
   // INTRO ENDPOINTS
   // ========================================
-  static const String introContent = '$baseUrl/intro/content';
-  static const String completeIntro = '$baseUrl/intro/complete';
-  static const String introStatus = '$baseUrl/intro/status';
+  static String get introContent => '$baseUrl/intro/content';
+  static String get completeIntro => '$baseUrl/intro/complete';
+  static String get introStatus => '$baseUrl/intro/status';
 
   // ========================================
   // HEADERS

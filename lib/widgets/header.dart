@@ -232,9 +232,7 @@ class Header extends StatelessWidget {
     BuildContext context,
     UserProvider userProvider,
   ) {
-    final maxNameWidth = MediaQuery.of(context).size.width < 1024
-        ? 120.0
-        : 180.0;
+    
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -281,7 +279,7 @@ class Header extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: maxNameWidth),
+                    constraints: BoxConstraints(maxWidth: 1120),
                     child: Text(
                       userProvider.userName ?? 'Профиль',
                       maxLines: 1,

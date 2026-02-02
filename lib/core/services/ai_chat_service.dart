@@ -1,5 +1,3 @@
-// lib/сore/services/ai_chat_service.dart
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
@@ -7,7 +5,10 @@ import '../../models/chat_message.dart';
 import '../../models/chat_session.dart';
 
 class AiChatService {
-  static const String _aiBaseUrl = 'http://localhost:8080/internal';
+  // ✅ Используем динамический URL на основе окружения
+  static String get _aiBaseUrl => ApiConfig.useLocalBackend
+      ? 'http://localhost:8080/internal'
+      : 'https://api.balance-psy.kz/internal';
 
   /// Проверить доступность AI
   Future<bool> isAiAvailable() async {
@@ -36,6 +37,7 @@ class AiChatService {
       final userId = _getUserIdForBackend(session);
 
       print('🤖 Sending message to AI: userId=$userId');
+      print('🌐 Using backend: $_aiBaseUrl');
 
       final response = await http
           .post(
