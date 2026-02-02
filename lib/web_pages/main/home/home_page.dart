@@ -1,4 +1,4 @@
-// lib/web_pages/home/home_page.dart
+// lib/web_pages/main/home/home_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../theme/app_colors.dart';
@@ -6,6 +6,10 @@ import '../../../theme/app_text_styles.dart';
 import '../../../widgets/page_wrapper.dart';
 import '../../../core/router/app_router.dart';
 
+/// ✅ ИСПРАВЛЕННАЯ ВЕРСИЯ:
+/// - Убраны все ConstrainedBox(maxWidth: 1120)
+/// - Убран Center() вокруг контента
+/// - Layout управляется глобально через WebLayout в main.dart
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -25,45 +29,41 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // HERO SECTION только с кнопкой "Выбрать психолога"
+  // HERO SECTION — БЕЗ ConstrainedBox!
   Widget _buildHeroSection(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
 
     return Container(
-      width: double.infinity,
+      width: double
+          .infinity, // ✅ Растягиваем на всю доступную ширину (которая уже = 1120)
       padding: EdgeInsets.symmetric(
         horizontal: 20,
         vertical: isMobile ? 20 : 0,
       ),
       decoration: const BoxDecoration(color: Color(0xFFF5F7FA)),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1120),
-          child: isMobile
-              ? Column(
-                  children: [
-                    _buildHeroContent(context, isMobile),
-                    const SizedBox(height: 24),
-                    _buildHeroImage(),
-                  ],
-                )
-              : Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      flex: 4,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 60),
-                        child: _buildHeroContent(context, isMobile),
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(flex: 6, child: _buildHeroImage()),
-                  ],
+      child: isMobile
+          ? Column(
+              children: [
+                _buildHeroContent(context, isMobile),
+                const SizedBox(height: 24),
+                _buildHeroImage(),
+              ],
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 60),
+                    child: _buildHeroContent(context, isMobile),
+                  ),
                 ),
-        ),
-      ),
+                const SizedBox(width: 20),
+                Expanded(flex: 6, child: _buildHeroImage()),
+              ],
+            ),
     );
   }
 
@@ -94,8 +94,6 @@ class HomePage extends StatelessWidget {
           textAlign: isMobile ? TextAlign.center : TextAlign.left,
         ),
         const SizedBox(height: 24),
-
-        // Только кнопка выбора психолога
         SizedBox(
           width: isMobile ? double.infinity : 240,
           height: 56,
@@ -128,7 +126,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // Секция "С чем помогут психологи"
+  // Остальные секции аналогично — убираем ConstrainedBox и Center
   Widget _buildHelpSection(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
@@ -140,55 +138,44 @@ class HomePage extends StatelessWidget {
         vertical: isMobile ? 10 : 30,
       ),
       color: Colors.white,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1120),
-          child: Stack(
-            children: [
-              _buildFeaturesImage(isMobile),
-              Positioned(
-                top: isMobile ? 65 : 95,
-                left: isMobile ? -70 : -50,
-                child: SizedBox(
-                  width: isMobile ? 300 : 400,
-                  child: Text.rich(
+      child: Stack(
+        children: [
+          _buildFeaturesImage(isMobile),
+          Positioned(
+            top: isMobile ? 65 : 95,
+            left: isMobile ? -70 : -50,
+            child: SizedBox(
+              width: isMobile ? 300 : 400,
+              child: Text.rich(
+                TextSpan(
+                  children: [
                     TextSpan(
-                      children: [
-                        TextSpan(
-                          text: 'С чем\n',
-                          style: isMobile
-                              ? AppTextStyles.helpTitleMobile.copyWith(
-                                  height: 0.9,
-                                )
-                              : AppTextStyles.helpTitle.copyWith(height: 0.9),
-                        ),
-                        TextSpan(
-                          text: 'помогут\n',
-                          style: isMobile
-                              ? AppTextStyles.helpTitleAccentMobile.copyWith(
-                                  height: 0.9,
-                                )
-                              : AppTextStyles.helpTitleAccent.copyWith(
-                                  height: 0.9,
-                                ),
-                        ),
-                        TextSpan(
-                          text: 'психологи',
-                          style: isMobile
-                              ? AppTextStyles.helpTitleMobile.copyWith(
-                                  height: 0.9,
-                                )
-                              : AppTextStyles.helpTitle.copyWith(height: 0.9),
-                        ),
-                      ],
+                      text: 'С чем\n',
+                      style: isMobile
+                          ? AppTextStyles.helpTitleMobile.copyWith(height: 0.9)
+                          : AppTextStyles.helpTitle.copyWith(height: 0.9),
                     ),
-                    textAlign: TextAlign.right,
-                  ),
+                    TextSpan(
+                      text: 'помогут\n',
+                      style: isMobile
+                          ? AppTextStyles.helpTitleAccentMobile.copyWith(
+                              height: 0.9,
+                            )
+                          : AppTextStyles.helpTitleAccent.copyWith(height: 0.9),
+                    ),
+                    TextSpan(
+                      text: 'психологи',
+                      style: isMobile
+                          ? AppTextStyles.helpTitleMobile.copyWith(height: 0.9)
+                          : AppTextStyles.helpTitle.copyWith(height: 0.9),
+                    ),
+                  ],
                 ),
+                textAlign: TextAlign.right,
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -204,7 +191,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // Секция "Сделай шаг к заботе о себе"
+  // Остальные методы без изменений, просто без ConstrainedBox
   Widget _buildStepsSection(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
@@ -242,18 +229,13 @@ class HomePage extends StatelessWidget {
               Positioned(right: 0, top: 50, child: _buildStepsImage()),
               Padding(
                 padding: const EdgeInsets.only(left: 20, top: 100),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1120),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStepsTitle(),
-                        const SizedBox(height: 60),
-                        _buildStepsListHorizontal(isMobile: false),
-                      ],
-                    ),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildStepsTitle(),
+                    const SizedBox(height: 60),
+                    _buildStepsListHorizontal(isMobile: false),
+                  ],
                 ),
               ),
             ],
@@ -291,28 +273,26 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildStepsListHorizontal({required bool isMobile}) {
-    final step = (String num, String title, String desc) => ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 300),
-      child: _buildStepItemCompact(num, title, desc),
-    );
+    final step = (String num, String title, String desc) =>
+        _buildStepItemCompact(num, title, desc);
 
     if (isMobile) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildStepItemCompact(
+          step(
             '1',
             'Укажите темы, с которыми хотите поработать',
             'Это могут быть тревожность, выгорание, сложности в отношениях, самооценка и многое другое.',
           ),
           const SizedBox(height: 24),
-          _buildStepItemCompact(
+          step(
             '2',
             'Выберите комфортную для себя стоимость сессии',
             'Это могут быть тревожность, выгорание, сложности в отношениях, самооценка и многое другое.',
           ),
           const SizedBox(height: 24),
-          _buildStepItemCompact(
+          step(
             '3',
             'Получите подборку опытных специалистов под ваш запрос',
             'Это могут быть тревожность, выгорание, сложности в отношениях, самооценка и многое другое.',
@@ -350,19 +330,21 @@ class HomePage extends StatelessWidget {
     String title,
     String description,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(number, style: AppTextStyles.stepNumber),
-        const SizedBox(height: 8),
-        Text(title, style: AppTextStyles.stepTitle),
-        const SizedBox(height: 6),
-        Text(description, style: AppTextStyles.stepDescription),
-      ],
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 300),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(number, style: AppTextStyles.stepNumber),
+          const SizedBox(height: 8),
+          Text(title, style: AppTextStyles.stepTitle),
+          const SizedBox(height: 6),
+          Text(description, style: AppTextStyles.stepDescription),
+        ],
+      ),
     );
   }
 
-  // Секция "Команда психологов"
   Widget _buildPsychologistsSection(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
@@ -374,65 +356,60 @@ class HomePage extends StatelessWidget {
         horizontal: isMobile ? 20 : 80,
         vertical: 60,
       ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1120),
-          child: Column(
-            children: [
-              Text.rich(
+      child: Column(
+        children: [
+          Text.rich(
+            TextSpan(
+              children: [
                 TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'Команда ',
-                      style: isMobile
-                          ? AppTextStyles.teamTitleMobile
-                          : AppTextStyles.teamTitle,
-                    ),
-                    TextSpan(
-                      text: 'психологов',
-                      style: isMobile
-                          ? AppTextStyles.teamTitleAccentMobile
-                          : AppTextStyles.teamTitleAccent,
-                    ),
-                  ],
+                  text: 'Команда ',
+                  style: isMobile
+                      ? AppTextStyles.teamTitleMobile
+                      : AppTextStyles.teamTitle,
                 ),
-                textAlign: TextAlign.center,
+                TextSpan(
+                  text: 'психологов',
+                  style: isMobile
+                      ? AppTextStyles.teamTitleAccentMobile
+                      : AppTextStyles.teamTitleAccent,
+                ),
+              ],
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Специализированные психологи со стажем работы',
+            style: AppTextStyles.teamSubtitle,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 60),
+          Wrap(
+            spacing: 40,
+            runSpacing: 40,
+            alignment: WrapAlignment.center,
+            children: [
+              _buildPsychologistCard(
+                'Галия Аубакирова',
+                '7 лет опыта',
+                'Психолог, нутрициолог взрослый и детский',
+                'galiya1.png',
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Специализированные психологи со стажем работы',
-                style: AppTextStyles.teamSubtitle,
-                textAlign: TextAlign.center,
+              _buildPsychologistCard(
+                'Яна Прозорова',
+                '15 лет опыта',
+                'Психолог (КПТ, схема терапия)',
+                'yana1.png',
               ),
-              const SizedBox(height: 60),
-              Wrap(
-                spacing: 40,
-                runSpacing: 40,
-                alignment: WrapAlignment.center,
-                children: [
-                  _buildPsychologistCard(
-                    'Галия Аубакирова',
-                    '7 лет опыта',
-                    'Психолог, нутрициолог взрослый и детский',
-                    'galiya1.png',
-                  ),
-                  _buildPsychologistCard(
-                    'Яна Прозорова',
-                    '15 лет опыта',
-                    'Психолог (КПТ, схема терапия)',
-                    'yana1.png',
-                  ),
-                  _buildPsychologistCard(
-                    'Лаура Болдина',
-                    '7 лет опыта',
-                    'Психолог (КПТ, гештальт)',
-                    'laura1.png',
-                  ),
-                ],
+              _buildPsychologistCard(
+                'Лаура Болдина',
+                '7 лет опыта',
+                'Психолог (КПТ, гештальт)',
+                'laura1.png',
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
@@ -492,7 +469,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // Секция промо статей
   Widget _buildArticlesPromoSection(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
@@ -504,12 +480,7 @@ class HomePage extends StatelessWidget {
         vertical: isMobile ? 60 : 100,
       ),
       color: Colors.white,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1120),
-          child: isMobile ? _buildArticlesMobile() : _buildArticlesDesktop(),
-        ),
-      ),
+      child: isMobile ? _buildArticlesMobile() : _buildArticlesDesktop(),
     );
   }
 
@@ -598,7 +569,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // Вспомогательные методы для placeholder'ов
   Widget _buildImagePlaceholder(
     double height,
     IconData icon, {

@@ -3,8 +3,15 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import 'header.dart';
 import 'web_footer.dart';
-import 'ai_chat/ai_chat_overlay.dart'; 
+import 'ai_chat/ai_chat_overlay.dart';
 
+/// PageWrapper теперь отвечает ТОЛЬКО за:
+/// - padding
+/// - фон
+/// - scroll
+/// - header/footer
+///
+/// ❌ НЕ отвечает за ширину layout (это делает WebLayout в main.dart)
 class PageWrapper extends StatelessWidget {
   final Widget child;
   final String currentRoute;
@@ -45,10 +52,7 @@ class PageWrapper extends StatelessWidget {
                 },
                 child: SingleChildScrollView(
                   child: Column(
-                    children: [
-                      child,
-                      if (showFooter) const WebFooter(),
-                    ],
+                    children: [child, if (showFooter) const WebFooter()],
                   ),
                 ),
               ),

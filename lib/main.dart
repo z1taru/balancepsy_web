@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'theme/app_colors.dart';
 import 'core/router/app_router.dart';
+import 'widgets/web_layout.dart'; // ← Импорт WebLayout
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,21 +25,6 @@ class BalancePsyApp extends StatefulWidget {
 
   @override
   State<BalancePsyApp> createState() => _BalancePsyAppState();
-}
-class WebLayout extends StatelessWidget {
-  final Widget child;
-
-  const WebLayout({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1120),
-        child: child,
-      ),
-    );
-  }
 }
 
 class _BalancePsyAppState extends State<BalancePsyApp> {
@@ -94,6 +80,11 @@ class _BalancePsyAppState extends State<BalancePsyApp> {
       ),
       initialRoute: AppRouter.home,
       onGenerateRoute: AppRouter.generateRoute,
+
+      // ✅ КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: применяем WebLayout глобально
+      builder: (context, child) {
+        return WebLayout(child: child ?? const SizedBox.shrink());
+      },
     );
   }
 }
