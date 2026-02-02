@@ -32,7 +32,10 @@ class HomePage extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: isMobile ? 20 : 0),
+      padding: EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: isMobile ? 20 : 0,
+      ),
       decoration: const BoxDecoration(color: Color(0xFFF5F7FA)),
       child: Center(
         child: ConstrainedBox(
@@ -66,8 +69,9 @@ class HomePage extends StatelessWidget {
 
   Widget _buildHeroContent(BuildContext context, bool isMobile) {
     return Column(
-      crossAxisAlignment:
-          isMobile ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      crossAxisAlignment: isMobile
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.start,
       children: [
         Text(
           'Сервис онлайн психотерапии',
@@ -79,7 +83,10 @@ class HomePage extends StatelessWidget {
           TextSpan(
             children: [
               TextSpan(text: 'Твоя ', style: AppTextStyles.heroTitle),
-              TextSpan(text: 'поддержка\n', style: AppTextStyles.heroTitleAccent),
+              TextSpan(
+                text: 'поддержка\n',
+                style: AppTextStyles.heroTitleAccent,
+              ),
               TextSpan(text: 'Твой ', style: AppTextStyles.heroTitle),
               TextSpan(text: 'баланс', style: AppTextStyles.heroTitleAccent),
             ],
@@ -87,7 +94,7 @@ class HomePage extends StatelessWidget {
           textAlign: isMobile ? TextAlign.center : TextAlign.left,
         ),
         const SizedBox(height: 24),
-        
+
         // Только кнопка выбора психолога
         SizedBox(
           width: isMobile ? double.infinity : 240,
@@ -116,7 +123,8 @@ class HomePage extends StatelessWidget {
       'assets/images/main_page/phone1.png',
       fit: BoxFit.contain,
       height: 650,
-      errorBuilder: (_, __, ___) => _buildImagePlaceholder(1350, Icons.phone_android),
+      errorBuilder: (_, __, ___) =>
+          _buildImagePlaceholder(1350, Icons.phone_android),
     );
   }
 
@@ -149,19 +157,27 @@ class HomePage extends StatelessWidget {
                         TextSpan(
                           text: 'С чем\n',
                           style: isMobile
-                              ? AppTextStyles.helpTitleMobile.copyWith(height: 0.9)
+                              ? AppTextStyles.helpTitleMobile.copyWith(
+                                  height: 0.9,
+                                )
                               : AppTextStyles.helpTitle.copyWith(height: 0.9),
                         ),
                         TextSpan(
                           text: 'помогут\n',
                           style: isMobile
-                              ? AppTextStyles.helpTitleAccentMobile.copyWith(height: 0.9)
-                              : AppTextStyles.helpTitleAccent.copyWith(height: 0.9),
+                              ? AppTextStyles.helpTitleAccentMobile.copyWith(
+                                  height: 0.9,
+                                )
+                              : AppTextStyles.helpTitleAccent.copyWith(
+                                  height: 0.9,
+                                ),
                         ),
                         TextSpan(
                           text: 'психологи',
                           style: isMobile
-                              ? AppTextStyles.helpTitleMobile.copyWith(height: 0.9)
+                              ? AppTextStyles.helpTitleMobile.copyWith(
+                                  height: 0.9,
+                                )
                               : AppTextStyles.helpTitle.copyWith(height: 0.9),
                         ),
                       ],
@@ -183,7 +199,8 @@ class HomePage extends StatelessWidget {
       fit: BoxFit.cover,
       width: double.infinity,
       height: isMobile ? 410 : 540,
-      errorBuilder: (_, __, ___) => _buildImagePlaceholder(540, Icons.psychology, color: Colors.grey),
+      errorBuilder: (_, __, ___) =>
+          _buildImagePlaceholder(540, Icons.psychology, color: Colors.grey),
     );
   }
 
@@ -265,28 +282,41 @@ class HomePage extends StatelessWidget {
       width: 1029,
       height: 566,
       fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => _buildImagePlaceholder(566, Icons.person, background: Colors.orange[300]),
+      errorBuilder: (_, __, ___) => _buildImagePlaceholder(
+        566,
+        Icons.person,
+        background: Colors.orange[300],
+      ),
     );
   }
 
   Widget _buildStepsListHorizontal({required bool isMobile}) {
     final step = (String num, String title, String desc) => ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 300),
-          child: _buildStepItemCompact(num, title, desc)
-        );
+      constraints: const BoxConstraints(maxWidth: 300),
+      child: _buildStepItemCompact(num, title, desc),
+    );
 
     if (isMobile) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildStepItemCompact('1', 'Укажите темы, с которыми хотите поработать',
-              'Это могут быть тревожность, выгорание, сложности в отношениях, самооценка и многое другое.'),
+          _buildStepItemCompact(
+            '1',
+            'Укажите темы, с которыми хотите поработать',
+            'Это могут быть тревожность, выгорание, сложности в отношениях, самооценка и многое другое.',
+          ),
           const SizedBox(height: 24),
-          _buildStepItemCompact('2', 'Выберите комфортную для себя стоимость сессии',
-              'Это могут быть тревожность, выгорание, сложности в отношениях, самооценка и многое другое.'),
+          _buildStepItemCompact(
+            '2',
+            'Выберите комфортную для себя стоимость сессии',
+            'Это могут быть тревожность, выгорание, сложности в отношениях, самооценка и многое другое.',
+          ),
           const SizedBox(height: 24),
-          _buildStepItemCompact('3', 'Получите подборку опытных специалистов под ваш запрос',
-              'Это могут быть тревожность, выгорание, сложности в отношениях, самооценка и многое другое.'),
+          _buildStepItemCompact(
+            '3',
+            'Получите подборку опытных специалистов под ваш запрос',
+            'Это могут быть тревожность, выгорание, сложности в отношениях, самооценка и многое другое.',
+          ),
         ],
       );
     }
@@ -294,19 +324,32 @@ class HomePage extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        step('1', 'Укажите темы, с которыми хотите поработать',
-            'Это могут быть тревожность, выгорание, сложности в отношениях, самооценка и многое другое.'),
+        step(
+          '1',
+          'Укажите темы, с которыми хотите поработать',
+          'Это могут быть тревожность, выгорание, сложности в отношениях, самооценка и многое другое.',
+        ),
         const SizedBox(width: 20),
-        step('2', 'Выберите комфортную для себя стоимость сессии',
-            'Это могут быть тревожность, выгорание, сложности в отношениях, самооценка и многое другое.'),
+        step(
+          '2',
+          'Выберите комфортную для себя стоимость сессии',
+          'Это могут быть тревожность, выгорание, сложности в отношениях, самооценка и многое другое.',
+        ),
         const SizedBox(width: 20),
-        step('3', 'Получите подборку опытных специалистов под ваш запрос',
-            'Это могут быть тревожность, выгорание, сложности в отношениях, самооценка и многое другое.'),
+        step(
+          '3',
+          'Получите подборку опытных специалистов под ваш запрос',
+          'Это могут быть тревожность, выгорание, сложности в отношениях, самооценка и многое другое.',
+        ),
       ],
     );
   }
 
-  Widget _buildStepItemCompact(String number, String title, String description) {
+  Widget _buildStepItemCompact(
+    String number,
+    String title,
+    String description,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -327,7 +370,10 @@ class HomePage extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: const Color(0xFFF5F7FA),
-      padding: EdgeInsets.symmetric(horizontal: isMobile ? 20 : 80, vertical: 60),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 20 : 80,
+        vertical: 60,
+      ),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1120),
@@ -338,11 +384,15 @@ class HomePage extends StatelessWidget {
                   children: [
                     TextSpan(
                       text: 'Команда ',
-                      style: isMobile ? AppTextStyles.teamTitleMobile : AppTextStyles.teamTitle,
+                      style: isMobile
+                          ? AppTextStyles.teamTitleMobile
+                          : AppTextStyles.teamTitle,
                     ),
                     TextSpan(
                       text: 'психологов',
-                      style: isMobile ? AppTextStyles.teamTitleAccentMobile : AppTextStyles.teamTitleAccent,
+                      style: isMobile
+                          ? AppTextStyles.teamTitleAccentMobile
+                          : AppTextStyles.teamTitleAccent,
                     ),
                   ],
                 ),
@@ -360,12 +410,24 @@ class HomePage extends StatelessWidget {
                 runSpacing: 40,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildPsychologistCard('Галия Аубакирова', '7 лет опыта',
-                      'Психолог, нутрициолог взрослый и детский', 'galiya1.png'),
-                  _buildPsychologistCard('Яна Прозорова', '15 лет опыта',
-                      'Психолог (КПТ, схема терапия)', 'yana1.png'),
-                  _buildPsychologistCard('Лаура Болдина', '7 лет опыта',
-                      'Психолог (КПТ, гештальт)', 'laura1.png'),
+                  _buildPsychologistCard(
+                    'Галия Аубакирова',
+                    '7 лет опыта',
+                    'Психолог, нутрициолог взрослый и детский',
+                    'galiya1.png',
+                  ),
+                  _buildPsychologistCard(
+                    'Яна Прозорова',
+                    '15 лет опыта',
+                    'Психолог (КПТ, схема терапия)',
+                    'yana1.png',
+                  ),
+                  _buildPsychologistCard(
+                    'Лаура Болдина',
+                    '7 лет опыта',
+                    'Психолог (КПТ, гештальт)',
+                    'laura1.png',
+                  ),
                 ],
               ),
             ],
@@ -375,7 +437,12 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildPsychologistCard(String name, String experience, String spec, String imageName) {
+  Widget _buildPsychologistCard(
+    String name,
+    String experience,
+    String spec,
+    String imageName,
+  ) {
     return SizedBox(
       width: 300,
       child: Column(
@@ -393,17 +460,33 @@ class HomePage extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   color: const Color(0xFF7095C6).withOpacity(0.2),
-                  child: const Icon(Icons.person, size: 80, color: Color(0xFF7095C6)),
+                  child: const Icon(
+                    Icons.person,
+                    size: 80,
+                    color: Color(0xFF7095C6),
+                  ),
                 ),
               ),
             ),
           ),
           const SizedBox(height: 20),
-          Text(name, style: AppTextStyles.psychologistName, textAlign: TextAlign.center),
+          Text(
+            name,
+            style: AppTextStyles.psychologistName,
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 8),
-          Text(experience, style: AppTextStyles.psychologistExperience, textAlign: TextAlign.center),
+          Text(
+            experience,
+            style: AppTextStyles.psychologistExperience,
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 4),
-          Text(spec, style: AppTextStyles.psychologistSpec, textAlign: TextAlign.center),
+          Text(
+            spec,
+            style: AppTextStyles.psychologistSpec,
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
@@ -470,8 +553,9 @@ class HomePage extends StatelessWidget {
 
   Widget _buildArticlesText({TextAlign textAlign = TextAlign.left}) {
     return Column(
-      crossAxisAlignment:
-          textAlign == TextAlign.center ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      crossAxisAlignment: textAlign == TextAlign.center
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 42),
         Text(
@@ -515,16 +599,19 @@ class HomePage extends StatelessWidget {
   }
 
   // Вспомогательные методы для placeholder'ов
-  Widget _buildImagePlaceholder(double height, IconData icon, {Color? background, Color? color}) {
+  Widget _buildImagePlaceholder(
+    double height,
+    IconData icon, {
+    Color? background,
+    Color? color,
+  }) {
     return Container(
       height: height,
       decoration: BoxDecoration(
         color: background ?? Colors.grey[200],
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Center(
-        child: Icon(icon, size: 100, color: color ?? Colors.grey),
-      ),
+      child: Center(child: Icon(icon, size: 100, color: color ?? Colors.grey)),
     );
   }
 
