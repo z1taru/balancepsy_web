@@ -33,7 +33,6 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     _scrollController.addListener(_updateProgress);
     _loadArticle();
 
-    // Диагностика
     print('🔍 ArticleDetailPage initialized with slug: ${widget.slug}');
   }
 
@@ -209,7 +208,10 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     final createdAt = _article!['createdAt'] ?? '';
     final thumbnailUrl = _article!['thumbnailUrl'];
 
+    // Progress bar + content — всё в одном SingleChildScrollView,
+    // без Expanded, чтобы высота была контентной а не unbounded.
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         // Progress bar
         SizedBox(
@@ -221,173 +223,171 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
           ),
         ),
 
-        Expanded(
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 900),
-              margin: EdgeInsets.symmetric(
-                horizontal: isMobile ? 20 : 60,
-                vertical: isMobile ? 20 : 40,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Back button
-                  ElevatedButton.icon(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: AppColors.textPrimary,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: AppColors.inputBorder),
-                      ),
+        SingleChildScrollView(
+          controller: _scrollController,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 900),
+            margin: EdgeInsets.symmetric(
+              horizontal: isMobile ? 20 : 60,
+              vertical: isMobile ? 20 : 40,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Back button
+                ElevatedButton.icon(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppColors.textPrimary,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
                     ),
-                    icon: const Icon(Icons.arrow_back, size: 18),
-                    label: Text(
-                      'Назад',
-                      style: AppTextStyles.body1.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: AppColors.inputBorder),
                     ),
                   ),
-                  const SizedBox(height: 32),
-
-                  // Article header
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(isMobile ? 24 : 40),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.shadow.withOpacity(0.08),
-                          blurRadius: 20,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                  icon: const Icon(Icons.arrow_back, size: 18),
+                  label: Text(
+                    'Назад',
+                    style: AppTextStyles.body1.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Category badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _getCategoryColor(category).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            _getCategoryText(category),
-                            style: AppTextStyles.body1.copyWith(
-                              color: _getCategoryColor(category),
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
+                  ),
+                ),
+                const SizedBox(height: 32),
 
-                        // Title
-                        Text(
-                          title,
-                          style: AppTextStyles.h1.copyWith(
+                // Article header
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(isMobile ? 24 : 40),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.shadow.withOpacity(0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Category badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getCategoryColor(category).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          _getCategoryText(category),
+                          style: AppTextStyles.body1.copyWith(
+                            color: _getCategoryColor(category),
                             fontWeight: FontWeight.w700,
-                            fontSize: isMobile ? 28 : 36,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                      ),
+                      const SizedBox(height: 24),
 
-                        // Meta info
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.access_time_outlined,
-                              size: 18,
-                              color: AppColors.textSecondary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '$readTime мин чтения',
-                              style: AppTextStyles.body1.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                            const SizedBox(width: 24),
-                            Icon(
-                              Icons.calendar_today_outlined,
-                              size: 18,
-                              color: AppColors.textSecondary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              _formatDate(createdAt),
-                              style: AppTextStyles.body1.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
+                      // Title
+                      Text(
+                        title,
+                        style: AppTextStyles.h1.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: isMobile ? 28 : 36,
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
+                      ),
+                      const SizedBox(height: 20),
 
-                  // Thumbnail
-                  if (thumbnailUrl != null && thumbnailUrl.isNotEmpty) ...[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.network(
-                        thumbnailUrl,
+                      // Meta info
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time_outlined,
+                            size: 18,
+                            color: AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '$readTime мин чтения',
+                            style: AppTextStyles.body1.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(width: 24),
+                          Icon(
+                            Icons.calendar_today_outlined,
+                            size: 18,
+                            color: AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _formatDate(createdAt),
+                            style: AppTextStyles.body1.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // Thumbnail
+                if (thumbnailUrl != null && thumbnailUrl.isNotEmpty) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.network(
+                      thumbnailUrl,
+                      width: double.infinity,
+                      height: isMobile ? 200 : 400,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
                         width: double.infinity,
                         height: isMobile ? 200 : 400,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          width: double.infinity,
-                          height: isMobile ? 200 : 400,
-                          decoration: BoxDecoration(
-                            color: _getCategoryColor(category).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Icon(
-                            Icons.article,
-                            size: 80,
-                            color: _getCategoryColor(category).withOpacity(0.3),
-                          ),
+                        decoration: BoxDecoration(
+                          color: _getCategoryColor(category).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          Icons.article,
+                          size: 80,
+                          color: _getCategoryColor(category).withOpacity(0.3),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
-                  ],
-
-                  // Article content
-                  Container(
-                    padding: EdgeInsets.all(isMobile ? 24 : 40),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.shadow.withOpacity(0.06),
-                          blurRadius: 15,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: _buildContent(content, category),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
                 ],
-              ),
+
+                // Article content
+                Container(
+                  padding: EdgeInsets.all(isMobile ? 24 : 40),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.shadow.withOpacity(0.06),
+                        blurRadius: 15,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: _buildContent(content, category),
+                ),
+                const SizedBox(height: 40),
+              ],
             ),
           ),
         ),

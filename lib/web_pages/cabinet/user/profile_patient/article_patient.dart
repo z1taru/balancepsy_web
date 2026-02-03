@@ -627,14 +627,11 @@ class _BlogPatientPageState extends State<BlogPatientPage> {
   }
 
   /// Открыть статью через универсальную страницу ArticleDetailPage
-  /// Используем id для построения правильного роута
   void _openArticle(BuildContext ctx, Map<String, dynamic> article) {
-    final id = article['id'];
-    if (id != null) {
-      // Навигация к /patient/articles/:id
-      Navigator.pushNamed(ctx, '/patient/articles/$id');
+    final slug = article['slug'];
+    if (slug != null && slug.toString().isNotEmpty) {
+      Navigator.pushNamed(ctx, '/patient/articles/$slug');
     } else {
-      // Fallback если нет id
       ScaffoldMessenger.of(ctx).showSnackBar(
         SnackBar(
           content: Text('Не удалось открыть статью'),

@@ -148,7 +148,7 @@ class _BlogPageState extends State<BlogPage> {
 
   Widget _buildHeroSection(BuildContext ctx, bool isMobile, bool isTablet) {
     return Container(
-      width: double.infinity, // ✅ ФОН НА ВЕСЬ ЭКРАН
+      width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -160,7 +160,6 @@ class _BlogPageState extends State<BlogPage> {
         ),
       ),
       child: WebLayout.content(
-        // ✅ КОНТЕНТ В 1120px
         padding: EdgeInsets.symmetric(
           horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
           vertical: isMobile ? 60 : 80,
@@ -328,10 +327,9 @@ class _BlogPageState extends State<BlogPage> {
     bool isTablet,
   ) {
     return Container(
-      width: double.infinity, // ✅ ФОН НА ВЕСЬ ЭКРАН
+      width: double.infinity,
       color: Colors.white,
       child: WebLayout.content(
-        // ✅ КОНТЕНТ В 1120px
         padding: EdgeInsets.symmetric(
           horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
         ),
@@ -592,10 +590,9 @@ class _BlogPageState extends State<BlogPage> {
 
   Widget _buildCategoriesSection(bool isMobile, bool isTablet) {
     return Container(
-      width: double.infinity, // ✅ ФОН НА ВЕСЬ ЭКРАН
+      width: double.infinity,
       color: AppColors.backgroundLight,
       child: WebLayout.content(
-        // ✅ КОНТЕНТ В 1120px
         padding: EdgeInsets.symmetric(
           horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
         ),
@@ -780,10 +777,9 @@ class _BlogPageState extends State<BlogPage> {
     bool isTablet,
   ) {
     return Container(
-      width: double.infinity, // ✅ ФОН НА ВЕСЬ ЭКРАН
+      width: double.infinity,
       color: Colors.white,
       child: WebLayout.content(
-        // ✅ КОНТЕНТ В 1120px
         padding: EdgeInsets.symmetric(
           horizontal: isMobile ? 20 : (isTablet ? 40 : 80),
         ),
@@ -999,9 +995,9 @@ class _BlogPageState extends State<BlogPage> {
   }
 
   void _openArticle(BuildContext ctx, Map<String, dynamic> article) {
-    final id = article['id'];
-    if (id != null) {
-      Navigator.pushNamed(ctx, '/blog/$id');
+    final slug = article['slug'];
+    if (slug != null && slug.toString().isNotEmpty) {
+      Navigator.pushNamed(ctx, '/blog/$slug');
     }
   }
 
