@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../core/router/app_router.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
-import '../../../../core/services/user_provider.dart';
+import '../providers/user_provider.dart';
 
 class Header extends StatelessWidget {
   final String currentRoute;

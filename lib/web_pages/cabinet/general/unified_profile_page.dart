@@ -7,7 +7,7 @@ import '../../../theme/app_text_styles.dart';
 import '../../../widgets/unified_sidebar.dart';
 import '../../../widgets/profile_patient/profile_widgets.dart';
 import '../../../core/services/profile_api_service.dart';
-import '../../../../core/services/user_provider.dart';
+import '../../../providers/user_provider.dart';
 import '../../../core/router/app_router.dart';
 
 class UnifiedProfilePage extends StatefulWidget {

@@ -8,7 +8,7 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/services/profile_patient_service.dart';
 import '../../../../core/services/psychologist_service.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/services/user_provider.dart';
+import '../../../../providers/user_provider.dart';
 
 class HomePatientPage extends StatefulWidget {
   const HomePatientPage({super.key});

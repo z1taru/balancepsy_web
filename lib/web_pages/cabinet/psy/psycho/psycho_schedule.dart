@@ -2,13 +2,8 @@
 //
 // Страница расписания психолога.
 //   ├─ Недельное расписание слотов  (добавить / удалить)
-//   ├─ Ближайшие записи (upcoming)  — PENDING, CONFIRMED, IN_PROGRESS
-//   └─ Прошедшие записи  (past)     — COMPLETED, NO_SHOW, CANCELLED
-//        └─ кнопка «Написать отчёт» для COMPLETED (TODO: навигация)
-//
-// Ручное создание записи:
-//   Психолог может добавить запись вручную — поиск клиента по имени,
-//   выбор даты / времени / формата, тема.
+//   ├─ Ближайшие записи (upcoming)  — PENDING, CONFIRMED, IN_PROGRESS (дата >= сегодня)
+//   └─ Прошедшие записи  (past)     — COMPLETED, NO_SHOW, CANCELLED ИЛИ дата < сегодня
 
 import 'package:flutter/material.dart';
 import '../../../../widgets/unified_sidebar.dart';
@@ -16,7 +11,9 @@ import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_text_styles.dart';
 import '../../../../core/services/schedule_service.dart';
 import '../../../../core/services/appointment_api_service.dart';
+import '../../../../providers/user_provider.dart';
 import '../../../../models/schedule_slot.dart';
+import 'package:provider/provider.dart';
 
 class PsychoSchedulePage extends StatefulWidget {
   const PsychoSchedulePage({super.key});
@@ -30,11 +27,10 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
   final AppointmentApiService _appointmentService = AppointmentApiService();
 
   List<ScheduleSlot> _scheduleSlots = [];
-  List<Map<String, dynamic>> _upcoming =
-      []; // PENDING | CONFIRMED | IN_PROGRESS
-  List<Map<String, dynamic>> _past =
-      []; // COMPLETED | NO_SHOW | CANCELLED  или  дата < сегодня
+  List<Map<String, dynamic>> _upcoming = [];
+  List<Map<String, dynamic>> _past = [];
   bool _isLoading = true;
+  int? _psychologistId; // ✅ ДОБАВЛЕНО
 
   @override
   void initState() {
@@ -45,7 +41,16 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
   // ── загрузка ──────────────────────────────
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
+
     try {
+      // ✅ ПОЛУЧАЕМ ID ПСИХОЛОГА ИЗ ПРОФИЛЯ
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      _psychologistId = userProvider.psychologistId;
+
+      if (_psychologistId == null) {
+        throw Exception('Psychologist ID not found in profile');
+      }
+
       final slots = await _scheduleService.getMySchedule();
       final allAppointments = await _appointmentService
           .getPsychologistAppointments();
@@ -59,19 +64,23 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
     } catch (e) {
       print('❌ psycho_schedule loadData: $e');
       setState(() => _isLoading = false);
+      _showSnack('Ошибка загрузки: $e', isError: true);
     }
   }
 
   // ── разделение записей на upcoming / past ──
   void _splitAppointments(List<Map<String, dynamic>> all) {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
     _upcoming = [];
     _past = [];
 
     for (final apt in all) {
       final status = (apt['status'] as String).toUpperCase();
+      final aptDate = _parseDate(apt['appointmentDate']);
 
-      // Терминальные статусы — всегда в past
+      // ✅ ТЕРМИНАЛЬНЫЕ СТАТУСЫ → ВСЕГДА В PAST
       if (status == 'COMPLETED' ||
           status == 'NO_SHOW' ||
           status == 'CANCELLED') {
@@ -79,17 +88,19 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
         continue;
       }
 
-      // Для остальных (PENDING, CONFIRMED, IN_PROGRESS) смотрим дату
-      final aptDate = _parseDate(apt['appointmentDate']);
-      if (aptDate != null &&
-          aptDate.isBefore(DateTime(now.year, now.month, now.day))) {
-        _past.add(apt); // дата уже прошла
+      // ✅ АКТИВНЫЕ СТАТУСЫ (PENDING, CONFIRMED, IN_PROGRESS)
+      if (aptDate != null) {
+        if (aptDate.isBefore(today)) {
+          _past.add(apt); // Дата прошла
+        } else {
+          _upcoming.add(apt); // Дата будущая или сегодня
+        }
       } else {
-        _upcoming.add(apt);
+        _upcoming.add(apt); // Если дата null — показываем в upcoming
       }
     }
 
-    // Сортировка: upcoming по возрастанию даты, past по убыванию
+    // Сортировка
     _upcoming.sort(_compareDates(ascending: true));
     _past.sort(_compareDates(ascending: false));
   }
@@ -173,27 +184,14 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
         ),
         Row(
           children: [
-            // Кнопка добавить слот
-            ElevatedButton.icon(
-              onPressed: _showAddSlotDialog,
-              icon: const Icon(Icons.add, size: 20),
-              label: const Text('Слот'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 12,
-                ),
-              ),
-            ),
             const SizedBox(width: 12),
-            // Кнопка ручная запись
             ElevatedButton.icon(
               onPressed: _showManualAppointmentDialog,
               icon: const Icon(Icons.person_add, size: 20),
               label: const Text('Записать клиента'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryDark,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 18,
                   vertical: 12,
@@ -361,14 +359,12 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
       ),
       child: Row(
         children: [
-          // аватар
           CircleAvatar(
             radius: 24,
             backgroundColor: AppColors.primary.withOpacity(0.1),
             child: Icon(Icons.person, color: AppColors.primary, size: 24),
           ),
           const SizedBox(width: 14),
-          // info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -389,10 +385,8 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
               ],
             ),
           ),
-          // статус-бейдж
           _buildStatusBadge(status),
           const SizedBox(width: 10),
-          // меню действий
           _buildActionsMenu(id, status, isPast),
         ],
       ),
@@ -462,7 +456,6 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
         );
         break;
       default:
-        // CANCELLED, NO_SHOW — действий нет
         break;
     }
 
@@ -504,11 +497,10 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
           _showSnack('Запись отменена');
           break;
         case 'report':
-          // TODO: навигация на страницу написания отчёта
           _showSnack('Написание отчётов — в разработке');
-          return; // без перезагрузки
+          return;
       }
-      await _loadData(); // перезагрузка после успешного действия
+      await _loadData();
     } catch (e) {
       _showSnack('Ошибка: $e', isError: true);
     }
@@ -645,7 +637,6 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
-          // debounce-поиск при изменении текста
           searchCtrl.addListener(() async {
             final q = searchCtrl.text.trim();
             if (q.length >= 2) {
@@ -667,7 +658,6 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── поиск клиента ──
                     TextField(
                       controller: searchCtrl,
                       decoration: InputDecoration(
@@ -719,9 +709,7 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
                           ),
                         ),
                       ),
-
                     const SizedBox(height: 18),
-                    // ── дата ──
                     OutlinedButton.icon(
                       icon: const Icon(Icons.calendar_today),
                       label: Text(
@@ -744,9 +732,7 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
                           setDialogState(() => selectedDate = picked);
                       },
                     ),
-
                     const SizedBox(height: 12),
-                    // ── время ──
                     Row(
                       children: [
                         Expanded(
@@ -790,9 +776,7 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 14),
-                    // ── формат ──
                     Text(
                       'Формат',
                       style: AppTextStyles.body2.copyWith(
@@ -818,9 +802,7 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
                         );
                       }).toList(),
                     ),
-
                     const SizedBox(height: 14),
-                    // ── тема ──
                     TextField(
                       controller: issueCtrl,
                       maxLines: 3,
@@ -852,12 +834,16 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
                     );
                     return;
                   }
+
+                  // ✅ ИСПРАВЛЕНО: Используем реальный ID психолога
+                  if (_psychologistId == null) {
+                    _showSnack('Ошибка: ID психолога не найден', isError: true);
+                    return;
+                  }
+
                   try {
-                    // TODO: передать psychologistId из UserProvider
-                    // Пока берём из профиля — нужно добавить в UserProvider
                     await _appointmentService.createAppointmentManual(
-                      psychologistId:
-                          0, // TODO заменить на реальный id из UserProvider
+                      psychologistId: _psychologistId!,
                       clientId: selectedClientId,
                       appointmentDate: _toIsoDate(selectedDate!),
                       startTime: _formatTime(startTime!),
@@ -899,7 +885,7 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
       case 'CONFIRMED':
         return AppColors.primary;
       case 'IN_PROGRESS':
-        return const Color(0xFF8B5CF6); // фиолетовый
+        return const Color(0xFF8B5CF6);
       case 'COMPLETED':
         return AppColors.success;
       case 'CANCELLED':
@@ -947,7 +933,6 @@ class _PsychoSchedulePageState extends State<PsychoSchedulePage> {
     );
   }
 
-  // ── reusable card shell ───────────────────
   Widget _buildCard({
     required String title,
     required Widget child,

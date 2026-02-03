@@ -6,7 +6,7 @@ import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_text_styles.dart';
 import '../../../../widgets/custom_button.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/services/user_provider.dart';
+import '../../../../providers/user_provider.dart';
 
 class PsychoLoginPage extends StatefulWidget {
   const PsychoLoginPage({super.key});
