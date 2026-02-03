@@ -1,4 +1,4 @@
-// lib/сore/router/app_router.dart
+// lib/core/router/app_router.dart
 
 import 'package:balance_psy/web_pages/cabinet/general/unified_profile_page.dart';
 import 'package:balance_psy/web_pages/cabinet/user/profile_patient/psy_catalog.dart';
@@ -9,8 +9,8 @@ import '../../web_pages/auth/register/register_main.dart';
 import '../../web_pages/main/about/about_page.dart';
 import '../../web_pages/main/psychologists/psychologists_page.dart';
 import '../../web_pages/main/psychologists/psychologist_detail.dart';
-import '../../web_pages/main/blog/blog_page.dart';
-import '../../web_pages/main/blog/article_detail.dart';
+import '../../web_pages/main/blog/article_page.dart';
+import '../../web_pages/main/blog/article_detail_page.dart';
 import '../../web_pages/services/services_page.dart';
 import '../../web_pages/main/contacts/contacts_page.dart';
 import '../../web_pages/cabinet/psy/psycho/psycho_home.dart';
@@ -18,7 +18,7 @@ import '../../web_pages/cabinet/psy/psycho/psycho_schedule.dart';
 import '../../web_pages/cabinet/psy/psycho/psycho_messages.dart';
 import '../../web_pages/cabinet/psy/psycho/psycho_reports.dart';
 import '../../web_pages/cabinet/user/profile_patient/home_patient.dart';
-import '../../web_pages/cabinet/user/profile_patient/blog_patient.dart';
+import '../../web_pages/cabinet/user/profile_patient/article_patient.dart';
 import '../../web_pages/cabinet/user/profile_patient/chat_patient.dart';
 import '../../web_pages/cabinet/user/profile_patient/sessions_calendar.dart';
 import '../../web_pages/ai_chat/full_chat_screen.dart';
@@ -82,7 +82,7 @@ class AppRouter {
   static const String about = '/about';
   static const String psychologists = '/psychologists';
   static const String blog = '/blog';
-  static const String articleDetail = '/blog/:id';
+  static const String articleDetail = '/blog/:slug'; // Используем slug
   static const String services = '/services';
   static const String contacts = '/contacts';
 
@@ -90,6 +90,8 @@ class AppRouter {
   static const String dashboard = '/dashboard'; // Главная пациента
   static const String profile = '/profile'; // Профиль пациента
   static const String patientArticles = '/patient/articles';
+  static const String patientArticleDetail =
+      '/patient/articles/:slug'; // Для клиентов
   static const String chatPatient = '/patient/chat';
   static const String contactsPatient = '/patient/contacts';
   static const String sessionsCalendar = '/patient/sessions-calendar';
@@ -184,19 +186,40 @@ class AppRouter {
 
       default:
         // Динамические роуты
+
+        // Роут для психологов: /psychologists/:id
         if (settings.name?.startsWith('/psychologists/') == true) {
           final id = settings.name!.split('/').last;
           return NoAnimationMaterialPageRoute(
             builder: (_) => PsychologistDetail(id: id),
           );
         }
+
+        // Роут для публичных статей: /blog/:slug
         if (settings.name?.startsWith('/blog/') == true &&
             settings.name != blog) {
-          final id = settings.name!.split('/').last;
-          return NoAnimationMaterialPageRoute(
-            builder: (_) => ArticleDetail(id: id),
-          );
+          final slug = settings.name!.split('/').last;
+          if (slug.isNotEmpty) {
+            return NoAnimationMaterialPageRoute(
+              builder: (_) => ArticleDetailPage(slug: slug),
+              settings: RouteSettings(name: settings.name),
+            );
+          }
         }
+
+        // Роут для статей пациента: /patient/articles/:slug
+        if (settings.name?.startsWith('/patient/articles/') == true &&
+            settings.name != patientArticles) {
+          final slug = settings.name!.split('/').last;
+          if (slug.isNotEmpty) {
+            return NoAnimationMaterialPageRoute(
+              builder: (_) => ArticleDetailPage(slug: slug),
+              settings: RouteSettings(name: settings.name),
+            );
+          }
+        }
+
+        // Роут для бронирования: /booking/:id
         if (settings.name?.startsWith('/booking/') == true) {
           final id = int.tryParse(settings.name!.split('/').last);
           final args = settings.arguments as Map<String, dynamic>?;
@@ -209,6 +232,7 @@ class AppRouter {
             );
           }
         }
+
         return NoAnimationMaterialPageRoute(
           builder: (_) => const NotFoundPage(),
         );

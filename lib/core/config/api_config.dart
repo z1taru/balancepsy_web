@@ -61,7 +61,6 @@ class ApiConfig {
   // ARTICLES
   static String get articles => '$baseUrl/articles';
   static String articleBySlug(String slug) => '$baseUrl/articles/slug/$slug';
-  static String articleById(int id) => '$baseUrl/articles/$id';
 
   // REVIEWS
   static String get reviews => '$baseUrl/reviews';

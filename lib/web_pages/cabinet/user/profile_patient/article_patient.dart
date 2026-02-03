@@ -1,4 +1,4 @@
-// lib/web_pages/profile_patient/blog_patient.dart
+// lib/web_pages/cabinet/user/profile_patient/blog_patient.dart
 
 import 'package:balance_psy/widgets/unified_sidebar.dart';
 import 'package:flutter/material.dart';
@@ -82,9 +82,12 @@ class _BlogPatientPageState extends State<BlogPatientPage> {
         return 'self_help';
       case 'Отношения':
         return 'relationships';
-      case 'Состояние покоя':
       case 'Стресс':
         return 'stress';
+      case 'Медитация':
+        return 'meditation';
+      case 'Популярное':
+        return 'popular';
       default:
         return displayName.toLowerCase();
     }
@@ -354,6 +357,12 @@ class _BlogPatientPageState extends State<BlogPatientPage> {
         'name': 'Стресс',
         'count': _allArticles.where((a) => a['category'] == 'stress').length,
       },
+      {
+        'name': 'Медитация',
+        'count': _allArticles
+            .where((a) => a['category'] == 'meditation')
+            .length,
+      },
     ];
 
     return SizedBox(
@@ -617,10 +626,21 @@ class _BlogPatientPageState extends State<BlogPatientPage> {
     );
   }
 
+  /// Открыть статью через универсальную страницу ArticleDetailPage
+  /// Используем id для построения правильного роута
   void _openArticle(BuildContext ctx, Map<String, dynamic> article) {
-    final slug = article['slug'];
-    if (slug != null) {
-      AppRouter.navigateTo(ctx, '/articles/$slug');
+    final id = article['id'];
+    if (id != null) {
+      // Навигация к /patient/articles/:id
+      Navigator.pushNamed(ctx, '/patient/articles/$id');
+    } else {
+      // Fallback если нет id
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        SnackBar(
+          content: Text('Не удалось открыть статью'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -634,6 +654,10 @@ class _BlogPatientPageState extends State<BlogPatientPage> {
         return const Color(0xFFF5A623);
       case 'stress':
         return const Color(0xFFE56B6F);
+      case 'meditation':
+        return const Color(0xFF9B59B6);
+      case 'popular':
+        return const Color(0xFF3498DB);
       default:
         return AppColors.primary;
     }
@@ -649,6 +673,10 @@ class _BlogPatientPageState extends State<BlogPatientPage> {
         return 'ОТНОШЕНИЯ';
       case 'stress':
         return 'СТРЕСС';
+      case 'meditation':
+        return 'МЕДИТАЦИЯ';
+      case 'popular':
+        return 'ПОПУЛЯРНОЕ';
       default:
         return 'ДРУГОЕ';
     }
