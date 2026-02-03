@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart'; // Добавляем импорт для SVG
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import '../../../widgets/page_wrapper.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../core/router/app_router.dart';
 import '../../../widgets/web_layout.dart';
 import '../../../widgets/custom_button.dart';
+import '../../../providers/user_provider.dart';
 
 class PsychologistsPage extends StatefulWidget {
   const PsychologistsPage({super.key});
@@ -84,6 +86,30 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
     });
   }
 
+  // ─── Guard: проверка перед переходом в detail ───────────────────
+  /// Возвращает true, если навигация разрешена (авторизован, не психолог).
+  /// Иначе — показывает снэкбар или редирект и возвращает false.
+  bool _guardNavigation(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    if (!userProvider.isAuthenticated) {
+      Navigator.pushNamed(context, AppRouter.login);
+      return false;
+    }
+
+    if (userProvider.userRole == 'PSYCHOLOGIST') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Психологи не могут записываться на консультации'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return false;
+    }
+
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -104,6 +130,9 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // HERO
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildHeroSection(bool isMobile, bool isTablet) {
     final isDesktop = !isMobile && !isTablet;
 
@@ -297,6 +326,9 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // STATS
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildStatsSection(bool isMobile, bool isTablet) {
     return Container(
       width: double.infinity,
@@ -353,6 +385,9 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // FILTERS
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildFiltersSection(bool isMobile, bool isTablet) {
     return Container(
       width: double.infinity,
@@ -468,108 +503,28 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
               ],
             ),
             const SizedBox(height: 24),
-            // Опыт и цена
+            // Опыт + цена
             if (!isMobile)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Опыт работы',
-                          style: AppTextStyles.body1.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 12,
-                          children: _experiences.map((exp) {
-                            final isSelected = exp == _selectedExperience;
-                            return FilterChip(
-                              label: Text(exp),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                setState(
-                                  () => _selectedExperience = selected
-                                      ? exp
-                                      : 'Любой',
-                                );
-                              },
-                              backgroundColor: Colors.white,
-                              selectedColor: AppColors.primary,
-                              labelStyle: AppTextStyles.body1.copyWith(
-                                color: isSelected
-                                    ? Colors.white
-                                    : AppColors.textPrimary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                                side: BorderSide(
-                                  color: isSelected
-                                      ? AppColors.primary
-                                      : AppColors.inputBorder,
-                                ),
-                              ),
-                              checkmarkColor: Colors.white,
-                            );
-                          }).toList(),
-                        ),
-                      ],
+                    child: _buildFilterGroup(
+                      'Опыт работы',
+                      _experiences,
+                      _selectedExperience,
+                      'Любой',
+                      (v) => setState(() => _selectedExperience = v),
                     ),
                   ),
                   const SizedBox(width: 40),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Цена за сессию',
-                          style: AppTextStyles.body1.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 12,
-                          children: _prices.map((price) {
-                            final isSelected = price == _selectedPrice;
-                            return FilterChip(
-                              label: Text(price),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                setState(
-                                  () => _selectedPrice = selected
-                                      ? price
-                                      : 'Любая',
-                                );
-                              },
-                              backgroundColor: Colors.white,
-                              selectedColor: AppColors.primary,
-                              labelStyle: AppTextStyles.body1.copyWith(
-                                color: isSelected
-                                    ? Colors.white
-                                    : AppColors.textPrimary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                                side: BorderSide(
-                                  color: isSelected
-                                      ? AppColors.primary
-                                      : AppColors.inputBorder,
-                                ),
-                              ),
-                              checkmarkColor: Colors.white,
-                            );
-                          }).toList(),
-                        ),
-                      ],
+                    child: _buildFilterGroup(
+                      'Цена за сессию',
+                      _prices,
+                      _selectedPrice,
+                      'Любая',
+                      (v) => setState(() => _selectedPrice = v),
                     ),
                   ),
                 ],
@@ -578,101 +533,20 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Опыт работы',
-                        style: AppTextStyles.body1.copyWith(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: _experiences.map((exp) {
-                          final isSelected = exp == _selectedExperience;
-                          return FilterChip(
-                            label: Text(exp),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              setState(
-                                () => _selectedExperience = selected
-                                    ? exp
-                                    : 'Любой',
-                              );
-                            },
-                            backgroundColor: Colors.white,
-                            selectedColor: AppColors.primary,
-                            labelStyle: AppTextStyles.body1.copyWith(
-                              color: isSelected
-                                  ? Colors.white
-                                  : AppColors.textPrimary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              side: BorderSide(
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : AppColors.inputBorder,
-                              ),
-                            ),
-                            checkmarkColor: Colors.white,
-                          );
-                        }).toList(),
-                      ),
-                    ],
+                  _buildFilterGroup(
+                    'Опыт работы',
+                    _experiences,
+                    _selectedExperience,
+                    'Любой',
+                    (v) => setState(() => _selectedExperience = v),
                   ),
                   const SizedBox(height: 24),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Цена за сессию',
-                        style: AppTextStyles.body1.copyWith(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: _prices.map((price) {
-                          final isSelected = price == _selectedPrice;
-                          return FilterChip(
-                            label: Text(price),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              setState(
-                                () =>
-                                    _selectedPrice = selected ? price : 'Любая',
-                              );
-                            },
-                            backgroundColor: Colors.white,
-                            selectedColor: AppColors.primary,
-                            labelStyle: AppTextStyles.body1.copyWith(
-                              color: isSelected
-                                  ? Colors.white
-                                  : AppColors.textPrimary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              side: BorderSide(
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : AppColors.inputBorder,
-                              ),
-                            ),
-                            checkmarkColor: Colors.white,
-                          );
-                        }).toList(),
-                      ),
-                    ],
+                  _buildFilterGroup(
+                    'Цена за сессию',
+                    _prices,
+                    _selectedPrice,
+                    'Любая',
+                    (v) => setState(() => _selectedPrice = v),
                   ),
                 ],
               ),
@@ -693,6 +567,56 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
     );
   }
 
+  Widget _buildFilterGroup(
+    String title,
+    List<String> items,
+    String selected,
+    String defaultVal,
+    void Function(String) onSelect,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: AppTextStyles.body1.copyWith(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: items.map((item) {
+            final isSelected = item == selected;
+            return FilterChip(
+              label: Text(item),
+              selected: isSelected,
+              onSelected: (sel) => onSelect(sel ? item : defaultVal),
+              backgroundColor: Colors.white,
+              selectedColor: AppColors.primary,
+              labelStyle: AppTextStyles.body1.copyWith(
+                color: isSelected ? Colors.white : AppColors.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+                side: BorderSide(
+                  color: isSelected ? AppColors.primary : AppColors.inputBorder,
+                ),
+              ),
+              checkmarkColor: Colors.white,
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // GRID
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildPsychologistsGrid(bool isMobile, bool isTablet) {
     final filtered = _filteredPsychologists;
 
@@ -746,14 +670,11 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                       crossAxisSpacing: isMobile ? 0 : 24,
                       mainAxisSpacing: isMobile ? 24 : 32,
                       childAspectRatio: isMobile ? 1.3 : 0.85,
-                      mainAxisExtent: isMobile
-                          ? null
-                          : 520, // Фиксированная высота для десктопа
+                      mainAxisExtent: isMobile ? null : 520,
                     ),
                     itemCount: filtered.length,
-                    itemBuilder: (context, index) {
-                      return _buildPsychologistCard(filtered[index], isMobile);
-                    },
+                    itemBuilder: (context, index) =>
+                        _buildPsychologistCard(filtered[index], isMobile),
                   ),
           ],
         ),
@@ -765,9 +686,8 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
     if (count % 10 == 1 && count % 100 != 11) return 'психолог';
     if (count % 10 >= 2 &&
         count % 10 <= 4 &&
-        (count % 100 < 10 || count % 100 >= 20)) {
+        (count % 100 < 10 || count % 100 >= 20))
       return 'психолога';
-    }
     return 'психологов';
   }
 
@@ -818,11 +738,13 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
     );
   }
 
+  // ─── Карточка психолога ────────────────────────────────────────
   Widget _buildPsychologistCard(
     Map<String, dynamic> psychologist,
     bool isMobile,
   ) {
     final isAvailable = psychologist['available'] as bool;
+    final id = psychologist['id'];
 
     return Container(
       decoration: BoxDecoration(
@@ -839,7 +761,7 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Фото и статус
+          // ── Фото + бейдж ──
           SizedBox(
             height: isMobile ? 200 : 220,
             child: Stack(
@@ -852,21 +774,18 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                     psychologist['photo'],
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: AppColors.primary.withOpacity(0.05),
-                        child: Center(
-                          child: Icon(
-                            Icons.person_outline_rounded,
-                            size: 80,
-                            color: AppColors.primary.withOpacity(0.3),
-                          ),
+                    errorBuilder: (_, __, ___) => Container(
+                      color: AppColors.primary.withOpacity(0.05),
+                      child: Center(
+                        child: Icon(
+                          Icons.person_outline_rounded,
+                          size: 80,
+                          color: AppColors.primary.withOpacity(0.3),
                         ),
-                      );
-                    },
+                      ),
+                    ),
                   ),
                 ),
-                // Бэджы
                 Positioned(
                   top: 16,
                   left: 16,
@@ -875,48 +794,21 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                     direction: Axis.vertical,
                     children: [
                       if (!isAvailable)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.error.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: Text(
-                            'Занято',
-                            style: AppTextStyles.body3.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
-                          ),
+                        _buildBadge(
+                          'Занято',
+                          AppColors.error.withOpacity(0.9),
+                          Colors.white,
                         ),
-                      ...(psychologist['tags'] as List<String>).map((tag) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: Text(
-                            tag,
-                            style: AppTextStyles.body3.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                      ...(psychologist['tags'] as List<String>).map(
+                        (tag) => _buildBadge(
+                          tag,
+                          Colors.white.withOpacity(0.9),
+                          AppColors.primary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                // Рейтинг
                 Positioned(
                   top: 16,
                   right: 16,
@@ -952,7 +844,7 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
               ],
             ),
           ),
-          // Информация
+          // ── Информация ──
           Expanded(
             child: Padding(
               padding: EdgeInsets.all(isMobile ? 20 : 24),
@@ -986,17 +878,15 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 12),
-                        Expanded(
-                          child: Text(
-                            psychologist['description'],
-                            style: AppTextStyles.body2.copyWith(
-                              color: AppColors.textSecondary,
-                              height: 1.5,
-                              fontSize: 14,
-                            ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
+                        Text(
+                          psychologist['description'],
+                          style: AppTextStyles.body2.copyWith(
+                            color: AppColors.textSecondary,
+                            height: 1.5,
+                            fontSize: 14,
                           ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -1013,40 +903,14 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.work_history_outlined,
-                                    size: 16,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    psychologist['experience'],
-                                    style: AppTextStyles.body2.copyWith(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
+                              _buildMiniRow(
+                                Icons.work_history_outlined,
+                                psychologist['experience'],
                               ),
                               const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.message_outlined,
-                                    size: 16,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '${psychologist['reviews']} отзывов',
-                                    style: AppTextStyles.body2.copyWith(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
+                              _buildMiniRow(
+                                Icons.message_outlined,
+                                '${psychologist['reviews']} отзывов',
                               ),
                             ],
                           ),
@@ -1073,24 +937,21 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                         ],
                       ),
                       const SizedBox(height: 16),
+                      // ─── ИЗМЕНЕНИЕ: кнопка всегда ведёт на detail ───
                       SizedBox(
                         width: double.infinity,
                         height: 44,
                         child: CustomButton(
-                          text: isAvailable ? 'Записаться' : 'Недоступно',
-                          onPressed: isAvailable
-                              ? () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    '/psychologists/${psychologist['id']}',
-                                  );
-                                }
-                              : null,
-                          isPrimary: isAvailable,
+                          text: 'Записаться',
+                          onPressed: () {
+                            // Guard: если не авторизован или психолог — не идём дальше
+                            if (!_guardNavigation(context)) return;
+                            // Навигация ТОЛЬКО на detail
+                            Navigator.pushNamed(context, '/psychologists/$id');
+                          },
+                          isPrimary: true,
                           isFullWidth: true,
-                          icon: isAvailable
-                              ? Icons.arrow_forward_rounded
-                              : null,
+                          icon: Icons.arrow_forward_rounded,
                         ),
                       ),
                     ],
@@ -1104,6 +965,43 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
     );
   }
 
+  Widget _buildBadge(String text, Color bg, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Text(
+        text,
+        style: AppTextStyles.body3.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMiniRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: AppColors.textSecondary),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: AppTextStyles.body2.copyWith(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // CTA
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildCTASection(bool isMobile, bool isTablet) {
     return Container(
       width: double.infinity,
@@ -1181,9 +1079,8 @@ class _PsychologistsPageState extends State<PsychologistsPage> {
                     height: 56,
                     child: CustomButton(
                       text: 'Подобрать психолога',
-                      onPressed: () {
-                        Navigator.pushNamed(context, AppRouter.contacts);
-                      },
+                      onPressed: () =>
+                          Navigator.pushNamed(context, AppRouter.contacts),
                       isPrimary: true,
                       isFullWidth: true,
                       icon: Icons.psychology_outlined,

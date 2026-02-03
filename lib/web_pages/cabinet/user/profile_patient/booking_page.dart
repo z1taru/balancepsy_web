@@ -1,22 +1,28 @@
-// lib/web_pages/cabinet/user/booking/booking_page.dart
+// lib/web_pages/cabinet/user/profile_patient/booking_page.dart
+//
+// Чистая форма записи.
+// Данные (слоты) приходят через route-arguments из PsychologistDetail.
+// Этот экран НЕ делает fetch слотов сам.
 
 import 'package:flutter/material.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_text_styles.dart';
 import '../../../../models/session_format.dart';
-import '../../../../models/available_slot.dart';
-import '../../../../models/schedule_slot.dart';
-import '../../../../core/services/schedule_service.dart';
-import '../../../../core/services/psychologist_service.dart';
+import '../../../../core/services/appointment_api_service.dart';
 
 class BookingPage extends StatefulWidget {
   final int psychologistId;
   final String psychologistName;
 
+  /// Список слотов, полученных из arguments.
+  /// Каждый элемент — Map с ключами: dayOfWeek, startTime, endTime.
+  final List<Map<String, dynamic>> scheduleSlots;
+
   const BookingPage({
     super.key,
     required this.psychologistId,
     required this.psychologistName,
+    required this.scheduleSlots,
   });
 
   @override
@@ -24,23 +30,28 @@ class BookingPage extends StatefulWidget {
 }
 
 class _BookingPageState extends State<BookingPage> {
-  final ScheduleService _scheduleService = ScheduleService();
-  final PsychologistService _psychologistService = PsychologistService();
+  final AppointmentApiService _appointmentService = AppointmentApiService();
   final TextEditingController _issueController = TextEditingController();
 
+  // ── пошаговый state ──
   int _currentStep = 0;
   SessionFormat? _selectedFormat;
   DateTime? _selectedDate;
-  AvailableSlot? _selectedSlot;
+  Map<String, dynamic>?
+  _selectedSlot; // выбранный слот {startTime, endTime, ...}
+  bool _isSubmitting = false;
 
-  List<ScheduleSlot> _scheduleSlots = [];
-  List<AvailableSlot> _availableSlots = [];
-  bool _isLoading = false;
+  // ── вычисленные из слотов ──
+  /// Список уникальных дат, на которых есть хотя бы один слот (следующие 28 дней)
+  late final List<DateTime> _availableDates;
+
+  /// Слоты, сгруппированные по дате-ключу «yyyy-M-d»
+  late final Map<String, List<Map<String, dynamic>>> _slotsByDate;
 
   @override
   void initState() {
     super.initState();
-    _loadSchedule();
+    _computeSlots();
   }
 
   @override
@@ -49,71 +60,88 @@ class _BookingPageState extends State<BookingPage> {
     super.dispose();
   }
 
-  Future<void> _loadSchedule() async {
-    setState(() => _isLoading = true);
-
-    try {
-      final slots = await _scheduleService.getPsychologistSchedule(
-        widget.psychologistId,
-      );
-
-      setState(() {
-        _scheduleSlots = slots;
-        _isLoading = false;
-      });
-    } catch (e) {
-      print('❌ Error loading schedule: $e');
-      setState(() => _isLoading = false);
-    }
-  }
-
-  List<AvailableSlot> _generateAvailableSlots() {
-    if (_scheduleSlots.isEmpty) return [];
-
+  // ─── Генерация доступных дат из шаблона расписания ──────────────
+  // scheduleSlots содержит *шаблон* недели (dayOfWeek + startTime + endTime).
+  // Раскрываем его на 28 дней вперёд — аналогично тому, как это было в старом
+  // _generateAvailableSlots, но без зависимости от ScheduleService.
+  void _computeSlots() {
     final now = DateTime.now();
-    final slots = <AvailableSlot>[];
+    final byDate = <String, List<Map<String, dynamic>>>{};
 
-    // Генерируем слоты на следующие 4 недели
     for (var i = 0; i < 28; i++) {
       final date = now.add(Duration(days: i));
 
-      for (var scheduleSlot in _scheduleSlots) {
-        if (date.weekday == scheduleSlot.dayOfWeek && date.isAfter(now)) {
-          slots.add(
-            AvailableSlot(
-              date: date,
-              startTime: scheduleSlot.startTime,
-              endTime: scheduleSlot.endTime,
-              isBooked: false, // TODO: Проверять занятость через API
-            ),
-          );
+      for (final slot in widget.scheduleSlots) {
+        final dayOfWeek = slot['dayOfWeek'] as int;
+        if (date.weekday != dayOfWeek) continue;
+
+        // Пропускаем уже прошедшие слоты сегодня
+        if (i == 0) {
+          final parts = (slot['startTime'] as String).split(':');
+          if (int.parse(parts[0]) <= now.hour) continue;
         }
+
+        final key = '${date.year}-${date.month}-${date.day}';
+        byDate.putIfAbsent(key, () => []).add({
+          ...slot,
+          '_date': date, // сохраняем объект DateTime для удобства
+        });
       }
     }
 
-    return slots;
+    _slotsByDate = byDate;
+    _availableDates = byDate.keys.map((key) {
+      final p = key.split('-');
+      return DateTime(int.parse(p[0]), int.parse(p[1]), int.parse(p[2]));
+    }).toList()..sort();
   }
 
-  void _submitBooking() async {
+  // ─── слоты для текущей выбранной даты ───────────────────────────
+  List<Map<String, dynamic>> get _slotsForSelectedDate {
+    if (_selectedDate == null) return [];
+    final key =
+        '${_selectedDate!.year}-${_selectedDate!.month}-${_selectedDate!.day}';
+    return _slotsByDate[key] ?? [];
+  }
+
+  // ─── валидация текущего шага ────────────────────────────────────
+  bool get _canProceed {
+    switch (_currentStep) {
+      case 0:
+        return _selectedFormat != null;
+      case 1:
+        return _selectedDate != null;
+      case 2:
+        return _selectedSlot != null;
+      case 3:
+        return true; // тема необязательна
+      default:
+        return false;
+    }
+  }
+
+  // ─── отправка ───────────────────────────────────────────────────
+  Future<void> _submitBooking() async {
     if (_selectedFormat == null ||
         _selectedDate == null ||
-        _selectedSlot == null) {
+        _selectedSlot == null)
       return;
-    }
 
-    setState(() => _isLoading = true);
+    setState(() => _isSubmitting = true);
 
     try {
-      await _psychologistService.createAppointment(
+      final dateStr =
+          '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}';
+
+      await _appointmentService.createAppointment(
         psychologistId: widget.psychologistId,
-        appointmentDate:
-            '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}',
-        startTime: _selectedSlot!.startTime,
-        endTime: _selectedSlot!.endTime,
+        appointmentDate: dateStr,
+        startTime: _selectedSlot!['startTime'] as String,
+        endTime: _selectedSlot!['endTime'] as String,
         format: _selectedFormat!.name,
-        issueDescription: _issueController.text.isEmpty
+        issueDescription: _issueController.text.trim().isEmpty
             ? null
-            : _issueController.text,
+            : _issueController.text.trim(),
       );
 
       if (mounted) {
@@ -135,10 +163,13 @@ class _BookingPageState extends State<BookingPage> {
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // BUILD
+  // ═══════════════════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,90 +178,131 @@ class _BookingPageState extends State<BookingPage> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Stepper(
-              currentStep: _currentStep,
-              onStepContinue: () {
-                if (_currentStep == 0 && _selectedFormat == null) return;
-                if (_currentStep == 1 && _selectedDate == null) return;
-                if (_currentStep == 2 && _selectedSlot == null) return;
-
-                if (_currentStep < 3) {
-                  setState(() => _currentStep++);
-                } else {
-                  _submitBooking();
-                }
-              },
-              onStepCancel: () {
-                if (_currentStep > 0) {
-                  setState(() => _currentStep--);
-                }
-              },
-              controlsBuilder: (context, details) {
-                final isLastStep = _currentStep == 3;
-                return Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Row(
-                    children: [
-                      ElevatedButton(
-                        onPressed: details.onStepContinue,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                        ),
-                        child: Text(
-                          isLastStep ? 'Записаться' : 'Далее',
-                          style: AppTextStyles.button,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      if (_currentStep > 0)
-                        TextButton(
-                          onPressed: details.onStepCancel,
-                          child: Text('Назад', style: AppTextStyles.body1),
-                        ),
-                    ],
-                  ),
-                );
-              },
-              steps: [
-                Step(
-                  title: const Text('Формат консультации'),
-                  isActive: _currentStep >= 0,
-                  state: _currentStep > 0
-                      ? StepState.complete
-                      : StepState.indexed,
-                  content: _buildFormatStep(),
-                ),
-                Step(
-                  title: const Text('Выбор даты'),
-                  isActive: _currentStep >= 1,
-                  state: _currentStep > 1
-                      ? StepState.complete
-                      : StepState.indexed,
-                  content: _buildDateStep(),
-                ),
-                Step(
-                  title: const Text('Выбор времени'),
-                  isActive: _currentStep >= 2,
-                  state: _currentStep > 2
-                      ? StepState.complete
-                      : StepState.indexed,
-                  content: _buildTimeStep(),
-                ),
-                Step(
-                  title: const Text('Тема обращения'),
-                  isActive: _currentStep >= 3,
-                  state: _currentStep > 3
-                      ? StepState.complete
-                      : StepState.indexed,
-                  content: _buildIssueStep(),
-                ),
-              ],
-            ),
+      body: _availableDates.isEmpty
+          ? _buildEmptyState() // нет слотов вообще
+          : _buildStepper(),
     );
   }
 
+  // ─── пустой state — нет слотов ──────────────────────────────────
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.calendar_today, size: 80, color: AppColors.textTertiary),
+          const SizedBox(height: 24),
+          Text(
+            'Пока нет доступных слотов',
+            style: AppTextStyles.h3.copyWith(fontSize: 22),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'У ${widget.psychologistName} сейчас нет свободных окон.\nПроверьте позже или выберите другого специалиста.',
+            style: AppTextStyles.body1.copyWith(
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: Text('Назад', style: AppTextStyles.button),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── main stepper ───────────────────────────────────────────────
+  Widget _buildStepper() {
+    return Stepper(
+      currentStep: _currentStep,
+      onStepContinue: () {
+        if (!_canProceed) return;
+
+        if (_currentStep < 3) {
+          setState(() {
+            _currentStep++;
+            // при смене даты сбрасываем выбранный слот
+            if (_currentStep == 2) _selectedSlot = null;
+          });
+        } else {
+          _submitBooking();
+        }
+      },
+      onStepCancel: () {
+        if (_currentStep > 0) setState(() => _currentStep--);
+      },
+      controlsBuilder: (context, details) {
+        final isLastStep = _currentStep == 3;
+        return Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: Row(
+            children: [
+              ElevatedButton(
+                onPressed: _isSubmitting ? null : details.onStepContinue,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                ),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        isLastStep ? 'Записаться' : 'Далее',
+                        style: AppTextStyles.button,
+                      ),
+              ),
+              const SizedBox(width: 12),
+              if (_currentStep > 0)
+                TextButton(
+                  onPressed: details.onStepCancel,
+                  child: Text('Назад', style: AppTextStyles.body1),
+                ),
+            ],
+          ),
+        );
+      },
+      steps: [
+        Step(
+          title: const Text('Формат консультации'),
+          isActive: _currentStep >= 0,
+          state: _currentStep > 0 ? StepState.complete : StepState.indexed,
+          content: _buildFormatStep(),
+        ),
+        Step(
+          title: const Text('Выбор даты'),
+          isActive: _currentStep >= 1,
+          state: _currentStep > 1 ? StepState.complete : StepState.indexed,
+          content: _buildDateStep(),
+        ),
+        Step(
+          title: const Text('Выбор времени'),
+          isActive: _currentStep >= 2,
+          state: _currentStep > 2 ? StepState.complete : StepState.indexed,
+          content: _buildTimeStep(),
+        ),
+        Step(
+          title: const Text('Тема обращения'),
+          isActive: _currentStep >= 3,
+          state: StepState.indexed,
+          content: _buildIssueStep(),
+        ),
+      ],
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // ШАГ 1: формат
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildFormatStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,25 +370,10 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // ШАГ 2: дата
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildDateStep() {
-    _availableSlots = _generateAvailableSlots();
-
-    // Группируем по датам
-    final dateMap = <String, List<AvailableSlot>>{};
-    for (var slot in _availableSlots) {
-      final key = '${slot.date.year}-${slot.date.month}-${slot.date.day}';
-      dateMap.putIfAbsent(key, () => []).add(slot);
-    }
-
-    final uniqueDates = dateMap.keys.map((key) {
-      final parts = key.split('-');
-      return DateTime(
-        int.parse(parts[0]),
-        int.parse(parts[1]),
-        int.parse(parts[2]),
-      );
-    }).toList();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -325,55 +382,96 @@ class _BookingPageState extends State<BookingPage> {
           style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
-        if (uniqueDates.isEmpty)
-          Text(
-            'Нет доступных дат',
-            style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
-          )
-        else
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: uniqueDates.map((date) {
-              final isSelected =
-                  _selectedDate != null &&
-                  _selectedDate!.year == date.year &&
-                  _selectedDate!.month == date.month &&
-                  _selectedDate!.day == date.day;
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: _availableDates.map((date) {
+            final isSelected =
+                _selectedDate != null &&
+                _selectedDate!.year == date.year &&
+                _selectedDate!.month == date.month &&
+                _selectedDate!.day == date.day;
 
-              return GestureDetector(
-                onTap: () => setState(() => _selectedDate = date),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
+            final months = [
+              'янв',
+              'фев',
+              'мар',
+              'апр',
+              'мая',
+              'июн',
+              'июл',
+              'авг',
+              'сен',
+              'окт',
+              'ноя',
+              'дек',
+            ];
+            final days = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
+
+            return GestureDetector(
+              onTap: () => setState(() => _selectedDate = date),
+              child: Container(
+                width: 72,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppColors.backgroundLight,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
                     color: isSelected
                         ? AppColors.primary
-                        : AppColors.backgroundLight,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected
-                          ? AppColors.primary
-                          : AppColors.inputBorder.withOpacity(0.3),
-                    ),
-                  ),
-                  child: Text(
-                    '${date.day}.${date.month.toString().padLeft(2, '0')}',
-                    style: AppTextStyles.body1.copyWith(
-                      color: isSelected ? Colors.white : AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                        : AppColors.inputBorder.withOpacity(0.3),
                   ),
                 ),
-              );
-            }).toList(),
-          ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // день недели
+                    Text(
+                      days[date.weekday - 1],
+                      style: AppTextStyles.body2.copyWith(
+                        fontSize: 11,
+                        color: isSelected
+                            ? Colors.white.withOpacity(0.8)
+                            : AppColors.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // число
+                    Text(
+                      '${date.day}',
+                      style: AppTextStyles.body1.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: isSelected
+                            ? Colors.white
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                    // месяц
+                    Text(
+                      months[date.month - 1],
+                      style: AppTextStyles.body2.copyWith(
+                        fontSize: 11,
+                        color: isSelected
+                            ? Colors.white.withOpacity(0.8)
+                            : AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ],
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // ШАГ 3: время
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildTimeStep() {
     if (_selectedDate == null) {
       return Text(
@@ -382,11 +480,14 @@ class _BookingPageState extends State<BookingPage> {
       );
     }
 
-    final slotsForDate = _availableSlots.where((slot) {
-      return slot.date.year == _selectedDate!.year &&
-          slot.date.month == _selectedDate!.month &&
-          slot.date.day == _selectedDate!.day;
-    }).toList();
+    final slots = _slotsForSelectedDate;
+
+    if (slots.isEmpty) {
+      return Text(
+        'Нет доступных слотов на эту дату',
+        style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -396,65 +497,67 @@ class _BookingPageState extends State<BookingPage> {
           style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
-        if (slotsForDate.isEmpty)
-          Text(
-            'Нет доступных слотов на эту дату',
-            style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
-          )
-        else
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: slotsForDate.map((slot) {
-              final isSelected = _selectedSlot == slot;
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: slots.map((slot) {
+            final isSelected =
+                _selectedSlot != null &&
+                _selectedSlot!['startTime'] == slot['startTime'] &&
+                _selectedSlot!['endTime'] == slot['endTime'];
 
-              return GestureDetector(
-                onTap: slot.isBooked
-                    ? null
-                    : () => setState(() => _selectedSlot = slot),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: slot.isBooked
-                        ? AppColors.textTertiary.withOpacity(0.1)
-                        : isSelected
+            return GestureDetector(
+              onTap: () => setState(() => _selectedSlot = slot),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppColors.backgroundLight,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected
                         ? AppColors.primary
-                        : AppColors.backgroundLight,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: slot.isBooked
-                          ? AppColors.textTertiary
-                          : isSelected
-                          ? AppColors.primary
-                          : AppColors.inputBorder.withOpacity(0.3),
-                    ),
-                  ),
-                  child: Text(
-                    '${slot.startTime} - ${slot.endTime}',
-                    style: AppTextStyles.body1.copyWith(
-                      color: slot.isBooked
-                          ? AppColors.textTertiary
-                          : isSelected
-                          ? Colors.white
-                          : AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                      decoration: slot.isBooked
-                          ? TextDecoration.lineThrough
-                          : null,
-                    ),
+                        : AppColors.inputBorder.withOpacity(0.3),
                   ),
                 ),
-              );
-            }).toList(),
-          ),
+                child: Text(
+                  '${slot['startTime']} – ${slot['endTime']}',
+                  style: AppTextStyles.body1.copyWith(
+                    color: isSelected ? Colors.white : AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ],
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // ШАГ 4: тема + итог
+  // ═══════════════════════════════════════════════════════════════
   Widget _buildIssueStep() {
+    final months = [
+      'янв',
+      'фев',
+      'мар',
+      'апр',
+      'мая',
+      'июн',
+      'июл',
+      'авг',
+      'сен',
+      'окт',
+      'ноя',
+      'дек',
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -465,35 +568,42 @@ class _BookingPageState extends State<BookingPage> {
         const SizedBox(height: 16),
         TextField(
           controller: _issueController,
-          maxLines: 5,
+          maxLines: 4,
           decoration: InputDecoration(
             hintText: 'Что вас беспокоит? С чем хотели бы поработать?',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            contentPadding: const EdgeInsets.all(16),
           ),
         ),
         const SizedBox(height: 24),
+        // ── итог ──
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+            color: AppColors.primary.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.primary.withOpacity(0.15)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Итого:', style: AppTextStyles.h3.copyWith(fontSize: 18)),
-              const SizedBox(height: 12),
+              Text(
+                'Итог записи',
+                style: AppTextStyles.h3.copyWith(fontSize: 18),
+              ),
+              const SizedBox(height: 16),
+              _buildSummaryRow('Специалист', widget.psychologistName),
               _buildSummaryRow('Формат', _selectedFormat?.displayName ?? '—'),
               _buildSummaryRow(
                 'Дата',
                 _selectedDate != null
-                    ? '${_selectedDate!.day}.${_selectedDate!.month}.${_selectedDate!.year}'
+                    ? '${_selectedDate!.day} ${months[_selectedDate!.month - 1]} ${_selectedDate!.year}'
                     : '—',
               ),
               _buildSummaryRow(
                 'Время',
                 _selectedSlot != null
-                    ? '${_selectedSlot!.startTime} - ${_selectedSlot!.endTime}'
+                    ? '${_selectedSlot!['startTime']} – ${_selectedSlot!['endTime']}'
                     : '—',
               ),
             ],
@@ -505,7 +615,7 @@ class _BookingPageState extends State<BookingPage> {
 
   Widget _buildSummaryRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

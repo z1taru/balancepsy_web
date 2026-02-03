@@ -223,11 +223,15 @@ class AppRouter {
         if (settings.name?.startsWith('/booking/') == true) {
           final id = int.tryParse(settings.name!.split('/').last);
           final args = settings.arguments as Map<String, dynamic>?;
+
           if (id != null && args != null) {
+            final slots = args['slots'] as List<Map<String, dynamic>>? ?? [];
+
             return NoAnimationMaterialPageRoute(
               builder: (_) => BookingPage(
                 psychologistId: id,
                 psychologistName: args['name'] ?? 'Психолог',
+                scheduleSlots: slots, // ← передаём слоты
               ),
             );
           }
