@@ -1,7 +1,10 @@
-// lib/web_pages/profile_patient/psy_catalog.dart
-import 'package:balance_psy/widgets/unified_sidebar.dart';
+// lib/web_pages/cabinet/user/profile_patient/psy_catalog.dart
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:balance_psy/widgets/unified_sidebar.dart';
 import '../../../../core/services/psychologist_service.dart';
+import '../../../../core/services/user_provider.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_text_styles.dart';
 import '../../../../core/router/app_router.dart';
@@ -52,19 +55,14 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
       _isLoading = true;
       _error = null;
     });
-
     try {
       final psychologists = await _psychologistService.getAllPsychologists();
-
       setState(() {
         _psychologists = psychologists;
         _filteredPsychologists = psychologists;
         _isLoading = false;
       });
-
-      print('✅ Loaded ${_psychologists.length} psychologist(s)');
     } catch (e) {
-      print('❌ Error loading psychologists: $e');
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -74,51 +72,67 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
 
   void _applyFilters() {
     setState(() {
-      _filteredPsychologists = _psychologists.where((psychologist) {
-        // Фильтр по поиску
+      _filteredPsychologists = _psychologists.where((p) {
         if (_searchQuery.isNotEmpty) {
-          final name = (psychologist['fullName'] ?? '')
-              .toString()
-              .toLowerCase();
-          final specialization = (psychologist['specialization'] ?? '')
-              .toString()
-              .toLowerCase();
-          final query = _searchQuery.toLowerCase();
-
-          if (!name.contains(query) && !specialization.contains(query)) {
-            return false;
-          }
+          final name = (p['fullName'] ?? '').toString().toLowerCase();
+          final spec = (p['specialization'] ?? '').toString().toLowerCase();
+          final q = _searchQuery.toLowerCase();
+          if (!name.contains(q) && !spec.contains(q)) return false;
         }
-
-        // Фильтр по специализации
         if (_selectedSpecialization != 'Все') {
-          final specialization = (psychologist['specialization'] ?? '')
-              .toString();
-          if (!specialization.contains(_selectedSpecialization)) {
+          if (!(p['specialization'] ?? '').toString().contains(
+            _selectedSpecialization,
+          ))
             return false;
-          }
         }
-
-        // Фильтр по доступности
+        // «Только доступные» — фильтр по онлайн-статусу, НЕ блокировка записи
         if (_showOnlyAvailable) {
-          final isAvailable = psychologist['isAvailable'] ?? true;
-          if (!isAvailable) {
-            return false;
-          }
+          if (p['isAvailable'] != true) return false;
         }
-
         return true;
       }).toList();
     });
   }
 
+  // ─── Navigation: кнопка записи ───────────────────────────────
+  /// Логика:
+  ///  1. Если не авторизован → навигация на login
+  ///  2. Если роль PSYCHOLOGIST → снэкбар «нельзя записаться»
+  ///  3. Иначе → /booking/:id  (доступность слотов проверяется НЕ здесь)
+  void _handleBooking(BuildContext context, Map<String, dynamic> psychologist) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    if (!userProvider.isAuthenticated) {
+      Navigator.pushNamed(context, AppRouter.login);
+      return;
+    }
+
+    if (userProvider.userRole == 'PSYCHOLOGIST') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Психологи не могут записываться'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    final id = psychologist['id'] ?? 0;
+    Navigator.pushNamed(
+      context,
+      '/booking/$id',
+      arguments: {'name': psychologist['fullName'] ?? 'Психолог'},
+    );
+  }
+
+  // ─── BUILD ────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
+          SizedBox(
             width: 280,
             child: UnifiedSidebar(currentRoute: AppRouter.contactsPatient),
           ),
@@ -135,6 +149,7 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
     );
   }
 
+  // ─── Header: поиск + фильтры ──────────────────────────────────
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -197,9 +212,10 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
             ],
           ),
           const SizedBox(height: 20),
-          // Поиск и фильтры
+          // Поиск + фильтры
           Row(
             children: [
+              // Поиск
               Expanded(
                 flex: 3,
                 child: Container(
@@ -228,6 +244,7 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
                 ),
               ),
               const SizedBox(width: 16),
+              // Специализация
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -244,29 +261,30 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
                       isExpanded: true,
                       items:
                           [
-                            'Все',
-                            'КПТ',
-                            'Семейная терапия',
-                            'Самооценка',
-                            'Стресс',
-                            'Детская психология',
-                          ].map((spec) {
-                            return DropdownMenuItem(
-                              value: spec,
-                              child: Text(spec, style: AppTextStyles.body1),
-                            );
-                          }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedSpecialization = value ?? 'Все';
-                          _applyFilters();
-                        });
-                      },
+                                'Все',
+                                'КПТ',
+                                'Семейная терапия',
+                                'Самооценка',
+                                'Стресс',
+                                'Детская психология',
+                              ]
+                              .map(
+                                (s) => DropdownMenuItem(
+                                  value: s,
+                                  child: Text(s, style: AppTextStyles.body1),
+                                ),
+                              )
+                              .toList(),
+                      onChanged: (v) => setState(() {
+                        _selectedSpecialization = v ?? 'Все';
+                        _applyFilters();
+                      }),
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: 16),
+              // Чекбокс «только доступные» — фильтр по онлайн-статусу
               Container(
                 decoration: BoxDecoration(
                   color: _showOnlyAvailable
@@ -282,12 +300,10 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () {
-                      setState(() {
-                        _showOnlyAvailable = !_showOnlyAvailable;
-                        _applyFilters();
-                      });
-                    },
+                    onTap: () => setState(() {
+                      _showOnlyAvailable = !_showOnlyAvailable;
+                      _applyFilters();
+                    }),
                     borderRadius: BorderRadius.circular(12),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -327,87 +343,72 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
     );
   }
 
+  // ─── Body ─────────────────────────────────────────────────────
   Widget _buildBody() {
-    if (_isLoading) {
-      return _buildLoadingState();
-    }
-
-    if (_error != null) {
-      return _buildErrorState();
-    }
-
-    if (_filteredPsychologists.isEmpty) {
-      return _buildEmptyState();
-    }
-
+    if (_isLoading) return _buildLoadingState();
+    if (_error != null) return _buildErrorState();
+    if (_filteredPsychologists.isEmpty) return _buildEmptyState();
     return _buildPsychologistsList();
   }
 
-  Widget _buildLoadingState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(color: AppColors.primary),
-          const SizedBox(height: 16),
-          Text('Загрузка психологов...', style: AppTextStyles.body1),
-        ],
-      ),
-    );
-  }
+  Widget _buildLoadingState() => Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        CircularProgressIndicator(color: AppColors.primary),
+        const SizedBox(height: 16),
+        Text('Загрузка психологов...', style: AppTextStyles.body1),
+      ],
+    ),
+  );
 
-  Widget _buildErrorState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: 64, color: Colors.red),
-          const SizedBox(height: 16),
-          Text('Ошибка загрузки', style: AppTextStyles.h2),
-          const SizedBox(height: 8),
-          Text(_error ?? '', style: AppTextStyles.body1),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: _loadPsychologists,
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: Text('Попробовать снова', style: AppTextStyles.button),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildErrorState() => Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(Icons.error_outline, size: 64, color: Colors.red),
+        const SizedBox(height: 16),
+        Text('Ошибка загрузки', style: AppTextStyles.h2),
+        const SizedBox(height: 8),
+        Text(_error ?? '', style: AppTextStyles.body1),
+        const SizedBox(height: 24),
+        ElevatedButton(
+          onPressed: _loadPsychologists,
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+          child: Text('Попробовать снова', style: AppTextStyles.button),
+        ),
+      ],
+    ),
+  );
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.search_off, size: 64, color: AppColors.textTertiary),
-          const SizedBox(height: 16),
-          Text('Психологи не найдены', style: AppTextStyles.h2),
-          const SizedBox(height: 8),
-          Text(
-            'Попробуйте изменить фильтры или критерии поиска',
-            style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _searchController.clear();
-                _selectedSpecialization = 'Все';
-                _showOnlyAvailable = false;
-                _applyFilters();
-              });
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: Text('Сбросить фильтры', style: AppTextStyles.button),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildEmptyState() => Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.search_off, size: 64, color: AppColors.textTertiary),
+        const SizedBox(height: 16),
+        Text('Психологи не найдены', style: AppTextStyles.h2),
+        const SizedBox(height: 8),
+        Text(
+          'Попробуйте изменить фильтры',
+          style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 24),
+        ElevatedButton(
+          onPressed: () => setState(() {
+            _searchController.clear();
+            _selectedSpecialization = 'Все';
+            _showOnlyAvailable = false;
+            _applyFilters();
+          }),
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+          child: Text('Сбросить фильтры', style: AppTextStyles.button),
+        ),
+      ],
+    ),
+  );
 
+  // ─── Grid карточек ────────────────────────────────────────────
   Widget _buildPsychologistsList() {
     return GridView.builder(
       padding: const EdgeInsets.all(24),
@@ -418,35 +419,34 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
         crossAxisSpacing: 24,
       ),
       itemCount: _filteredPsychologists.length,
-      itemBuilder: (context, index) {
-        return _buildPsychologistCard(_filteredPsychologists[index]);
-      },
+      itemBuilder: (context, index) =>
+          _buildPsychologistCard(_filteredPsychologists[index]),
     );
   }
 
-  Widget _buildPsychologistCard(Map<String, dynamic> psychologist) {
-    final bool isAvailable = psychologist['isAvailable'] ?? true;
-    final String? avatarUrl = psychologist['avatarUrl'];
-    final String fullName = psychologist['fullName'] ?? 'Неизвестно';
-    final String specialization = psychologist['specialization'] ?? '';
-    final double rating = (psychologist['rating'] ?? 0.0).toDouble();
-    final int experienceYears = psychologist['experienceYears'] ?? 0;
-    final int totalSessions = psychologist['totalSessions'] ?? 0;
-    final int hourlyRate = ((psychologist['hourlyRate'] ?? 0) as num).toInt();
-    final int id = psychologist['id'] ?? 0;
+  // ─── Карточка психолога ───────────────────────────────────────
+  Widget _buildPsychologistCard(Map<String, dynamic> p) {
+    final bool isAvailable =
+        p['isAvailable'] ?? true; // онлайн-статус (индикатор только)
+    final String? avatarUrl = p['avatarUrl'];
+    final String fullName = p['fullName'] ?? 'Неизвестно';
+    final String specialization = p['specialization'] ?? '';
+    final double rating = (p['rating'] ?? 0.0).toDouble();
+    final int experienceYears = p['experienceYears'] ?? 0;
+    final int totalSessions = p['totalSessions'] ?? 0;
+    final int hourlyRate = ((p['hourlyRate'] ?? 0) as num).toInt();
+    final int id = p['id'] ?? 0;
 
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
-        onTap: () {
-          Navigator.pushNamed(context, '/psychologists/$id');
-        },
+        onTap: () => Navigator.pushNamed(context, '/psychologists/$id'),
         borderRadius: BorderRadius.circular(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Аватар
+            // ── Аватар + бейдж онлайн-статуса ──
             Stack(
               children: [
                 Container(
@@ -466,13 +466,12 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
                             avatarUrl,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                _buildAvatarPlaceholder(),
+                            errorBuilder: (_, __, ___) => _avatarPlaceholder(),
                           ),
                         )
-                      : _buildAvatarPlaceholder(),
+                      : _avatarPlaceholder(),
                 ),
-                // Бейдж доступности
+                // Бейдж: Доступен / Занят — только визуальный индикатор
                 Positioned(
                   top: 12,
                   right: 12,
@@ -511,7 +510,7 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
               ],
             ),
 
-            // Информация
+            // ── Информация ──
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -535,6 +534,7 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 12),
+                    // Рейтинг + опыт
                     Row(
                       children: [
                         Icon(Icons.star, size: 16, color: AppColors.warning),
@@ -559,6 +559,7 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
                       ],
                     ),
                     const SizedBox(height: 8),
+                    // Количество сессий
                     Row(
                       children: [
                         Icon(
@@ -578,6 +579,7 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
                     const Spacer(),
                     Divider(color: AppColors.inputBorder.withOpacity(0.3)),
                     const SizedBox(height: 8),
+                    // Цена
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -597,29 +599,22 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
                       ],
                     ),
                     const SizedBox(height: 12),
+
+                    // ✅ ИСПРАВЛЕНИЕ: кнопка ВСЕГДА активна.
+                    // «isAvailable» = онлайн-статус, не влияет на возможность записи.
+                    // Доступность слотов проверяется на странице /booking/:id.
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: isAvailable
-                            ? () {
-                                Navigator.pushNamed(
-                                  context,
-                                  '/psychologists/$id',
-                                );
-                              }
-                            : null,
+                        onPressed: () => _handleBooking(context, p),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
-                          disabledBackgroundColor: Colors.grey,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Text(
-                          isAvailable ? 'Записаться' : 'Недоступно',
-                          style: AppTextStyles.button,
-                        ),
+                        child: Text('Записаться', style: AppTextStyles.button),
                       ),
                     ),
                   ],
@@ -632,13 +627,11 @@ class _PsyCatalogPageState extends State<PsyCatalogPage> {
     );
   }
 
-  Widget _buildAvatarPlaceholder() {
-    return Center(
-      child: Icon(
-        Icons.person_outline,
-        size: 80,
-        color: AppColors.primary.withOpacity(0.3),
-      ),
-    );
-  }
+  Widget _avatarPlaceholder() => Center(
+    child: Icon(
+      Icons.person_outline,
+      size: 80,
+      color: AppColors.primary.withOpacity(0.3),
+    ),
+  );
 }
