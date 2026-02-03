@@ -1,7 +1,7 @@
 // lib/web_pages/profile_patient/psy_catalog.dart
 import 'package:balance_psy/widgets/unified_sidebar.dart';
 import 'package:flutter/material.dart';
-import '../../../services/psychologist_service.dart';
+import '../../../../core/services/psychologist_service.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../theme/app_text_styles.dart';
 import '../../../../core/router/app_router.dart';

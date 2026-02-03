@@ -1,12 +1,103 @@
-// lib/web_pages/psycho/psycho_reports.dart
-
-import 'package:balance_psy/widgets/unified_sidebar.dart';
 import 'package:flutter/material.dart';
-import '../../../../theme/app_colors.dart';
-import '../../../../theme/app_text_styles.dart';
+import '../../../../widgets/unified_sidebar.dart';
+import '../../../../models/report_model.dart';
+import '../../../../core/services/reports_service.dart';
+import '../../../../widgets/psychologist/reports/reports_date_list.dart';
+import '../../../../widgets/psychologist/reports/reports_list_view.dart';
+import '../../../../widgets/psychologist/reports/report_editor_view.dart';
 
-class PsychoReportsPage extends StatelessWidget {
+enum ReportViewLevel {
+  datesList, // Уровень 1: выбор даты
+  reportsList, // Уровень 2: список отчётов за дату
+  reportDetail, // Уровень 3: просмотр/редактирование
+}
+
+class PsychoReportsPage extends StatefulWidget {
   const PsychoReportsPage({super.key});
+
+  @override
+  State<PsychoReportsPage> createState() => _PsychoReportsPageState();
+}
+
+class _PsychoReportsPageState extends State<PsychoReportsPage> {
+  final ReportsService _service = ReportsService();
+
+  ReportViewLevel _currentLevel = ReportViewLevel.datesList;
+  DateTime? _selectedDate;
+  int? _selectedReportId;
+
+  List<ReportModel> _allReports = [];
+  List<ReportGroupByDate> _reportGroups = [];
+  List<ReportModel> _reportsForDate = [];
+
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReports();
+  }
+
+  Future<void> _loadReports() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      final reports = await _service.getMyReports();
+
+      setState(() {
+        _allReports = reports;
+        _reportGroups = _service.getReportGroups(reports);
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('❌ Error loading reports: $e');
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Не удалось загрузить отчёты';
+      });
+    }
+  }
+
+  void _navigateToDatesList() {
+    setState(() {
+      _currentLevel = ReportViewLevel.datesList;
+      _selectedDate = null;
+      _selectedReportId = null;
+    });
+  }
+
+  void _navigateToReportsList(DateTime date) {
+    final reportsForDate = _allReports.where((report) {
+      final reportDate = DateTime(
+        report.sessionDate.year,
+        report.sessionDate.month,
+        report.sessionDate.day,
+      );
+      return reportDate == date;
+    }).toList();
+
+    setState(() {
+      _currentLevel = ReportViewLevel.reportsList;
+      _selectedDate = date;
+      _reportsForDate = reportsForDate;
+    });
+  }
+
+  void _navigateToReportDetail(int reportId) {
+    setState(() {
+      _currentLevel = ReportViewLevel.reportDetail;
+      _selectedReportId = reportId;
+    });
+  }
+
+  void _onReportUpdated() {
+    // Обновляем список отчётов после изменения
+    _loadReports();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,203 +105,72 @@ class PsychoReportsPage extends StatelessWidget {
       backgroundColor: const Color(0xFFF8F9FC),
       body: Row(
         children: [
-          UnifiedSidebar(currentRoute: '/psycho/reports'),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 32),
-                  _buildStatsCards(),
-                  const SizedBox(height: 24),
-                  _buildRecentReports(),
-                ],
-              ),
-            ),
-          ),
+          const UnifiedSidebar(currentRoute: '/psycho/reports'),
+          Expanded(child: _buildCurrentView()),
         ],
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Мои отчеты',
-              style: AppTextStyles.h1.copyWith(fontSize: 28),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Статистика и история сессий',
-              style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
-            ),
-          ],
-        ),
-        ElevatedButton.icon(
-          onPressed: () {},
-          icon: const Icon(Icons.download, size: 20),
-          label: const Text('Экспорт отчетов'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          ),
-        ),
-      ],
+  Widget _buildCurrentView() {
+    if (_isLoading) {
+      return _buildLoadingState();
+    }
+
+    if (_errorMessage != null) {
+      return _buildErrorState();
+    }
+
+    switch (_currentLevel) {
+      case ReportViewLevel.datesList:
+        return ReportsDateList(
+          reportGroups: _reportGroups,
+          onDateSelected: _navigateToReportsList,
+        );
+
+      case ReportViewLevel.reportsList:
+        return ReportsListView(
+          selectedDate: _selectedDate!,
+          reports: _reportsForDate,
+          onReportSelected: _navigateToReportDetail,
+          onBack: _navigateToDatesList,
+        );
+
+      case ReportViewLevel.reportDetail:
+        return ReportEditorView(
+          reportId: _selectedReportId!,
+          onBack: () {
+            _onReportUpdated();
+            _navigateToReportsList(_selectedDate!);
+          },
+        );
+    }
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: CircularProgressIndicator(color: Color(0xFF57A2EB)),
     );
   }
 
-  Widget _buildStatsCards() {
-    return Row(
-      children: [
-        Expanded(child: _buildStatCard('8', 'всего отчетов', Icons.assessment, Colors.blue)),
-        const SizedBox(width: 20),
-        Expanded(child: _buildStatCard('3', 'за эту неделю', Icons.trending_up, Colors.green)),
-        const SizedBox(width: 20),
-        Expanded(child: _buildStatCard('12', 'сессий проведено', Icons.event_available, Colors.orange)),
-        const SizedBox(width: 20),
-        Expanded(child: _buildStatCard('4.9', 'средний рейтинг', Icons.star, Colors.purple)),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(String value, String label, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadow.withOpacity(0.06),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+  Widget _buildErrorState() {
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
+          const Icon(Icons.error_outline, size: 64, color: Colors.red),
           const SizedBox(height: 16),
           Text(
-            value,
-            style: AppTextStyles.h1.copyWith(
-              fontSize: 32,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecentReports() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadow.withOpacity(0.06),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Последние отчеты', style: AppTextStyles.h2),
-              TextButton(
-                onPressed: () {},
-                child: Text(
-                  'Все →',
-                  style: AppTextStyles.body1.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
+            _errorMessage ?? 'Произошла ошибка',
+            style: const TextStyle(fontSize: 18, color: Colors.red),
           ),
           const SizedBox(height: 24),
-          _buildReportItem(
-            'Альдияр Байдилла',
-            'Тема: Тревожность',
-            '12 октября 2024',
-            'assets/images/avatar/aldiyar.png',
-          ),
-          const SizedBox(height: 16),
-          _buildReportItem(
-            'Рамина Канатовна',
-            'Тема: Влюбленность',
-            '10 октября 2024',
-            'assets/images/avatar/ramina.png',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReportItem(String name, String topic, String date, String avatar) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.inputBorder.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundImage: AssetImage(avatar),
-            onBackgroundImageError: (_, __) {},
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name, style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Text(topic, style: AppTextStyles.body2),
-                const SizedBox(height: 4),
-                Text(date, style: AppTextStyles.body3.copyWith(color: AppColors.textSecondary)),
-              ],
-            ),
-          ),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: _loadReports,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              backgroundColor: const Color(0xFF57A2EB),
             ),
-            child: const Text('Посмотреть'),
+            child: const Text('Попробовать снова'),
           ),
         ],
       ),

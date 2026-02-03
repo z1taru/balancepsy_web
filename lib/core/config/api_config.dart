@@ -98,6 +98,15 @@ class ApiConfig {
   static String get completeIntro => '$baseUrl/intro/complete';
   static String get introStatus => '$baseUrl/intro/status';
 
+  // REPORTS
+  static String get myReports => '$baseUrl/reports/my';
+  static String get incompleteReports => '$baseUrl/reports/incomplete';
+  static String reportById(int id) => '$baseUrl/reports/$id';
+  static String reportByAppointment(int appointmentId) =>
+      '$baseUrl/reports/appointment/$appointmentId';
+  static String clientReports(int clientId) =>
+      '$baseUrl/reports/client/$clientId';
+
   // HEADERS
   static Map<String, String> get headers => {
     'Content-Type': 'application/json; charset=UTF-8',

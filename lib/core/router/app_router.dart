@@ -11,7 +11,7 @@ import '../../web_pages/main/psychologists/psychologists_page.dart';
 import '../../web_pages/main/psychologists/psychologist_detail.dart';
 import '../../web_pages/main/blog/article_page.dart';
 import '../../web_pages/main/blog/article_detail_page.dart';
-import '../../web_pages/services/services_page.dart';
+import '../../core/services/services_page.dart';
 import '../../web_pages/main/contacts/contacts_page.dart';
 import '../../web_pages/cabinet/psy/psycho/psycho_home.dart';
 import '../../web_pages/cabinet/psy/psycho/psycho_schedule.dart';

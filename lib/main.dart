@@ -1,5 +1,5 @@
 import 'package:balance_psy/providers/chat_provider.dart';
-import 'package:balance_psy/web_pages/services/user_provider.dart';
+import '../../../../core/services/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'theme/app_colors.dart';

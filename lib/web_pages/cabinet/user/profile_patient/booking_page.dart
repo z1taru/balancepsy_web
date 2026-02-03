@@ -7,7 +7,7 @@ import '../../../../models/session_format.dart';
 import '../../../../models/available_slot.dart';
 import '../../../../models/schedule_slot.dart';
 import '../../../../core/services/schedule_service.dart';
-import '../../../services/psychologist_service.dart';
+import '../../../../core/services/psychologist_service.dart';
 
 class BookingPage extends StatefulWidget {
   final int psychologistId;

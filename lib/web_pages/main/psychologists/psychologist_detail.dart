@@ -6,8 +6,8 @@ import '../../../widgets/page_wrapper.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../core/router/app_router.dart';
-import '../../../web_pages/services/user_provider.dart';
-import '../../services/psychologist_service.dart';
+import '../../../../core/services/user_provider.dart';
+import '../../../../core/services/psychologist_service.dart';
 
 class PsychologistDetail extends StatefulWidget {
   final String id;
